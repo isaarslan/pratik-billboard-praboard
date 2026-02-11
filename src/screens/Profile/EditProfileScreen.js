@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { TextInput, PrimaryButton } from '../../components';
@@ -85,9 +85,7 @@ const EditProfileScreen = ({ navigation }) => {
 
           {/* CTA Button */}
           <View style={styles.buttonContainer}>
-            <PrimaryButton onPress={handleSave}>
-              Keşfetmeye Başla!
-            </PrimaryButton>
+            <PrimaryButton title="Keşfetmeye Başla!" onPress={handleSave} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
