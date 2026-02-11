@@ -22,6 +22,7 @@ const MOCK_ADS = [
     shares: '117',
     description:
       'Yeni sezon indirimlerimiz başladı! Tüm ürünlerde %50ye varan fırsatları kaçırmayın.',
+    image: 'https://picsum.photos/seed/ad1/600/400',
   },
   {
     id: '2',
@@ -32,6 +33,7 @@ const MOCK_ADS = [
     likes: '1.203',
     shares: '89',
     description: 'Hafta sonu etkinliğimize herkesi bekliyoruz!',
+    image: 'https://picsum.photos/seed/ad2/600/400',
   },
   {
     id: '3',
@@ -42,6 +44,7 @@ const MOCK_ADS = [
     likes: '567',
     shares: '34',
     description: 'Yeni açılan şubemize özel kampanyalar devam ediyor.',
+    image: 'https://picsum.photos/seed/ad3/600/400',
   },
   {
     id: '4',
@@ -52,6 +55,7 @@ const MOCK_ADS = [
     likes: '890',
     shares: '56',
     description: 'Doğa yürüyüşü etkinliğimiz bu cumartesi! Katılım ücretsiz.',
+    image: 'https://picsum.photos/seed/ad4/600/400',
   },
   {
     id: '5',
@@ -62,6 +66,7 @@ const MOCK_ADS = [
     likes: '432',
     shares: '21',
     description: 'Teknoloji fuarı için son kayıt tarihi yarın!',
+    image: 'https://picsum.photos/seed/ad5/600/400',
   },
 ];
 
@@ -95,9 +100,11 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Image */}
       <View style={styles.adImageContainer}>
-        <View style={styles.adImagePlaceholder}>
-          <Ionicons name="image" size={60} color={colors.gray[400]} />
-        </View>
+        <Image
+          source={{ uri: item.image }}
+          style={styles.adImage}
+          resizeMode="cover"
+        />
       </View>
 
       {/* Page Indicator Dots */}
@@ -320,12 +327,10 @@ const styles = StyleSheet.create({
   adImageContainer: {
     width: '100%',
   },
-  adImagePlaceholder: {
+  adImage: {
     width: '100%',
     height: 250,
     backgroundColor: colors.gray[200],
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   pageIndicator: {
     flexDirection: 'row',

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -161,9 +162,11 @@ const AdUploadScreen = ({ navigation }) => {
             İçeriğin Billboard'da böyle gözükecek. Beğendin mi?
           </Text>
           <View style={styles.billboardPreview}>
-            <View style={styles.imagePlaceholder}>
-              <Ionicons name="image-outline" size={80} color={colors.gray[400]} />
-            </View>
+            <Image
+              source={{ uri: 'https://picsum.photos/seed/billboard/800/450' }}
+              style={styles.previewImage}
+              resizeMode="cover"
+            />
           </View>
 
           <View style={styles.buttonContainer}>
@@ -377,13 +380,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  imagePlaceholder: {
+  previewImage: {
     width: '100%',
     aspectRatio: 16 / 9,
-    backgroundColor: colors.gray[200],
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.gray[200],
   },
   summaryTable: {
     backgroundColor: colors.white,
