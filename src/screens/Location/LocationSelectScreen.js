@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
+import BackHeader from '../../components/BackHeader';
 
 const DISTRICTS = [
   'Ayaş',
@@ -63,6 +64,7 @@ const LocationSelectScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackHeader title="Konum Seç" onBack={() => navigation.goBack()} />
       <View style={styles.content}>
         <Text style={styles.title}>Lütfen konumunuzu seçin.</Text>
 
@@ -106,7 +108,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text,
+    color: colors.textPrimary,
     marginTop: 20,
     marginBottom: 20,
   },
@@ -127,7 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     fontSize: 16,
-    color: colors.text,
+    color: colors.textPrimary,
   },
   listContent: {
     paddingBottom: 20,
@@ -142,7 +144,7 @@ const styles = StyleSheet.create({
   },
   districtText: {
     fontSize: 16,
-    color: colors.text,
+    color: colors.textPrimary,
   },
 });
 

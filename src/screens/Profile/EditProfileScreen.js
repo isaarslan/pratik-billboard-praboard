@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { TextInput, PrimaryButton } from '../../components';
+import BackHeader from '../../components/BackHeader';
 
 const EditProfileScreen = ({ navigation }) => {
   const [name, setName] = useState('Günay Akay');
@@ -24,6 +25,7 @@ const EditProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackHeader title="Profili Düzenle" onBack={() => navigation.goBack()} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}

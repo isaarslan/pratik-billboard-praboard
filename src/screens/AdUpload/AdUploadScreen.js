@@ -20,6 +20,7 @@ import {
   SuccessModal,
 } from '../../components';
 import { colors } from '../../theme/colors';
+import BackHeader from '../../components/BackHeader';
 
 const AdUploadScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -266,6 +267,7 @@ const AdUploadScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <BackHeader title="Reklam Yükle" onBack={() => navigation.goBack()} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

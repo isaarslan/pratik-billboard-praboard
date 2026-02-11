@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import ChipSelector from '../../components/ChipSelector';
+import BackHeader from '../../components/BackHeader';
 
 const TOPICS = [
   'Ekonomi',
@@ -72,8 +73,8 @@ const FilterScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackHeader title="Filtrele" onBack={() => navigation.goBack()} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Filtrele</Text>
 
         <View style={styles.searchContainer}>
           <Ionicons
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text,
+    color: colors.textPrimary,
     marginTop: 20,
     marginBottom: 20,
   },
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     fontSize: 16,
-    color: colors.text,
+    color: colors.textPrimary,
   },
   section: {
     marginBottom: 24,
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   chipsContainer: {
