@@ -152,7 +152,7 @@ const AdUploadScreen = ({ navigation }) => {
           style={styles.uploadPlaceholder}
           onPress={() => setContentSelected(true)}
         >
-          <Ionicons name="cloud-upload-outline" size={64} color={colors.gray} />
+          <Ionicons name="cloud-upload-outline" size={64} color={colors.gray[400]} />
           <Text style={styles.uploadText}>İçerik yüklemek için dokunun</Text>
         </TouchableOpacity>
       ) : (
@@ -162,7 +162,7 @@ const AdUploadScreen = ({ navigation }) => {
           </Text>
           <View style={styles.billboardPreview}>
             <View style={styles.imagePlaceholder}>
-              <Ionicons name="image-outline" size={80} color={colors.gray} />
+              <Ionicons name="image-outline" size={80} color={colors.gray[400]} />
             </View>
           </View>
 
@@ -259,8 +259,8 @@ const AdUploadScreen = ({ navigation }) => {
       <SuccessModal
         visible={showSuccessModal}
         message="Ödemeniz başarıyla gerçekleştirildi. Reklamınız yayına alınmak üzere hazır."
-        buttonText="Anasayfaya Dön"
-        onButtonPress={() => {
+        buttonTitle="Anasayfaya Dön"
+        onPress={() => {
           setShowSuccessModal(false);
           navigation.navigate('HomeTab');
         }}
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text,
+    color: colors.textPrimary,
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 16,
-    color: colors.text,
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   editButton: {
@@ -347,12 +347,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: colors.gray,
+    borderColor: colors.gray[300],
     borderRadius: 16,
     padding: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.gray[100],
   },
   uploadText: {
     marginTop: 16,
@@ -365,13 +365,13 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     fontSize: 16,
-    color: colors.text,
+    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: 20,
     fontWeight: '500',
   },
   billboardPreview: {
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.gray[100],
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     width: '100%',
     aspectRatio: 16 / 9,
-    backgroundColor: colors.gray + '20',
+    backgroundColor: colors.gray[200],
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     fontSize: 16,
-    color: colors.text,
+    color: colors.textPrimary,
     fontWeight: '600',
   },
   paymentPlaceholder: {
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.gray[100],
   },
   paymentText: {
     fontSize: 18,

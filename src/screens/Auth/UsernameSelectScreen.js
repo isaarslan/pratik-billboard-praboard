@@ -42,7 +42,7 @@ export default function UsernameSelectScreen({ navigation }) {
 
   const handleComplete = () => {
     if (success) {
-      navigation.replace('Main');
+      navigation.reset('HomeTab');
     }
   };
 

@@ -16,7 +16,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    navigation.replace('Main');
+    navigation.reset('HomeTab');
   };
 
   return (
