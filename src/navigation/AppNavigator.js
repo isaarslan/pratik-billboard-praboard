@@ -1,5 +1,5 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,7 +18,7 @@ import AdUploadScreen from '../screens/AdUpload/AdUploadScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function EmptyScreen() {
@@ -107,16 +107,8 @@ export default function AppNavigator() {
       <Stack.Screen name="UsernameSelect" component={UsernameSelectScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="Main" component={MainTabs} />
-      <Stack.Screen
-        name="LocationSelect"
-        component={LocationSelectScreen}
-        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-      />
-      <Stack.Screen
-        name="Filter"
-        component={FilterScreen}
-        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-      />
+      <Stack.Screen name="LocationSelect" component={LocationSelectScreen} />
+      <Stack.Screen name="Filter" component={FilterScreen} />
       <Stack.Screen name="AdUpload" component={AdUploadScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     </Stack.Navigator>
