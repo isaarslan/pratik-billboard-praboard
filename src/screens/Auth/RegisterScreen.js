@@ -30,7 +30,8 @@ export default function RegisterScreen({ navigation }) {
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
 
   const handleRegister = () => {
-    setShowVerification(true);
+    // Doğrulama adımını atla, direkt başarı göster
+    setShowSuccess(true);
   };
 
   const handleVerify = () => {

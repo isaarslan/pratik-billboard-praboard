@@ -19,6 +19,10 @@ export default function LoginScreen({ navigation }) {
     navigation.reset('HomeTab');
   };
 
+  const handleAdminLogin = () => {
+    navigation.reset('HomeTab');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -59,6 +63,14 @@ export default function LoginScreen({ navigation }) {
                 onPress={handleLogin}
                 style={styles.submitButton}
               />
+
+              <TouchableOpacity
+                onPress={handleAdminLogin}
+                style={styles.adminButton}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.adminButtonText}>Admin Girişi (Test)</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.linkText}>
@@ -130,7 +142,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submitButton: {
+    marginBottom: 12,
+  },
+  adminButton: {
+    backgroundColor: colors.textPrimary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
     marginBottom: 16,
+  },
+  adminButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '700',
   },
   linkText: {
     fontSize: 14,
