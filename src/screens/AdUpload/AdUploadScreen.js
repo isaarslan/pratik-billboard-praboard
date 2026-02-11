@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import {
   Stepper,
   PrimaryButton,
@@ -28,8 +30,21 @@ const AdUploadScreen = ({ navigation }) => {
     '15 Eylül 2024 14:00',
     '16 Eylül 2024 16:00',
   ]);
-  const [contentSelected, setContentSelected] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
 
   const addDate = () => {
     const newDate = `${dates.length + 14} Eylül 2024 ${12 + dates.length * 2}:00`;
@@ -148,13 +163,13 @@ const AdUploadScreen = ({ navigation }) => {
         Hangi içerik yayınlanacak? Detayları buradan ekle!
       </Text>
 
-      {!contentSelected ? (
+      {!selectedImage ? (
         <TouchableOpacity
           style={styles.uploadPlaceholder}
-          onPress={() => setContentSelected(true)}
+          onPress={pickImage}
         >
           <Ionicons name="cloud-upload-outline" size={64} color={colors.gray[400]} />
-          <Text style={styles.uploadText}>İçerik yüklemek için dokunun</Text>
+          <Text style={styles.uploadText}>Galeriden resim seçmek için dokunun</Text>
         </TouchableOpacity>
       ) : (
         <View style={styles.previewContainer}>
@@ -163,7 +178,7 @@ const AdUploadScreen = ({ navigation }) => {
           </Text>
           <View style={styles.billboardPreview}>
             <Image
-              source={{ uri: 'https://picsum.photos/seed/billboard/800/450' }}
+              source={{ uri: selectedImage }}
               style={styles.previewImage}
               resizeMode="cover"
             />
@@ -172,7 +187,7 @@ const AdUploadScreen = ({ navigation }) => {
           <View style={styles.buttonContainer}>
             <OutlinedButton
               title="İçeriğini beğenmedin mi? Değiştir"
-              onPress={() => setContentSelected(false)}
+              onPress={pickImage}
             />
             <View style={styles.buttonSpacer} />
             <PrimaryButton

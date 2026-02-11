@@ -13,6 +13,7 @@ import HomeScreen from '../screens/Home/HomeScreen';
 import LocationSelectScreen from '../screens/Location/LocationSelectScreen';
 import FilterScreen from '../screens/Filter/FilterScreen';
 import AdUploadScreen from '../screens/AdUpload/AdUploadScreen';
+import PanelsScreen from '../screens/Panels/PanelsScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 
@@ -39,7 +40,7 @@ export default function AppNavigator({ navigation }) {
     if (isMainScreen) {
       switch (activeTab) {
         case 'HomeTab': return <HomeScreen navigation={navigation} />;
-        case 'Panels': return <View style={styles.emptyScreen} />;
+        case 'Panels': return <PanelsScreen navigation={navigation} />;
         case 'Notifications': return <View style={styles.emptyScreen} />;
         case 'ProfileTab': return <ProfileScreen navigation={navigation} />;
         default: return <HomeScreen navigation={navigation} />;
