@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, TextInput as RNTextInput, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput as RNTextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 
@@ -18,15 +18,8 @@ export default function TextInput({
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
 
-  useEffect(() => {
-    Animated.timing(labelAnim, {
-      toValue: isFocused || value ? 1 : 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [isFocused, value]);
+  const isActive = isFocused || (value && value.length > 0);
 
   const getBorderColor = () => {
     if (error) return colors.error;
@@ -51,18 +44,18 @@ export default function TextInput({
   return (
     <View style={[styles.container, style]}>
       <View style={[styles.inputWrapper, { borderColor: getBorderColor(), backgroundColor: getBackgroundColor() }]}>
-        <Animated.Text
+        <Text
           style={[
             styles.label,
             {
               color: getLabelColor(),
-              top: labelAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 6] }),
-              fontSize: labelAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 12] }),
+              top: isActive ? 6 : 18,
+              fontSize: isActive ? 12 : 16,
             },
           ]}
         >
           {label}
-        </Animated.Text>
+        </Text>
         <RNTextInput
           style={styles.input}
           value={value}
@@ -82,8 +75,8 @@ export default function TextInput({
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
-      {success && <Text style={styles.successText}>{success}</Text>}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {success ? <Text style={styles.successText}>{success}</Text> : null}
     </View>
   );
 }
@@ -111,6 +104,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     paddingTop: 12,
     height: '100%',
+    outlineStyle: 'none',
   },
   eyeIcon: {
     position: 'absolute',

@@ -1,36 +1,20 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 
 export default function Toast({ visible, message, type = 'error', onDismiss, duration = 3000 }) {
-  const translateY = useRef(new Animated.Value(-100)).current;
-
   useEffect(() => {
-    if (visible) {
-      Animated.spring(translateY, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 80,
-        friction: 10,
-      }).start();
-      if (duration > 0) {
-        const timer = setTimeout(() => onDismiss?.(), duration);
-        return () => clearTimeout(timer);
-      }
-    } else {
-      Animated.timing(translateY, {
-        toValue: -100,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+    if (visible && duration > 0) {
+      const timer = setTimeout(() => onDismiss?.(), duration);
+      return () => clearTimeout(timer);
     }
   }, [visible]);
 
   if (!visible) return null;
 
   return (
-    <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
+    <View style={styles.container}>
       <View style={styles.content}>
         <Ionicons name="close-circle" size={20} color={colors.white} />
         <Text style={styles.message}>{message}</Text>
@@ -38,7 +22,7 @@ export default function Toast({ visible, message, type = 'error', onDismiss, dur
           <Ionicons name="close" size={20} color={colors.white} />
         </TouchableOpacity>
       </View>
-    </Animated.View>
+    </View>
   );
 }
 
