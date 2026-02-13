@@ -91,8 +91,9 @@ export default function PanelsScreen({ navigation }) {
   };
 
   const handleRent = () => {
+    const panelData = selectedPanel;
     setSelectedPanel(null);
-    navigation.navigate('AdUpload');
+    navigation.navigate('AdUpload', { panel: panelData });
   };
 
   const mapMarkers = MOCK_PANELS.map((p) => ({

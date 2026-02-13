@@ -13,12 +13,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useAds } from '../../context/AdContext';
+import { useOrders } from '../../context/OrderContext';
 
 const { width } = Dimensions.get('window');
 
 const ProfileScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('reklamlar');
   const { myAds, allAds } = useAds();
+  const { orders, STATUS_LABELS, STATUS_COLORS } = useOrders();
 
   // Beğenilen ilanlar (ilk 3 başkasının ilanı)
   const likedAds = allAds.filter((a) => !a.isOwn).slice(0, 3);
@@ -114,6 +116,44 @@ const ProfileScreen = ({ navigation }) => {
             contentContainerStyle={styles.tabContent}
             scrollEnabled={false}
           />
+        );
+      case 'siparislerim':
+        return (
+          <View style={styles.tabContent}>
+            {orders.length === 0 ? (
+              <View style={styles.emptyOrderContainer}>
+                <Ionicons name="receipt-outline" size={48} color={colors.gray[300]} />
+                <Text style={styles.emptyOrderText}>Henüz sipariş yok</Text>
+              </View>
+            ) : (
+              orders.map((order) => {
+                const sc = STATUS_COLORS[order.status];
+                return (
+                  <TouchableOpacity
+                    key={order.id}
+                    style={styles.orderCard}
+                    onPress={() => navigation.navigate('OrderDetail', order)}
+                    activeOpacity={0.7}
+                  >
+                    <Image source={{ uri: order.adImage }} style={styles.orderThumb} resizeMode="cover" />
+                    <View style={styles.orderInfo}>
+                      <Text style={styles.orderTitle} numberOfLines={1}>{order.adTitle}</Text>
+                      <Text style={styles.orderPanel}>{order.panel.name}</Text>
+                      <View style={styles.orderBottom}>
+                        <View style={[styles.orderStatusBadge, { backgroundColor: sc.bg }]}>
+                          <Text style={[styles.orderStatusText, { color: sc.text }]}>
+                            {STATUS_LABELS[order.status]}
+                          </Text>
+                        </View>
+                        <Text style={styles.orderPrice}>{order.totalPrice}</Text>
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.gray[400]} />
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </View>
         );
       default:
         return null;
@@ -229,6 +269,19 @@ const ProfileScreen = ({ navigation }) => {
                 ]}
               >
                 Beğeniler
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'siparislerim' && styles.activeTab]}
+              onPress={() => setActiveTab('siparislerim')}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'siparislerim' && styles.activeTabText,
+                ]}
+              >
+                Siparişler
               </Text>
             </TouchableOpacity>
           </View>
@@ -400,7 +453,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.primary,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 12,
     color: colors.textSecondary,
     fontWeight: '500',
   },
@@ -504,6 +557,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textPrimary,
     fontWeight: '500',
+  },
+  // Siparis stilleri
+  emptyOrderContainer: {
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+  emptyOrderText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginTop: 12,
+  },
+  orderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  orderThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    backgroundColor: colors.gray[200],
+  },
+  orderInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  orderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  orderPanel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  orderBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  orderStatusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  orderStatusText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  orderPrice: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
   },
 });
 

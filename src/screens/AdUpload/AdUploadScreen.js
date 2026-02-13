@@ -23,9 +23,12 @@ import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
 import DateTimePickerModal from '../../components/DateTimePickerModal';
 import { useAds } from '../../context/AdContext';
+import { useOrders } from '../../context/OrderContext';
 
 const AdUploadScreen = ({ navigation }) => {
   const { addAd } = useAds();
+  const { addOrder } = useOrders();
+  const selectedPanel = navigation.currentRoute.params?.panel || null;
   const [currentStep, setCurrentStep] = useState(1);
   const [adTitle, setAdTitle] = useState('');
   const [adDuration, setAdDuration] = useState('');
@@ -104,6 +107,19 @@ const AdUploadScreen = ({ navigation }) => {
       <Text style={styles.description}>
         Reklamını başlatmak için birkaç bilgiye ihtiyacımız var.
       </Text>
+
+      {/* Secili Pano Bilgisi */}
+      {selectedPanel && (
+        <View style={styles.selectedPanelCard}>
+          <Image source={{ uri: selectedPanel.image }} style={styles.selectedPanelImage} resizeMode="cover" />
+          <View style={styles.selectedPanelInfo}>
+            <Text style={styles.selectedPanelName}>{selectedPanel.name}</Text>
+            <Text style={styles.selectedPanelLocation}>{selectedPanel.location}</Text>
+            <Text style={styles.selectedPanelPrice}>{selectedPanel.price}</Text>
+          </View>
+          <Ionicons name="checkmark-circle" size={24} color="#2E7D32" />
+        </View>
+      )}
 
       <View style={styles.formContainer}>
         <TextInput
@@ -295,10 +311,41 @@ const AdUploadScreen = ({ navigation }) => {
       <Text style={styles.title}>Reklamın Böyle Görünecek!</Text>
       <Stepper currentStep={6} totalSteps={6} />
       <Text style={styles.description}>
-        Reklamın feed'de aşağıdaki gibi görünecek. Onaylıyor musun?
+        Reklamın billboard panoda ve feed'de nasıl görünecek, son kez kontrol et!
       </Text>
 
+      {/* Billboard Montaj Onizleme */}
+      {selectedPanel && (
+        <View style={styles.montageSection}>
+          <Text style={styles.montageSectionTitle}>Billboard Panoda Görünüm</Text>
+          <View style={styles.montageContainer}>
+            <Image
+              source={{ uri: selectedPanel.image }}
+              style={styles.montageBackground}
+              resizeMode="cover"
+              blurRadius={2}
+            />
+            <View style={styles.montageOverlay}>
+              <View style={styles.montageFrame}>
+                {selectedImage ? (
+                  <Image source={{ uri: selectedImage }} style={styles.montageAdImg} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.montageAdImg, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.gray[200] }]}>
+                    <Ionicons name="image-outline" size={40} color={colors.gray[400]} />
+                  </View>
+                )}
+              </View>
+              <View style={styles.montageTag}>
+                <Ionicons name="location" size={12} color="#fff" />
+                <Text style={styles.montageTagText}>{selectedPanel.name}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Feed-style preview card */}
+      <Text style={styles.montageSectionTitle}>Feed'deki Görünüm</Text>
       <View style={styles.feedPreviewCard}>
         <View style={styles.feedPreviewHeader}>
           <View style={styles.feedPreviewAvatar}>
@@ -306,7 +353,7 @@ const AdUploadScreen = ({ navigation }) => {
           </View>
           <View style={styles.feedPreviewInfo}>
             <Text style={styles.feedPreviewName}>İsa Arslan</Text>
-            <Text style={styles.feedPreviewMeta}>Az önce • Ankara</Text>
+            <Text style={styles.feedPreviewMeta}>Az önce • {selectedPanel?.location || 'Ankara'}</Text>
           </View>
         </View>
 
@@ -358,6 +405,15 @@ const AdUploadScreen = ({ navigation }) => {
               dates,
               image: selectedImage,
             });
+            if (selectedPanel) {
+              addOrder({
+                adTitle,
+                adImage: selectedImage,
+                panel: selectedPanel,
+                dates,
+                adDuration,
+              });
+            }
             setShowSuccessModal(true);
           }}
         />
@@ -623,6 +679,96 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
+  },
+  selectedPanelCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E8F5E9',
+    backgroundColor: '#FAFFF9',
+  },
+  selectedPanelImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: colors.gray[200],
+  },
+  selectedPanelInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  selectedPanelName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  selectedPanelLocation: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  selectedPanelPrice: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+    marginTop: 2,
+  },
+  montageSection: {
+    marginBottom: 20,
+  },
+  montageSectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 10,
+  },
+  montageContainer: {
+    height: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  montageBackground: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  montageOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  montageFrame: {
+    width: '70%',
+    aspectRatio: 16 / 9,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  montageAdImg: {
+    width: '100%',
+    height: '100%',
+  },
+  montageTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginTop: 8,
+    gap: 4,
+  },
+  montageTagText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   feedPreviewCard: {
     backgroundColor: colors.white,
