@@ -6,7 +6,7 @@ import { colors } from '../theme/colors';
 export default function BackHeader({ title, onBack }) {
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.6}>
+      <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.6} accessibilityLabel="Geri" accessibilityRole="button">
         <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
       </TouchableOpacity>
       {title ? <Text style={styles.title}>{title}</Text> : null}
