@@ -154,12 +154,12 @@ const ProfileScreen = ({ navigation }) => {
 
           <View style={styles.profileInfo}>
             <View style={styles.nameRow}>
-              <Text style={styles.name}>Günay Akay</Text>
+              <Text style={styles.name}>İsa Arslan</Text>
               <View style={styles.goldBadge}>
                 <Text style={styles.goldBadgeText}>P</Text>
               </View>
             </View>
-            <Text style={styles.username}>@gunayakay</Text>
+            <Text style={styles.username}>@isaarslan</Text>
 
             <View style={styles.statsRow}>
               <Text style={styles.statsText}>{myAds.length} Reklam</Text>
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   },
   adImageReal: {
     width: '100%',
-    height: 150,
+    height: 180,
     backgroundColor: colors.gray[200],
   },
   adCardContent: {
@@ -452,6 +452,8 @@ const styles = StyleSheet.create({
     width: (width - 40) / 3,
     height: (width - 40) / 3,
     position: 'relative',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   mediaImage: {
     width: '100%',

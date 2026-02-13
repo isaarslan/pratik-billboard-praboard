@@ -41,7 +41,7 @@ const AdUploadScreen = ({ navigation }) => {
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [16, 9],
-      quality: 0.8,
+      quality: 1,
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -86,7 +86,7 @@ const AdUploadScreen = ({ navigation }) => {
   const renderStep1 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.title}>Reklam Yükleme Zamanı</Text>
-      <Stepper currentStep={1} totalSteps={5} />
+      <Stepper currentStep={1} totalSteps={6} />
       <Text style={styles.description}>
         Reklamını başlatmak için birkaç bilgiye ihtiyacımız var.
       </Text>
@@ -119,7 +119,7 @@ const AdUploadScreen = ({ navigation }) => {
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.title}>Reklam Tarihini Belirle</Text>
-      <Stepper currentStep={2} totalSteps={5} />
+      <Stepper currentStep={2} totalSteps={6} />
       <Text style={styles.description}>
         Reklamın hangi tarihlerde gösterilsin? Aşağıdan tarihleri seç!
       </Text>
@@ -161,7 +161,7 @@ const AdUploadScreen = ({ navigation }) => {
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.title}>Reklam İçeriğini Yükle</Text>
-      <Stepper currentStep={3} totalSteps={5} />
+      <Stepper currentStep={3} totalSteps={6} />
       <Text style={styles.description}>
         Hangi içerik yayınlanacak? Detayları buradan ekle!
       </Text>
@@ -206,7 +206,7 @@ const AdUploadScreen = ({ navigation }) => {
   const renderStep4 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.title}>İşte İçerik Özetin!</Text>
-      <Stepper currentStep={4} totalSteps={5} />
+      <Stepper currentStep={4} totalSteps={6} />
       <Text style={styles.description}>
         İçeriğin Billboard'da böyle gözükecek. Beğendin mi?
       </Text>
@@ -230,7 +230,7 @@ const AdUploadScreen = ({ navigation }) => {
   const renderStep5 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.title}>Son Bir Adım: Ödeme</Text>
-      <Stepper currentStep={5} totalSteps={5} />
+      <Stepper currentStep={5} totalSteps={6} />
       <Text style={styles.description}>
         İçeriğini inceledin mi? Eğer tamamsa şimdi ödeme yapabilirsin!
       </Text>
@@ -243,7 +243,74 @@ const AdUploadScreen = ({ navigation }) => {
 
       <View style={styles.buttonContainer}>
         <PrimaryButton
-          title="Reklamı Yayına Al"
+          title="Önizlemeyi Gör"
+          onPress={() => setCurrentStep(6)}
+        />
+      </View>
+    </View>
+  );
+
+  const renderStep6 = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.title}>Reklamın Böyle Görünecek!</Text>
+      <Stepper currentStep={6} totalSteps={6} />
+      <Text style={styles.description}>
+        Reklamın feed'de aşağıdaki gibi görünecek. Onaylıyor musun?
+      </Text>
+
+      {/* Feed-style preview card */}
+      <View style={styles.feedPreviewCard}>
+        <View style={styles.feedPreviewHeader}>
+          <View style={styles.feedPreviewAvatar}>
+            <Ionicons name="person" size={20} color={colors.gray[400]} />
+          </View>
+          <View style={styles.feedPreviewInfo}>
+            <Text style={styles.feedPreviewName}>İsa Arslan</Text>
+            <Text style={styles.feedPreviewMeta}>Az önce • Ankara</Text>
+          </View>
+        </View>
+
+        {selectedImage ? (
+          <Image
+            source={{ uri: selectedImage }}
+            style={styles.feedPreviewImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.feedPreviewImage, styles.feedPreviewImagePlaceholder]}>
+            <Ionicons name="image-outline" size={48} color={colors.gray[300]} />
+          </View>
+        )}
+
+        <View style={styles.feedPreviewActions}>
+          <View style={styles.feedPreviewAction}>
+            <Ionicons name="heart-outline" size={22} color={colors.gray[600]} />
+            <Text style={styles.feedPreviewActionText}>0</Text>
+          </View>
+          <View style={styles.feedPreviewAction}>
+            <Ionicons name="share-outline" size={22} color={colors.gray[600]} />
+            <Text style={styles.feedPreviewActionText}>0</Text>
+          </View>
+        </View>
+
+        <View style={styles.feedPreviewDesc}>
+          <Text style={styles.feedPreviewDescText}>
+            <Text style={styles.feedPreviewDescBold}>isaarslan</Text>{' '}
+            {adTitle || 'Reklam başlığı'}
+          </Text>
+        </View>
+      </View>
+
+      {renderSummaryTable()}
+
+      <View style={styles.buttonContainer}>
+        <OutlinedButton
+          title="Geri Dön ve Düzenle"
+          onPress={() => setCurrentStep(5)}
+        />
+        <View style={styles.buttonSpacer} />
+        <PrimaryButton
+          title="Onayla ve Yayınla"
           onPress={() => {
             addAd({
               title: adTitle,
@@ -270,6 +337,8 @@ const AdUploadScreen = ({ navigation }) => {
         return renderStep4();
       case 5:
         return renderStep5();
+      case 6:
+        return renderStep6();
       default:
         return renderStep1();
     }
@@ -457,6 +526,76 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
+  },
+  feedPreviewCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 20,
+  },
+  feedPreviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+  },
+  feedPreviewAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.gray[200],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  feedPreviewInfo: {
+    marginLeft: 10,
+  },
+  feedPreviewName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+  },
+  feedPreviewMeta: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 1,
+  },
+  feedPreviewImage: {
+    width: '100%',
+    height: 220,
+    backgroundColor: colors.gray[200],
+  },
+  feedPreviewImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  feedPreviewActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 16,
+  },
+  feedPreviewAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  feedPreviewActionText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  feedPreviewDesc: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  feedPreviewDescText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    lineHeight: 20,
+  },
+  feedPreviewDescBold: {
+    fontWeight: 'bold',
   },
 });
 

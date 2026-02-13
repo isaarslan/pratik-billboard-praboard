@@ -89,7 +89,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
           <View style={styles.greetingContainer}>
             <Text style={styles.greetingText}>Günaydın</Text>
-            <Text style={styles.nameText}>Jane Doe</Text>
+            <Text style={styles.nameText}>İsa Arslan</Text>
           </View>
         </View>
         <View style={styles.topRight}>
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   adImage: {
     width: '100%',
-    height: 250,
+    height: 280,
     backgroundColor: colors.gray[200],
   },
   pageIndicator: {
