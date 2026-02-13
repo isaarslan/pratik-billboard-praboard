@@ -19,6 +19,7 @@ import ProfileScreen from '../screens/Profile/ProfileScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 import OrderDetailScreen from '../screens/Orders/OrderDetailScreen';
+import AdminScreen from '../screens/Admin/AdminScreen';
 
 // Screens that show the bottom tab bar
 const MAIN_TABS = ['HomeTab', 'Panels', 'Notifications', 'ProfileTab'];
@@ -63,6 +64,7 @@ export default function AppNavigator({ navigation }) {
       case 'AdDetail': return <AdDetailScreen navigation={navigation} />;
       case 'EditProfile': return <EditProfileScreen navigation={navigation} />;
       case 'OrderDetail': return <OrderDetailScreen navigation={navigation} />;
+      case 'Admin': return <AdminScreen navigation={navigation} />;
       default: return <OnboardingScreen navigation={navigation} />;
     }
   };

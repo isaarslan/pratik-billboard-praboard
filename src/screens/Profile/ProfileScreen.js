@@ -171,8 +171,11 @@ const ProfileScreen = ({ navigation }) => {
               <Ionicons name="chevron-back" size={24} color={colors.white} />
             </TouchableOpacity>
             <View style={styles.rightIcons}>
-              <TouchableOpacity style={styles.iconButton}>
-                <Ionicons name="settings-outline" size={24} color={colors.white} />
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => navigation.navigate('Admin')}
+              >
+                <Ionicons name="shield-checkmark" size={24} color={colors.white} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.plusBadge}>
                 <Text style={styles.plusBadgeText}>P+</Text>

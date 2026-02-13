@@ -71,6 +71,7 @@ const STATUS_LABELS = {
   hazirlaniyor: 'Hazırlanıyor',
   live: 'Yayında',
   completed: 'Tamamlandı',
+  rejected: 'Reddedildi',
 };
 
 const STATUS_COLORS = {
@@ -78,6 +79,7 @@ const STATUS_COLORS = {
   hazirlaniyor: { bg: '#E3F2FD', text: '#1565C0' },
   live: { bg: '#E8F5E9', text: '#2E7D32' },
   completed: { bg: '#F3E5F5', text: '#6A1B9A' },
+  rejected: { bg: '#FFEBEE', text: '#C62828' },
 };
 
 const STATUS_STEPS = ['onay_bekliyor', 'hazirlaniyor', 'live', 'completed'];
@@ -109,8 +111,22 @@ export function OrderProvider({ children }) {
     return order;
   }, []);
 
+  const updateOrderStatus = useCallback((orderId, newStatus) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+    );
+  }, []);
+
+  const rejectOrder = useCallback((orderId, reason) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId ? { ...o, status: 'rejected', rejectReason: reason || 'Reklam içeriği uygun bulunmadı.' } : o
+      )
+    );
+  }, []);
+
   return (
-    <OrderContext.Provider value={{ orders, addOrder, STATUS_LABELS, STATUS_COLORS, STATUS_STEPS }}>
+    <OrderContext.Provider value={{ orders, addOrder, updateOrderStatus, rejectOrder, STATUS_LABELS, STATUS_COLORS, STATUS_STEPS }}>
       {children}
     </OrderContext.Provider>
   );

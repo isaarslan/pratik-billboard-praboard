@@ -14,13 +14,16 @@ import BackHeader from '../../components/BackHeader';
 import { useOrders } from '../../context/OrderContext';
 
 const OrderDetailScreen = ({ navigation }) => {
-  const order = navigation.currentRoute.params;
-  const { STATUS_LABELS, STATUS_COLORS, STATUS_STEPS } = useOrders();
+  const routeParams = navigation.currentRoute.params;
+  const { orders, STATUS_LABELS, STATUS_COLORS, STATUS_STEPS } = useOrders();
+
+  // Context'ten guncel siparisi cek (admin durum degistirmisse yansisin)
+  const order = orders.find((o) => o.id === routeParams?.id) || routeParams;
 
   if (!order) return null;
 
   const currentStepIndex = STATUS_STEPS.indexOf(order.status);
-  const statusColor = STATUS_COLORS[order.status];
+  const statusColor = STATUS_COLORS[order.status] || STATUS_COLORS.onay_bekliyor;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -90,6 +93,21 @@ const OrderDetailScreen = ({ navigation }) => {
             })}
           </View>
         </View>
+
+        {/* Reddedilme Bilgisi */}
+        {order.status === 'rejected' && (
+          <View style={styles.rejectedSection}>
+            <View style={styles.rejectedBox}>
+              <Ionicons name="close-circle" size={24} color="#C62828" />
+              <View style={styles.rejectedContent}>
+                <Text style={styles.rejectedTitle}>Sipariş Reddedildi</Text>
+                <Text style={styles.rejectedReason}>
+                  {order.rejectReason || 'Reklam içeriği uygun bulunmadı.'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Billboard Montaj Onizlemesi */}
         <View style={styles.section}>
@@ -557,6 +575,32 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#2E7D32',
+  },
+  // Rejected
+  rejectedSection: {
+    marginBottom: 24,
+  },
+  rejectedBox: {
+    flexDirection: 'row',
+    backgroundColor: '#FFEBEE',
+    borderRadius: 14,
+    padding: 16,
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  rejectedContent: {
+    flex: 1,
+  },
+  rejectedTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#C62828',
+    marginBottom: 4,
+  },
+  rejectedReason: {
+    fontSize: 14,
+    color: '#C62828',
+    lineHeight: 20,
   },
 });
 
