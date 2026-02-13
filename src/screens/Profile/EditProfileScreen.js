@@ -15,7 +15,7 @@ import { TextInput, PrimaryButton } from '../../components';
 import BackHeader from '../../components/BackHeader';
 
 const EditProfileScreen = ({ navigation }) => {
-  const [name, setName] = useState('Günay Akay');
+  const [name, setName] = useState('İsa Arslan');
   const [phone, setPhone] = useState('05xx xxx xx xx');
   const [email, setEmail] = useState('test@gmail.com');
 

@@ -21,6 +21,7 @@ import {
 } from '../../components';
 import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
+import DateTimePickerModal from '../../components/DateTimePickerModal';
 import { useAds } from '../../context/AdContext';
 
 const AdUploadScreen = ({ navigation }) => {
@@ -28,13 +29,11 @@ const AdUploadScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [adTitle, setAdTitle] = useState('');
   const [adDuration, setAdDuration] = useState('');
-  const [dates, setDates] = useState([
-    '14 Eylül 2024 12:00',
-    '15 Eylül 2024 14:00',
-    '16 Eylül 2024 16:00',
-  ]);
+  const [dates, setDates] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [editingDateIndex, setEditingDateIndex] = useState(null);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -49,9 +48,24 @@ const AdUploadScreen = ({ navigation }) => {
     }
   };
 
-  const addDate = () => {
-    const newDate = `${dates.length + 14} Eylül 2024 ${12 + dates.length * 2}:00`;
-    setDates([...dates, newDate]);
+  const openDatePickerForNew = () => {
+    setEditingDateIndex(null);
+    setShowDatePicker(true);
+  };
+
+  const openDatePickerForEdit = (index) => {
+    setEditingDateIndex(index);
+    setShowDatePicker(true);
+  };
+
+  const handleDateConfirm = (dateStr) => {
+    if (editingDateIndex !== null) {
+      setDates((prev) => prev.map((d, i) => (i === editingDateIndex ? dateStr : d)));
+    } else {
+      setDates((prev) => [...prev, dateStr]);
+    }
+    setShowDatePicker(false);
+    setEditingDateIndex(null);
   };
 
   const removeDate = (index) => {
@@ -125,35 +139,61 @@ const AdUploadScreen = ({ navigation }) => {
       </Text>
 
       <View style={styles.dateListContainer}>
-        <FlatList
-          data={dates}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item, index }) => (
-            <View style={styles.dateRow}>
-              <View style={styles.dateContent}>
-                <Text style={styles.dateText}>{item}</Text>
-                <TouchableOpacity style={styles.editButton}>
-                  <Ionicons name="pencil" size={20} color={colors.primary} />
-                </TouchableOpacity>
+        {dates.length === 0 ? (
+          <View style={styles.emptyDateContainer}>
+            <Ionicons name="calendar-outline" size={48} color={colors.gray[300]} />
+            <Text style={styles.emptyDateText}>Henüz tarih eklenmedi</Text>
+            <Text style={styles.emptyDateSubtext}>Aşağıdaki butona tıklayarak tarih ekleyin</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={dates}
+            keyExtractor={(item, index) => index.toString()}
+            scrollEnabled={false}
+            renderItem={({ item, index }) => (
+              <View style={styles.dateRow}>
+                <View style={styles.dateIndexBadge}>
+                  <Text style={styles.dateIndexText}>{index + 1}</Text>
+                </View>
+                <View style={styles.dateContent}>
+                  <View>
+                    <Text style={styles.dateText}>{item}</Text>
+                  </View>
+                  <View style={styles.dateActions}>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => openDatePickerForEdit(index)}
+                    >
+                      <Ionicons name="pencil" size={18} color={colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => removeDate(index)}
+                    >
+                      <Ionicons name="trash" size={18} color={colors.error} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => removeDate(index)}
-              >
-                <Ionicons name="trash" size={20} color={colors.error} />
-              </TouchableOpacity>
-            </View>
-          )}
-        />
+            )}
+          />
+        )}
       </View>
 
       <View style={styles.buttonContainer}>
-        <OutlinedButton
-          title="İçerik Yükleme Adımına Geç!"
-          onPress={() => setCurrentStep(3)}
+        <PrimaryButton
+          title="+ Yeni Tarih Ekle"
+          onPress={openDatePickerForNew}
         />
-        <View style={styles.buttonSpacer} />
-        <PrimaryButton title="Tarih Seç!" onPress={addDate} />
+        {dates.length > 0 && (
+          <>
+            <View style={styles.buttonSpacer} />
+            <OutlinedButton
+              title="İçerik Yükleme Adımına Geç!"
+              onPress={() => setCurrentStep(3)}
+            />
+          </>
+        )}
       </View>
     </View>
   );
@@ -355,6 +395,15 @@ const AdUploadScreen = ({ navigation }) => {
         {renderCurrentStep()}
       </ScrollView>
 
+      <DateTimePickerModal
+        visible={showDatePicker}
+        onClose={() => {
+          setShowDatePicker(false);
+          setEditingDateIndex(null);
+        }}
+        onConfirm={handleDateConfirm}
+      />
+
       <SuccessModal
         visible={showSuccessModal}
         message="Ödemeniz başarıyla gerçekleştirildi. Reklamınız yayına alınmak üzere hazır."
@@ -417,16 +466,50 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 16,
   },
+  emptyDateContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+  },
+  emptyDateText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginTop: 12,
+  },
+  emptyDateSubtext: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.white,
     borderRadius: 12,
-    marginBottom: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    marginBottom: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  dateIndexBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  dateIndexText: {
+    color: colors.white,
+    fontSize: 13,
+    fontWeight: '700',
   },
   dateContent: {
     flex: 1,
@@ -435,16 +518,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   dateText: {
-    fontSize: 16,
+    fontSize: 15,
     color: colors.textPrimary,
     fontWeight: '500',
   },
+  dateActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   editButton: {
-    padding: 4,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#EBF0FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   deleteButton: {
-    marginLeft: 12,
-    padding: 4,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FDEDEE',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   uploadPlaceholder: {
     marginTop: 16,

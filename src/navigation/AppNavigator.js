@@ -17,6 +17,7 @@ import AdDetailScreen from '../screens/AdDetail/AdDetailScreen';
 import PanelsScreen from '../screens/Panels/PanelsScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
+import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 
 // Screens that show the bottom tab bar
 const MAIN_TABS = ['HomeTab', 'Panels', 'Notifications', 'ProfileTab'];
@@ -42,7 +43,7 @@ export default function AppNavigator({ navigation }) {
       switch (activeTab) {
         case 'HomeTab': return <HomeScreen navigation={navigation} />;
         case 'Panels': return <PanelsScreen navigation={navigation} />;
-        case 'Notifications': return <View style={styles.emptyScreen} />;
+        case 'Notifications': return <NotificationsScreen navigation={navigation} />;
         case 'ProfileTab': return <ProfileScreen navigation={navigation} />;
         default: return <HomeScreen navigation={navigation} />;
       }
