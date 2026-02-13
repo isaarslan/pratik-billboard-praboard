@@ -13,6 +13,7 @@ import HomeScreen from '../screens/Home/HomeScreen';
 import LocationSelectScreen from '../screens/Location/LocationSelectScreen';
 import FilterScreen from '../screens/Filter/FilterScreen';
 import AdUploadScreen from '../screens/AdUpload/AdUploadScreen';
+import AdDetailScreen from '../screens/AdDetail/AdDetailScreen';
 import PanelsScreen from '../screens/Panels/PanelsScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
@@ -57,6 +58,7 @@ export default function AppNavigator({ navigation }) {
       case 'LocationSelect': return <LocationSelectScreen navigation={navigation} />;
       case 'Filter': return <FilterScreen navigation={navigation} />;
       case 'AdUpload': return <AdUploadScreen navigation={navigation} />;
+      case 'AdDetail': return <AdDetailScreen navigation={navigation} />;
       case 'EditProfile': return <EditProfileScreen navigation={navigation} />;
       default: return <OnboardingScreen navigation={navigation} />;
     }

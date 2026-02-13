@@ -72,7 +72,7 @@ const MOCK_ADS = [
 
 const HomeScreen = ({ navigation }) => {
   const renderAdCard = ({ item }) => (
-    <View style={styles.adCard}>
+    <TouchableOpacity style={styles.adCard} onPress={() => navigation.navigate('AdDetail', item)} activeOpacity={0.8}>
       {/* Header */}
       <View style={styles.adHeader}>
         <View style={styles.adHeaderLeft}>
@@ -133,7 +133,7 @@ const HomeScreen = ({ navigation }) => {
           {item.description}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
