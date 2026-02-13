@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { colors } from '../theme';
 import BottomTabBar from '../components/BottomTabBar';
 
@@ -68,21 +68,30 @@ export default function AppNavigator({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.screenContainer}>
-        {renderScreen()}
+    <View style={styles.outerContainer}>
+      <View style={styles.container}>
+        <View style={styles.screenContainer}>
+          {renderScreen()}
+        </View>
+        {isMainScreen && (
+          <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
+        )}
       </View>
-      {isMainScreen && (
-        <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    width: '100%',
+    ...(Platform.OS === 'web' ? { maxWidth: 480 } : {}),
   },
   screenContainer: {
     flex: 1,
