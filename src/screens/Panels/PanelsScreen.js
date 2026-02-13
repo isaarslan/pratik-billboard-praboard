@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import BillboardDetailModal from '../../components/BillboardDetailModal';
+import WebMap from '../../components/WebMap';
 
 const MOCK_PANELS = [
   {
@@ -21,7 +22,8 @@ const MOCK_PANELS = [
     price: '1.166 TL/gün',
     status: 'Müsait',
     image: 'https://picsum.photos/seed/panel1/400/250',
-    mapX: '52%', mapY: '38%',
+    lat: 39.9208,
+    lng: 32.8541,
   },
   {
     id: '2',
@@ -31,7 +33,8 @@ const MOCK_PANELS = [
     price: '2.350 TL/gün',
     status: 'Müsait',
     image: 'https://picsum.photos/seed/panel2/400/250',
-    mapX: '62%', mapY: '52%',
+    lat: 39.9075,
+    lng: 32.8597,
   },
   {
     id: '3',
@@ -41,7 +44,8 @@ const MOCK_PANELS = [
     price: '890 TL/gün',
     status: 'Dolu',
     image: 'https://picsum.photos/seed/panel3/400/250',
-    mapX: '48%', mapY: '28%',
+    lat: 39.9414,
+    lng: 32.8543,
   },
   {
     id: '4',
@@ -51,7 +55,8 @@ const MOCK_PANELS = [
     price: '1.500 TL/gün',
     status: 'Müsait',
     image: 'https://picsum.photos/seed/panel4/400/250',
-    mapX: '35%', mapY: '45%',
+    lat: 39.9220,
+    lng: 32.8280,
   },
   {
     id: '5',
@@ -61,7 +66,8 @@ const MOCK_PANELS = [
     price: '750 TL/gün',
     status: 'Müsait',
     image: 'https://picsum.photos/seed/panel5/400/250',
-    mapX: '22%', mapY: '32%',
+    lat: 39.9700,
+    lng: 32.7300,
   },
   {
     id: '6',
@@ -71,7 +77,8 @@ const MOCK_PANELS = [
     price: '1.050 TL/gün',
     status: 'Dolu',
     image: 'https://picsum.photos/seed/panel6/400/250',
-    mapX: '55%', mapY: '72%',
+    lat: 39.7850,
+    lng: 32.8040,
   },
 ];
 
@@ -88,45 +95,28 @@ export default function PanelsScreen({ navigation }) {
     navigation.navigate('AdUpload');
   };
 
+  const mapMarkers = MOCK_PANELS.map((p) => ({
+    id: p.id,
+    lat: p.lat,
+    lng: p.lng,
+    label: p.name,
+    color: p.status === 'Dolu' ? '#737373' : '#FF4B4B',
+  }));
+
+  const handleMarkerPress = useCallback((marker) => {
+    const panel = MOCK_PANELS.find((p) => p.id === marker.id);
+    if (panel) handlePanelPress(panel);
+  }, []);
+
   // --- MAP VIEW ---
   const renderMapView = () => (
     <View style={styles.mapContainer}>
-      <Image
-        source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/light-v11/static/32.85,39.92,11,0/800x600@2x?access_token=placeholder' }}
-        style={styles.mapFallback}
-        resizeMode="cover"
+      <WebMap
+        markers={mapMarkers}
+        center={{ lat: 39.925, lng: 32.836 }}
+        zoom={12}
+        onMarkerPress={handleMarkerPress}
       />
-      {/* Map background */}
-      <View style={styles.mapOverlay}>
-        {/* Grid lines for map feel */}
-        <View style={[styles.gridLine, { top: '25%' }]} />
-        <View style={[styles.gridLine, { top: '50%' }]} />
-        <View style={[styles.gridLine, { top: '75%' }]} />
-        <View style={[styles.gridLineV, { left: '25%' }]} />
-        <View style={[styles.gridLineV, { left: '50%' }]} />
-        <View style={[styles.gridLineV, { left: '75%' }]} />
-
-        {/* Road-like lines */}
-        <View style={styles.roadH1} />
-        <View style={styles.roadH2} />
-        <View style={styles.roadV1} />
-        <View style={styles.roadV2} />
-
-        {/* Billboard Pins */}
-        {MOCK_PANELS.map((panel) => (
-          <TouchableOpacity
-            key={panel.id}
-            style={[styles.mapPin, { left: panel.mapX, top: panel.mapY }]}
-            onPress={() => handlePanelPress(panel)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.pinBody, panel.status === 'Dolu' && styles.pinBodyDolu]}>
-              <Text style={styles.pinText}>P</Text>
-            </View>
-            <View style={[styles.pinTail, panel.status === 'Dolu' && styles.pinTailDolu]} />
-          </TouchableOpacity>
-        ))}
-      </View>
     </View>
   );
 
@@ -246,102 +236,6 @@ const styles = StyleSheet.create({
   // MAP
   mapContainer: {
     flex: 1,
-    position: 'relative',
-  },
-  mapFallback: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#E8EAE6',
-  },
-  mapOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#E8EAE6',
-  },
-  gridLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: '#D5D8D2',
-  },
-  gridLineV: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: '#D5D8D2',
-  },
-  roadH1: {
-    position: 'absolute',
-    top: '40%',
-    left: 0,
-    right: 0,
-    height: 6,
-    backgroundColor: '#CBCEC8',
-  },
-  roadH2: {
-    position: 'absolute',
-    top: '60%',
-    left: '20%',
-    right: '10%',
-    height: 4,
-    backgroundColor: '#CBCEC8',
-  },
-  roadV1: {
-    position: 'absolute',
-    left: '45%',
-    top: '10%',
-    bottom: '20%',
-    width: 6,
-    backgroundColor: '#CBCEC8',
-  },
-  roadV2: {
-    position: 'absolute',
-    left: '70%',
-    top: '25%',
-    bottom: '35%',
-    width: 4,
-    backgroundColor: '#CBCEC8',
-  },
-  mapPin: {
-    position: 'absolute',
-    alignItems: 'center',
-    marginLeft: -18,
-    marginTop: -42,
-  },
-  pinBody: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  pinBodyDolu: {
-    backgroundColor: colors.gray[500],
-  },
-  pinText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  pinTail: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 10,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: colors.primary,
-    marginTop: -2,
-  },
-  pinTailDolu: {
-    borderTopColor: colors.gray[500],
   },
   // LIST
   listContent: {
