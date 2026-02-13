@@ -328,15 +328,13 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   montageContainer: {
-    height: 220,
+    aspectRatio: 16 / 9,
     borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
   },
   panelBackgroundImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    ...StyleSheet.absoluteFillObject,
   },
   montageOverlay: {
     flex: 1,
@@ -384,7 +382,7 @@ const styles = StyleSheet.create({
   },
   proofImage: {
     width: '100%',
-    height: 240,
+    aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
   },
   proofWatermark: {

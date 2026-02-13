@@ -269,10 +269,11 @@ const styles = StyleSheet.create({
   },
   adImageContainer: {
     width: '100%',
+    overflow: 'hidden',
   },
   adImage: {
     width: '100%',
-    height: 280,
+    aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
   },
   pageIndicator: {

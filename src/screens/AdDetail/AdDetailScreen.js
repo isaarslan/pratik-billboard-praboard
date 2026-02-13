@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: '100%',
-    height: 260,
+    aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
   },
   content: {

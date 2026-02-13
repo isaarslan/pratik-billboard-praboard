@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 180,
+    aspectRatio: 16 / 9,
     borderRadius: 14,
     backgroundColor: colors.gray[200],
     marginBottom: 20,

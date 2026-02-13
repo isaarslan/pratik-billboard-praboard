@@ -7,15 +7,12 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
-
-const { width } = Dimensions.get('window');
 
 const ProfileScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('reklamlar');
@@ -480,7 +477,7 @@ const styles = StyleSheet.create({
   },
   adImageReal: {
     width: '100%',
-    height: 180,
+    aspectRatio: 16 / 9,
     backgroundColor: colors.gray[200],
   },
   adCardContent: {
@@ -502,8 +499,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   mediaItem: {
-    width: (width - 40) / 3,
-    height: (width - 40) / 3,
+    width: '32%',
+    aspectRatio: 1,
     position: 'relative',
     borderRadius: 8,
     overflow: 'hidden',
@@ -536,9 +533,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   contentThumbnailImg: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
+    width: 72,
+    height: 72,
+    borderRadius: 10,
     backgroundColor: colors.gray[200],
   },
   contentDetails: {
@@ -579,8 +576,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   orderThumb: {
-    width: 64,
-    height: 64,
+    width: 72,
+    height: 72,
     borderRadius: 10,
     backgroundColor: colors.gray[200],
   },

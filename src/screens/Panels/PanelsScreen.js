@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    height: 160,
+    aspectRatio: 16 / 9,
     backgroundColor: colors.gray[200],
   },
   cardBody: {

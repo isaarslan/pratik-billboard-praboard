@@ -727,15 +727,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   montageContainer: {
-    height: 200,
+    aspectRatio: 16 / 9,
     borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
   },
   montageBackground: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    ...StyleSheet.absoluteFillObject,
   },
   montageOverlay: {
     flex: 1,
@@ -806,7 +804,7 @@ const styles = StyleSheet.create({
   },
   feedPreviewImage: {
     width: '100%',
-    height: 220,
+    aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
   },
   feedPreviewImagePlaceholder: {
