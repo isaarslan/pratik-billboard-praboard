@@ -12,96 +12,70 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
+import { useAds } from '../../context/AdContext';
 
 const { width } = Dimensions.get('window');
 
 const ProfileScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('reklamlar');
+  const { myAds, allAds } = useAds();
 
-  // Mock data for ads
-  const mockAds = [
-    { id: '1', title: 'Premium Billboard Ad', date: '15 Ocak 2026' },
-    { id: '2', title: 'City Center Display', date: '10 Ocak 2026' },
-    { id: '3', title: 'Highway Billboard', date: '5 Ocak 2026' },
-  ];
-
-  // Mock data for liked ads
-  const mockLikedAds = [
-    { id: '1', title: 'Favorite Billboard', date: '20 Ocak 2026' },
-    { id: '2', title: 'Popular Display Ad', date: '18 Ocak 2026' },
-  ];
-
-  // Mock data for content
-  const mockContent = [
-    {
-      id: '1',
-      title: 'Premium Billboard Ad',
-      totalDays: '30',
-      adDuration: '15 gün',
-      publishDate: '15 Ocak 2026',
-    },
-    {
-      id: '2',
-      title: 'City Center Display',
-      totalDays: '45',
-      adDuration: '20 gün',
-      publishDate: '10 Ocak 2026',
-    },
-  ];
+  // Beğenilen ilanlar (ilk 3 başkasının ilanı)
+  const likedAds = allAds.filter((a) => !a.isOwn).slice(0, 3);
 
   const renderAdCard = ({ item }) => (
-    <View style={styles.adCard}>
-      <View style={styles.adImagePlaceholder}>
-        <Ionicons name="image-outline" size={40} color={colors.textSecondary} />
-      </View>
+    <TouchableOpacity
+      style={styles.adCard}
+      onPress={() => navigation.navigate('AdDetail', item)}
+      activeOpacity={0.8}
+    >
+      <Image source={{ uri: item.image }} style={styles.adImageReal} resizeMode="cover" />
       <View style={styles.adCardContent}>
-        <Text style={styles.adTitle}>{item.title}</Text>
-        <Text style={styles.adDate}>{item.date}</Text>
+        <Text style={styles.adTitle} numberOfLines={1}>{item.description || item.title}</Text>
+        <Text style={styles.adDate}>{item.publishDate || item.time}</Text>
       </View>
+    </TouchableOpacity>
+  );
+
+  const renderMediaGrid = () => (
+    <View style={styles.mediaGrid}>
+      {myAds.map((ad, index) => (
+        <TouchableOpacity
+          key={ad.id}
+          style={styles.mediaItem}
+          onPress={() => navigation.navigate('AdDetail', ad)}
+          activeOpacity={0.8}
+        >
+          <Image source={{ uri: ad.image }} style={styles.mediaImage} resizeMode="cover" />
+          {index % 3 === 0 && (
+            <View style={styles.playIconOverlay}>
+              <Ionicons name="play-circle" size={30} color={colors.white} />
+            </View>
+          )}
+        </TouchableOpacity>
+      ))}
     </View>
   );
 
-  const renderMediaGrid = () => {
-    const mediaItems = Array(6).fill(null);
-    return (
-      <View style={styles.mediaGrid}>
-        {mediaItems.map((_, index) => (
-          <View key={index} style={styles.mediaItem}>
-            <View style={styles.mediaPlaceholder}>
-              <Ionicons name="image-outline" size={30} color={colors.textSecondary} />
-            </View>
-            {index % 3 === 0 && (
-              <View style={styles.playIconOverlay}>
-                <Ionicons name="play-circle" size={30} color={colors.white} />
-              </View>
-            )}
-          </View>
-        ))}
-      </View>
-    );
-  };
-
   const renderContentItem = ({ item }) => (
     <View style={styles.contentCard}>
-      <View style={styles.contentThumbnail}>
-        <Ionicons name="image-outline" size={24} color={colors.textSecondary} />
-      </View>
+      <Image source={{ uri: item.image }} style={styles.contentThumbnailImg} resizeMode="cover" />
       <View style={styles.contentDetails}>
         <View style={styles.contentRow}>
           <Text style={styles.contentLabel}>Reklam Başlığı:</Text>
-          <Text style={styles.contentValue}>{item.title}</Text>
+          <Text style={styles.contentValue} numberOfLines={1}>{item.description || '-'}</Text>
         </View>
         <View style={styles.contentRow}>
           <Text style={styles.contentLabel}>Toplam Gün:</Text>
-          <Text style={styles.contentValue}>{item.totalDays}</Text>
+          <Text style={styles.contentValue}>{item.totalDays || '-'}</Text>
         </View>
         <View style={styles.contentRow}>
           <Text style={styles.contentLabel}>Reklam Süresi:</Text>
-          <Text style={styles.contentValue}>{item.adDuration}</Text>
+          <Text style={styles.contentValue}>{item.adDuration || '-'}</Text>
         </View>
         <View style={styles.contentRow}>
           <Text style={styles.contentLabel}>Yayınlama Tarihi:</Text>
-          <Text style={styles.contentValue}>{item.publishDate}</Text>
+          <Text style={styles.contentValue}>{item.publishDate || '-'}</Text>
         </View>
       </View>
     </View>
@@ -112,7 +86,7 @@ const ProfileScreen = ({ navigation }) => {
       case 'reklamlar':
         return (
           <FlatList
-            data={mockAds}
+            data={myAds}
             renderItem={renderAdCard}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.tabContent}
@@ -124,7 +98,7 @@ const ProfileScreen = ({ navigation }) => {
       case 'iceriklerim':
         return (
           <FlatList
-            data={mockContent}
+            data={myAds}
             renderItem={renderContentItem}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.tabContent}
@@ -134,7 +108,7 @@ const ProfileScreen = ({ navigation }) => {
       case 'begenilenler':
         return (
           <FlatList
-            data={mockLikedAds}
+            data={likedAds}
             renderItem={renderAdCard}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.tabContent}
@@ -188,7 +162,7 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.username}>@gunayakay</Text>
 
             <View style={styles.statsRow}>
-              <Text style={styles.statsText}>16 Reklam</Text>
+              <Text style={styles.statsText}>{myAds.length} Reklam</Text>
               <Text style={styles.statsSeparator}>|</Text>
               <Text style={styles.statsText}>1 Takip edilen</Text>
               <Text style={styles.statsSeparator}>|</Text>
@@ -451,12 +425,10 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  adImagePlaceholder: {
+  adImageReal: {
     width: '100%',
     height: 150,
-    backgroundColor: '#F0F0F0',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.gray[200],
   },
   adCardContent: {
     padding: 12,
@@ -481,12 +453,10 @@ const styles = StyleSheet.create({
     height: (width - 40) / 3,
     position: 'relative',
   },
-  mediaPlaceholder: {
+  mediaImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#F0F0F0',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.gray[200],
   },
   playIconOverlay: {
     position: 'absolute',
@@ -510,13 +480,11 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  contentThumbnail: {
+  contentThumbnailImg: {
     width: 60,
     height: 60,
-    backgroundColor: '#F0F0F0',
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.gray[200],
   },
   contentDetails: {
     flex: 1,

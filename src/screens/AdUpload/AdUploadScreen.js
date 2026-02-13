@@ -21,8 +21,10 @@ import {
 } from '../../components';
 import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
+import { useAds } from '../../context/AdContext';
 
 const AdUploadScreen = ({ navigation }) => {
+  const { addAd } = useAds();
   const [currentStep, setCurrentStep] = useState(1);
   const [adTitle, setAdTitle] = useState('');
   const [adDuration, setAdDuration] = useState('');
@@ -242,7 +244,15 @@ const AdUploadScreen = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <PrimaryButton
           title="Reklamı Yayına Al"
-          onPress={() => setShowSuccessModal(true)}
+          onPress={() => {
+            addAd({
+              title: adTitle,
+              duration: adDuration,
+              dates,
+              image: selectedImage,
+            });
+            setShowSuccessModal(true);
+          }}
         />
       </View>
     </View>
@@ -282,6 +292,10 @@ const AdUploadScreen = ({ navigation }) => {
         buttonTitle="Anasayfaya Dön"
         onPress={() => {
           setShowSuccessModal(false);
+          setCurrentStep(1);
+          setAdTitle('');
+          setAdDuration('');
+          setSelectedImage(null);
           navigation.navigate('HomeTab');
         }}
       />

@@ -10,67 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
-
-const MOCK_ADS = [
-  {
-    id: '1',
-    user: 'Ahmet Yılmaz',
-    username: 'ahmetyilmaz',
-    time: '7 gün önce',
-    location: 'Gölbaşı, Ankara',
-    likes: '2.345',
-    shares: '117',
-    description:
-      'Yeni sezon indirimlerimiz başladı! Tüm ürünlerde %50ye varan fırsatları kaçırmayın.',
-    image: 'https://picsum.photos/seed/ad1/600/400',
-  },
-  {
-    id: '2',
-    user: 'Sıla Torun',
-    username: 'silatorun',
-    time: '3 gün önce',
-    location: 'Çankaya, Ankara',
-    likes: '1.203',
-    shares: '89',
-    description: 'Hafta sonu etkinliğimize herkesi bekliyoruz!',
-    image: 'https://picsum.photos/seed/ad2/600/400',
-  },
-  {
-    id: '3',
-    user: 'Mehmet Kaya',
-    username: 'mehmetkaya',
-    time: '1 gün önce',
-    location: 'Etimesgut, Ankara',
-    likes: '567',
-    shares: '34',
-    description: 'Yeni açılan şubemize özel kampanyalar devam ediyor.',
-    image: 'https://picsum.photos/seed/ad3/600/400',
-  },
-  {
-    id: '4',
-    user: 'Elif Demir',
-    username: 'elifdemir',
-    time: '5 saat önce',
-    location: 'Keçiören, Ankara',
-    likes: '890',
-    shares: '56',
-    description: 'Doğa yürüyüşü etkinliğimiz bu cumartesi! Katılım ücretsiz.',
-    image: 'https://picsum.photos/seed/ad4/600/400',
-  },
-  {
-    id: '5',
-    user: 'Can Özkan',
-    username: 'canozkan',
-    time: '2 saat önce',
-    location: 'Mamak, Ankara',
-    likes: '432',
-    shares: '21',
-    description: 'Teknoloji fuarı için son kayıt tarihi yarın!',
-    image: 'https://picsum.photos/seed/ad5/600/400',
-  },
-];
+import { useAds } from '../../context/AdContext';
 
 const HomeScreen = ({ navigation }) => {
+  const { allAds } = useAds();
   const renderAdCard = ({ item }) => (
     <TouchableOpacity style={styles.adCard} onPress={() => navigation.navigate('AdDetail', item)} activeOpacity={0.8}>
       {/* Header */}
@@ -175,7 +118,7 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Feed */}
       <FlatList
-        data={MOCK_ADS}
+        data={allAds}
         renderItem={renderAdCard}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.feedContainer}
