@@ -209,12 +209,21 @@ const ProfileScreen = ({ navigation }) => {
               <Text style={styles.statsText}>1.2M Takipçi</Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => navigation.navigate('EditProfile')}
-            >
-              <Text style={styles.editButtonText}>Profili düzenle</Text>
-            </TouchableOpacity>
+            <View style={styles.profileButtons}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => navigation.navigate('EditProfile')}
+              >
+                <Text style={styles.editButtonText}>Profili düzenle</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.adminButton}
+                onPress={() => navigation.navigate('Admin')}
+              >
+                <Ionicons name="shield-checkmark" size={16} color={colors.white} />
+                <Text style={styles.adminButtonText}>Admin Paneli</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Tab Bar */}
@@ -422,17 +431,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
   },
-  editButton: {
+  profileButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
     marginTop: 16,
+  },
+  editButton: {
     paddingVertical: 10,
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.primary,
-    alignSelf: 'center',
   },
   editButtonText: {
     color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  adminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+  },
+  adminButtonText: {
+    color: colors.white,
     fontSize: 14,
     fontWeight: '600',
   },
