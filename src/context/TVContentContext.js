@@ -39,20 +39,21 @@ export function TVContentProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  const pushToTV = useCallback((order) => {
-    return pushContentToTV(order);
+  // Artik async - Firebase'e yazar
+  const pushToTV = useCallback(async (order) => {
+    return await pushContentToTV(order);
   }, []);
 
-  const startPlaying = useCallback((contentId) => {
-    startPlayingContent(contentId);
+  const startPlaying = useCallback(async (contentId) => {
+    await startPlayingContent(contentId);
   }, []);
 
-  const markComplete = useCallback((contentId) => {
-    completeContent(contentId);
+  const markComplete = useCallback(async (contentId) => {
+    await completeContent(contentId);
   }, []);
 
-  const remove = useCallback((contentId) => {
-    removeContent(contentId);
+  const remove = useCallback(async (contentId) => {
+    await removeContent(contentId);
   }, []);
 
   const onlinePanels = tvPanels.filter((p) => p.status === 'online').length;

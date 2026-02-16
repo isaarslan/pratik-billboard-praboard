@@ -1,88 +1,86 @@
 /**
- * TV Icerik Servisi
- *
- * Mobil/Web'den reklam icerigini Firebase'e yukler,
- * Android TV cihazlari icin Firestore'da planlama kayitlari olusturur.
+ * TV Icerik Servisi - Firebase Firestore Entegrasyonu
  *
  * Firestore Yapisi:
  *   tvContent/{contentId}  - Yayinlanacak reklam icerikleri
  *   tvPanels/{panelId}     - Fiziksel pano/TV cihaz durumlari
  *
- * Firebase kurulmadan once lokal mock veri ile calisir.
+ * Admin onayladiginda icerik Firestore'a yazilir,
+ * TV Display ekrani onSnapshot ile gercek zamanli dinler.
  */
 
-import { db, storage } from '../config/firebase';
+import { db } from '../config/firebase';
+import {
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore';
 
-let firebaseReady = false;
-try {
-  // Firebase config gecerli mi kontrol et
-  if (db && storage) firebaseReady = true;
-} catch {
-  firebaseReady = false;
+// Koleksiyon referanslari
+const tvContentRef = collection(db, 'tvContent');
+const tvPanelsRef = collection(db, 'tvPanels');
+
+// Lokal cache (snapshot'lardan guncellenir)
+let _tvContents = [];
+let _tvPanels = [];
+let _listeners = [];
+let _unsubContent = null;
+let _unsubPanels = null;
+
+const notifyListeners = () => _listeners.forEach((fn) => fn());
+
+// ============================================================
+// GERCEK ZAMANLI DINLEME (onSnapshot)
+// ============================================================
+
+/** Firestore dinlemelerini baslat */
+export function startListening() {
+  // TV Content dinle
+  if (!_unsubContent) {
+    const q = query(tvContentRef, orderBy('createdAt', 'desc'));
+    _unsubContent = onSnapshot(q, (snapshot) => {
+      _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      notifyListeners();
+    }, (error) => {
+      console.warn('tvContent dinleme hatasi:', error);
+    });
+  }
+
+  // TV Panels dinle
+  if (!_unsubPanels) {
+    _unsubPanels = onSnapshot(tvPanelsRef, (snapshot) => {
+      _tvPanels = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      notifyListeners();
+    }, (error) => {
+      console.warn('tvPanels dinleme hatasi:', error);
+    });
+  }
 }
 
-// ============================================================
-// LOKAL MOCK STORE (Firebase kurulmadan MVP demo icin)
-// ============================================================
-let mockTvContents = [
-  {
-    id: 'tv-001',
-    orderId: 'ORD-20260115-001',
-    adTitle: 'Premium billboard reklamımız Kızılay Meydanında yayında!',
-    mediaUrl: 'https://picsum.photos/seed/myad1/1920/1080',
-    mediaType: 'image',
-    panelId: '1',
-    panelName: 'Kızılay Meydanı',
-    duration: 15,
-    scheduledDates: ['15 Ocak 2026 10:00', '16 Ocak 2026 10:00', '17 Ocak 2026 10:00'],
-    status: 'playing', // pending, approved, playing, completed, rejected
-    createdAt: Date.now() - 86400000,
-    approvedAt: Date.now() - 80000000,
-  },
-];
+/** Dinlemeleri durdur */
+export function stopListening() {
+  if (_unsubContent) { _unsubContent(); _unsubContent = null; }
+  if (_unsubPanels) { _unsubPanels(); _unsubPanels = null; }
+}
 
-let mockTvPanels = [
-  {
-    id: '1',
-    name: 'Kızılay Meydanı',
-    location: 'Kızılay, Ankara',
-    status: 'online',
-    lastHeartbeat: Date.now(),
-    currentContentId: 'tv-001',
-    resolution: '1920x1080',
-  },
-  {
-    id: '2',
-    name: 'Tunalı Hilmi Caddesi',
-    location: 'Çankaya, Ankara',
-    status: 'online',
-    lastHeartbeat: Date.now(),
-    currentContentId: null,
-    resolution: '1920x1080',
-  },
-  {
-    id: '4',
-    name: 'Bahçelievler AVM Girişi',
-    location: 'Çankaya, Ankara',
-    status: 'offline',
-    lastHeartbeat: Date.now() - 3600000,
-    currentContentId: null,
-    resolution: '1920x1080',
-  },
-];
-
-let _listeners = [];
-const notifyListeners = () => _listeners.forEach((fn) => fn());
+// Uygulama basladiginda dinlemeyi otomatik baslat
+startListening();
 
 // ============================================================
 // TV ICERIK ISLEMLERI
 // ============================================================
 
-/** Onaylanan siparisi TV icin icerik olarak ekle */
-export function pushContentToTV(order) {
+/** Onaylanan siparisi TV icin icerik olarak Firestore'a yaz */
+export async function pushContentToTV(order) {
   const contentId = `tv-${Date.now()}`;
   const content = {
-    id: contentId,
     orderId: order.id,
     adTitle: order.adTitle,
     mediaUrl: order.adImage,
@@ -96,85 +94,182 @@ export function pushContentToTV(order) {
     approvedAt: Date.now(),
   };
 
-  mockTvContents = [content, ...mockTvContents];
-  notifyListeners();
-  return content;
+  try {
+    await setDoc(doc(tvContentRef, contentId), content);
+    return { id: contentId, ...content };
+  } catch (error) {
+    console.warn('pushContentToTV hatasi:', error);
+    // Lokal fallback
+    _tvContents = [{ id: contentId, ...content }, ..._tvContents];
+    notifyListeners();
+    return { id: contentId, ...content };
+  }
 }
 
 /** Icerigi TV'de oynatmaya basla */
-export function startPlayingContent(contentId) {
-  mockTvContents = mockTvContents.map((c) =>
-    c.id === contentId ? { ...c, status: 'playing' } : c
-  );
+export async function startPlayingContent(contentId) {
+  try {
+    await updateDoc(doc(tvContentRef, contentId), { status: 'playing' });
 
-  // Panoya atanmis icerigi guncelle
-  const content = mockTvContents.find((c) => c.id === contentId);
-  if (content) {
-    mockTvPanels = mockTvPanels.map((p) =>
-      p.id === content.panelId ? { ...p, currentContentId: contentId, status: 'online' } : p
+    // Icerigin panelini de guncelle
+    const content = _tvContents.find((c) => c.id === contentId);
+    if (content) {
+      await updateDoc(doc(tvPanelsRef, content.panelId), {
+        currentContentId: contentId,
+        status: 'online',
+      }).catch(() => {});
+    }
+  } catch (error) {
+    console.warn('startPlayingContent hatasi:', error);
+    _tvContents = _tvContents.map((c) =>
+      c.id === contentId ? { ...c, status: 'playing' } : c
     );
+    notifyListeners();
   }
-  notifyListeners();
 }
 
 /** Icerigi tamamla */
-export function completeContent(contentId) {
-  mockTvContents = mockTvContents.map((c) =>
-    c.id === contentId ? { ...c, status: 'completed' } : c
-  );
-  notifyListeners();
+export async function completeContent(contentId) {
+  try {
+    await updateDoc(doc(tvContentRef, contentId), { status: 'completed' });
+  } catch (error) {
+    console.warn('completeContent hatasi:', error);
+    _tvContents = _tvContents.map((c) =>
+      c.id === contentId ? { ...c, status: 'completed' } : c
+    );
+    notifyListeners();
+  }
 }
 
 /** Icerigi kaldir/iptal et */
-export function removeContent(contentId) {
-  const content = mockTvContents.find((c) => c.id === contentId);
-  mockTvContents = mockTvContents.filter((c) => c.id !== contentId);
+export async function removeContent(contentId) {
+  try {
+    const content = _tvContents.find((c) => c.id === contentId);
+    await deleteDoc(doc(tvContentRef, contentId));
 
-  // Panodaki mevcut icerigi temizle
-  if (content) {
-    mockTvPanels = mockTvPanels.map((p) =>
-      p.currentContentId === contentId ? { ...p, currentContentId: null } : p
-    );
+    // Panodaki mevcut icerigi temizle
+    if (content) {
+      await updateDoc(doc(tvPanelsRef, content.panelId), {
+        currentContentId: null,
+      }).catch(() => {});
+    }
+  } catch (error) {
+    console.warn('removeContent hatasi:', error);
+    _tvContents = _tvContents.filter((c) => c.id !== contentId);
+    notifyListeners();
   }
-  notifyListeners();
 }
 
 // ============================================================
 // TV PANO ISLEMLERI
 // ============================================================
 
-/** Pano durumunu guncelle (TV cihazindan heartbeat) */
-export function updatePanelHeartbeat(panelId) {
-  mockTvPanels = mockTvPanels.map((p) =>
-    p.id === panelId ? { ...p, status: 'online', lastHeartbeat: Date.now() } : p
-  );
-  notifyListeners();
+/** Pano kaydet veya guncelle (TV ilk acildiginda) */
+export async function registerPanel(panelId, panelData) {
+  try {
+    await setDoc(doc(tvPanelsRef, panelId), {
+      name: panelData.name || `Panel ${panelId}`,
+      location: panelData.location || '',
+      status: 'online',
+      lastHeartbeat: Date.now(),
+      currentContentId: null,
+      resolution: panelData.resolution || '1920x1080',
+      ...panelData,
+    }, { merge: true });
+  } catch (error) {
+    console.warn('registerPanel hatasi:', error);
+  }
 }
+
+/** Pano heartbeat gonder (TV her 30 saniyede bir cagirsin) */
+export async function updatePanelHeartbeat(panelId) {
+  try {
+    await updateDoc(doc(tvPanelsRef, panelId), {
+      status: 'online',
+      lastHeartbeat: Date.now(),
+    });
+  } catch (error) {
+    console.warn('updatePanelHeartbeat hatasi:', error);
+  }
+}
+
+/** Panoya su anda oynatilan icerigi kaydet */
+export async function updatePanelCurrentContent(panelId, contentId) {
+  try {
+    await updateDoc(doc(tvPanelsRef, panelId), {
+      currentContentId: contentId,
+      lastHeartbeat: Date.now(),
+    });
+  } catch (error) {
+    console.warn('updatePanelCurrentContent hatasi:', error);
+  }
+}
+
+// ============================================================
+// VARSAYILAN PANOLARI OLUSTUR (ilk kurulumda)
+// ============================================================
+
+const DEFAULT_PANELS = [
+  { id: '1', name: 'Kızılay Meydanı', location: 'Kızılay, Ankara', resolution: '1920x1080' },
+  { id: '2', name: 'Tunalı Hilmi Caddesi', location: 'Çankaya, Ankara', resolution: '1920x1080' },
+  { id: '3', name: 'Ulus Meydanı', location: 'Altındağ, Ankara', resolution: '1920x1080' },
+  { id: '4', name: 'Bahçelievler AVM Girişi', location: 'Çankaya, Ankara', resolution: '1920x1080' },
+  { id: '5', name: 'Batıkent Metro Çıkışı', location: 'Yenimahalle, Ankara', resolution: '1920x1080' },
+  { id: '6', name: 'Gölbaşı Sahil Yolu', location: 'Gölbaşı, Ankara', resolution: '1920x1080' },
+];
+
+export async function initializeDefaultPanels() {
+  try {
+    const snapshot = await getDocs(tvPanelsRef);
+    if (snapshot.empty) {
+      for (const panel of DEFAULT_PANELS) {
+        await setDoc(doc(tvPanelsRef, panel.id), {
+          ...panel,
+          status: 'offline',
+          lastHeartbeat: 0,
+          currentContentId: null,
+        });
+      }
+      console.log('Varsayilan panolar olusturuldu');
+    }
+  } catch (error) {
+    console.warn('initializeDefaultPanels hatasi:', error);
+  }
+}
+
+// Uygulama basladiginda varsayilan panolari olustur
+initializeDefaultPanels();
 
 // ============================================================
 // VERI OKUMA
 // ============================================================
 
-/** Tum TV iceriklerini getir */
+/** Tum TV iceriklerini getir (cache'den) */
 export function getTvContents() {
-  return [...mockTvContents];
+  return [..._tvContents];
 }
 
 /** Belirli panoya ait icerikleri getir */
 export function getContentsByPanel(panelId) {
-  return mockTvContents.filter((c) => c.panelId === panelId);
+  return _tvContents.filter((c) => c.panelId === panelId);
 }
 
-/** Tum pano durumlarini getir */
+/** Belirli panoya ait aktif (oynatilacak) icerikleri getir */
+export function getActiveContentsByPanel(panelId) {
+  return _tvContents.filter(
+    (c) => c.panelId === panelId && (c.status === 'approved' || c.status === 'playing')
+  );
+}
+
+/** Tum pano durumlarini getir (cache'den) */
 export function getTvPanels() {
-  return mockTvPanels.map((p) => {
-    // 5 dakikadan fazla heartbeat yoksa offline say
-    const isOnline = Date.now() - p.lastHeartbeat < 300000;
+  return _tvPanels.map((p) => {
+    const isOnline = Date.now() - (p.lastHeartbeat || 0) < 300000;
     return { ...p, status: isOnline ? 'online' : 'offline' };
   });
 }
 
-/** Degisiklikleri dinle (basit observer pattern) */
+/** Degisiklikleri dinle (basit observer pattern - UI icin) */
 export function subscribe(listener) {
   _listeners.push(listener);
   return () => {

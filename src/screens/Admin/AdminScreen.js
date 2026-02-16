@@ -52,15 +52,15 @@ export default function AdminScreen({ navigation }) {
     return null;
   };
 
-  const handleApproveNext = (order) => {
+  const handleApproveNext = async (order) => {
     const next = getNextStatus(order.status);
     if (!next) return;
 
     updateOrderStatus(order.id, next);
 
-    // Siparis onaylandiginda otomatik olarak TV'ye icerik gonder
+    // Siparis onaylandiginda otomatik olarak TV'ye icerik gonder (Firebase'e yazar)
     if (order.status === 'onay_bekliyor' && next === 'hazirlaniyor') {
-      pushToTV(order);
+      await pushToTV(order);
     }
   };
 
