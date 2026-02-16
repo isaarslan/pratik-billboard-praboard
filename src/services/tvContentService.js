@@ -9,7 +9,7 @@
  * TV Display ekrani onSnapshot ile gercek zamanli dinler.
  */
 
-import { db } from '../config/firebase';
+import { db, storage } from '../config/firebase';
 import {
   collection,
   doc,
@@ -22,6 +22,7 @@ import {
   orderBy,
   serverTimestamp,
 } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Koleksiyon referanslari
 const tvContentRef = collection(db, 'tvContent');
@@ -88,13 +89,33 @@ startListening();
 // TV ICERIK ISLEMLERI
 // ============================================================
 
+/** Resmi Firebase Storage'a yukle ve download URL'ini dondur */
+async function uploadImageToStorage(imageUri, contentId) {
+  try {
+    if (!imageUri) return null;
+    if (imageUri.startsWith('http://') || imageUri.startsWith('https://')) {
+      return imageUri;
+    }
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    const storageRef = ref(storage, `tvContent/${contentId}.jpg`);
+    await uploadBytes(storageRef, blob);
+    const downloadUrl = await getDownloadURL(storageRef);
+    return downloadUrl;
+  } catch (error) {
+    console.warn('Resim yukleme hatasi:', error);
+    return imageUri;
+  }
+}
+
 /** Onaylanan siparisi TV icin icerik olarak Firestore'a yaz ve direkt oynat */
 export async function pushContentToTV(order) {
   const contentId = `tv-${Date.now()}`;
+  const mediaUrl = await uploadImageToStorage(order.adImage, contentId);
   const content = {
     orderId: order.id,
     adTitle: order.adTitle,
-    mediaUrl: order.adImage,
+    mediaUrl: mediaUrl || order.adImage,
     mediaType: 'image',
     panelId: order.panel.id,
     panelName: order.panel.name,
