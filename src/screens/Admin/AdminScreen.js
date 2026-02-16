@@ -8,14 +8,16 @@ import {
   Image,
   TextInput,
   Modal,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
 import { useOrders } from '../../context/OrderContext';
+import { useTVContent } from '../../context/TVContentContext';
 
-const FILTER_OPTIONS = [
+const ORDER_FILTERS = [
   { key: 'all', label: 'Tümü' },
   { key: 'onay_bekliyor', label: 'Bekleyen' },
   { key: 'hazirlaniyor', label: 'Hazırlanan' },
@@ -26,6 +28,9 @@ const FILTER_OPTIONS = [
 
 export default function AdminScreen({ navigation }) {
   const { orders, updateOrderStatus, rejectOrder, STATUS_LABELS, STATUS_COLORS } = useOrders();
+  const { tvContents, tvPanels, pushToTV, startPlaying, markComplete, remove, onlinePanels, playingCount, approvedCount, TV_STATUS_LABELS, TV_STATUS_COLORS } = useTVContent();
+
+  const [mainTab, setMainTab] = useState('orders'); // orders | tv
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -49,7 +54,14 @@ export default function AdminScreen({ navigation }) {
 
   const handleApproveNext = (order) => {
     const next = getNextStatus(order.status);
-    if (next) updateOrderStatus(order.id, next);
+    if (!next) return;
+
+    updateOrderStatus(order.id, next);
+
+    // Siparis onaylandiginda otomatik olarak TV'ye icerik gonder
+    if (order.status === 'onay_bekliyor' && next === 'hazirlaniyor') {
+      pushToTV(order);
+    }
   };
 
   const handleOpenReject = (orderId) => {
@@ -77,6 +89,9 @@ export default function AdminScreen({ navigation }) {
     }
   };
 
+  // =====================================================
+  // SIPARIS DETAY MODALI
+  // =====================================================
   const renderOrderDetail = () => {
     if (!selectedOrder) return null;
     const order = orders.find((o) => o.id === selectedOrder.id) || selectedOrder;
@@ -88,7 +103,6 @@ export default function AdminScreen({ navigation }) {
         <SafeAreaView style={styles.container} edges={['top']}>
           <BackHeader title="Sipariş Yönetimi" onBack={() => setSelectedOrder(null)} />
           <ScrollView contentContainerStyle={styles.detailScroll} showsVerticalScrollIndicator={false}>
-            {/* Siparis Bilgi Header */}
             <View style={styles.detailHeader}>
               <View>
                 <Text style={styles.detailOrderId}>{order.id}</Text>
@@ -101,18 +115,12 @@ export default function AdminScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Reklam Gorseli */}
             <View style={styles.detailSection}>
-              <Text style={styles.detailSectionTitle}>Reklam Gorseli</Text>
-              <Image
-                source={{ uri: order.adImage }}
-                style={styles.detailAdImage}
-                resizeMode="cover"
-              />
+              <Text style={styles.detailSectionTitle}>Reklam Görseli</Text>
+              <Image source={{ uri: order.adImage }} style={styles.detailAdImage} resizeMode="cover" />
               <Text style={styles.detailAdTitle}>{order.adTitle}</Text>
             </View>
 
-            {/* Pano Bilgileri */}
             <View style={styles.detailSection}>
               <Text style={styles.detailSectionTitle}>Pano Bilgileri</Text>
               <View style={styles.panelInfoCard}>
@@ -131,16 +139,15 @@ export default function AdminScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Siparis Ozeti */}
             <View style={styles.detailSection}>
-              <Text style={styles.detailSectionTitle}>Siparis Ozeti</Text>
+              <Text style={styles.detailSectionTitle}>Sipariş Özeti</Text>
               <View style={styles.summaryCard}>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Yayin Gunleri</Text>
-                  <Text style={styles.summaryValue}>{order.dates?.length || 0} gun</Text>
+                  <Text style={styles.summaryLabel}>Yayın Günleri</Text>
+                  <Text style={styles.summaryValue}>{order.dates?.length || 0} gün</Text>
                 </View>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Reklam Suresi</Text>
+                  <Text style={styles.summaryLabel}>Reklam Süresi</Text>
                   <Text style={styles.summaryValue}>{order.adDuration}</Text>
                 </View>
                 <View style={styles.summaryRow}>
@@ -154,9 +161,8 @@ export default function AdminScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Yayin Tarihleri */}
             <View style={styles.detailSection}>
-              <Text style={styles.detailSectionTitle}>Yayin Tarihleri</Text>
+              <Text style={styles.detailSectionTitle}>Yayın Tarihleri</Text>
               {order.dates?.map((d, i) => (
                 <View key={i} style={styles.dateChip}>
                   <View style={styles.dateChipIdx}>
@@ -167,7 +173,6 @@ export default function AdminScreen({ navigation }) {
               ))}
             </View>
 
-            {/* Reddedilme Sebebi */}
             {order.status === 'rejected' && order.rejectReason && (
               <View style={styles.detailSection}>
                 <Text style={styles.detailSectionTitle}>Ret Sebebi</Text>
@@ -178,10 +183,9 @@ export default function AdminScreen({ navigation }) {
               </View>
             )}
 
-            {/* Admin Aksiyonlar */}
             {order.status !== 'completed' && order.status !== 'rejected' && (
               <View style={styles.detailSection}>
-                <Text style={styles.detailSectionTitle}>Admin Islemleri</Text>
+                <Text style={styles.detailSectionTitle}>Admin İşlemleri</Text>
                 <View style={styles.actionButtons}>
                   {actionLabel && (
                     <TouchableOpacity
@@ -197,12 +201,12 @@ export default function AdminScreen({ navigation }) {
                     </TouchableOpacity>
                   )}
                   <TouchableOpacity
-                    style={styles.rejectButton}
+                    style={styles.rejectBtn}
                     onPress={() => handleOpenReject(order.id)}
                     activeOpacity={0.7}
                   >
                     <Ionicons name="close-circle" size={20} color="#fff" />
-                    <Text style={styles.rejectButtonText}>Reddet</Text>
+                    <Text style={styles.rejectBtnText}>Reddet</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -215,11 +219,12 @@ export default function AdminScreen({ navigation }) {
     );
   };
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <BackHeader title="Admin Paneli" onBack={() => navigation.goBack()} />
-
-      {/* Ozet Kartlari */}
+  // =====================================================
+  // SIPARISLER SEKMESI
+  // =====================================================
+  const renderOrdersTab = () => (
+    <>
+      {/* Özet Kartları */}
       <View style={styles.statsRow}>
         <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
           <Text style={[styles.statNumber, { color: '#E65100' }]}>{pendingCount}</Text>
@@ -227,7 +232,7 @@ export default function AdminScreen({ navigation }) {
         </View>
         <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
           <Text style={[styles.statNumber, { color: '#2E7D32' }]}>{liveCount}</Text>
-          <Text style={styles.statLabel}>Yayinda</Text>
+          <Text style={styles.statLabel}>Yayında</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
           <Text style={[styles.statNumber, { color: '#1565C0' }]}>{totalCount}</Text>
@@ -235,9 +240,9 @@ export default function AdminScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Filtre Bari */}
+      {/* Filtre */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filterBarContent}>
-        {FILTER_OPTIONS.map((f) => (
+        {ORDER_FILTERS.map((f) => (
           <TouchableOpacity
             key={f.key}
             style={[styles.filterChip, activeFilter === f.key && styles.filterChipActive]}
@@ -251,12 +256,12 @@ export default function AdminScreen({ navigation }) {
         ))}
       </ScrollView>
 
-      {/* Siparis Listesi */}
-      <ScrollView style={styles.orderList} showsVerticalScrollIndicator={false}>
+      {/* Sipariş Listesi */}
+      <ScrollView style={styles.listArea} showsVerticalScrollIndicator={false}>
         {filteredOrders.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="file-tray-outline" size={48} color={colors.gray[300]} />
-            <Text style={styles.emptyText}>Bu kategoride siparis yok</Text>
+            <Text style={styles.emptyText}>Bu kategoride sipariş yok</Text>
           </View>
         ) : (
           filteredOrders.map((order) => {
@@ -278,23 +283,18 @@ export default function AdminScreen({ navigation }) {
                   </View>
                   <View style={styles.orderFooter}>
                     <View style={[styles.statusBadge, { backgroundColor: sc.bg }]}>
-                      <Text style={[styles.statusText, { color: sc.text }]}>
+                      <Text style={[styles.statusBadgeText, { color: sc.text }]}>
                         {STATUS_LABELS[order.status]}
                       </Text>
                     </View>
                     <Text style={styles.orderPrice}>{order.totalPrice}</Text>
                   </View>
                 </View>
-
-                {/* Hizli Aksiyon Butonlari */}
                 <View style={styles.quickActions}>
                   {actionLabel && (
                     <TouchableOpacity
                       style={styles.quickApprove}
-                      onPress={(e) => {
-                        e.stopPropagation?.();
-                        handleApproveNext(order);
-                      }}
+                      onPress={(e) => { e.stopPropagation?.(); handleApproveNext(order); }}
                       activeOpacity={0.7}
                     >
                       <Ionicons name="checkmark" size={18} color="#fff" />
@@ -303,10 +303,7 @@ export default function AdminScreen({ navigation }) {
                   {order.status !== 'completed' && order.status !== 'rejected' && (
                     <TouchableOpacity
                       style={styles.quickReject}
-                      onPress={(e) => {
-                        e.stopPropagation?.();
-                        handleOpenReject(order.id);
-                      }}
+                      onPress={(e) => { e.stopPropagation?.(); handleOpenReject(order.id); }}
                       activeOpacity={0.7}
                     >
                       <Ionicons name="close" size={18} color="#fff" />
@@ -319,6 +316,194 @@ export default function AdminScreen({ navigation }) {
         )}
         <View style={{ height: 24 }} />
       </ScrollView>
+    </>
+  );
+
+  // =====================================================
+  // TV YONETIMI SEKMESI
+  // =====================================================
+  const renderTVTab = () => (
+    <ScrollView style={styles.listArea} showsVerticalScrollIndicator={false}>
+      {/* TV Özet */}
+      <View style={styles.statsRow}>
+        <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
+          <Text style={[styles.statNumber, { color: '#2E7D32' }]}>{onlinePanels}</Text>
+          <Text style={styles.statLabel}>Çevrimiçi</Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+          <Text style={[styles.statNumber, { color: '#1565C0' }]}>{playingCount}</Text>
+          <Text style={styles.statLabel}>Yayında</Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+          <Text style={[styles.statNumber, { color: '#E65100' }]}>{approvedCount}</Text>
+          <Text style={styles.statLabel}>Sırada</Text>
+        </View>
+      </View>
+
+      {/* TV Panolari */}
+      <View style={styles.tvSection}>
+        <Text style={styles.tvSectionTitle}>Pano Durumları</Text>
+        {tvPanels.map((panel) => {
+          const isOnline = panel.status === 'online';
+          const currentContent = tvContents.find((c) => c.id === panel.currentContentId);
+          return (
+            <View key={panel.id} style={styles.tvPanelCard}>
+              <View style={styles.tvPanelHeader}>
+                <View style={styles.tvPanelNameRow}>
+                  <View style={[styles.onlineDot, { backgroundColor: isOnline ? '#2E7D32' : '#C62828' }]} />
+                  <Text style={styles.tvPanelName}>{panel.name}</Text>
+                </View>
+                <View style={[styles.tvOnlineBadge, { backgroundColor: isOnline ? '#E8F5E9' : '#FFEBEE' }]}>
+                  <Text style={[styles.tvOnlineBadgeText, { color: isOnline ? '#2E7D32' : '#C62828' }]}>
+                    {isOnline ? 'Çevrimiçi' : 'Çevrimdışı'}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.tvPanelBody}>
+                <View style={styles.tvPanelRow}>
+                  <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+                  <Text style={styles.tvPanelText}>{panel.location}</Text>
+                </View>
+                <View style={styles.tvPanelRow}>
+                  <Ionicons name="desktop-outline" size={14} color={colors.textSecondary} />
+                  <Text style={styles.tvPanelText}>{panel.resolution}</Text>
+                </View>
+                {currentContent ? (
+                  <View style={styles.tvCurrentContent}>
+                    <Ionicons name="play-circle" size={16} color="#2E7D32" />
+                    <Text style={styles.tvCurrentContentText} numberOfLines={1}>
+                      {currentContent.adTitle}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.tvCurrentContent}>
+                    <Ionicons name="remove-circle-outline" size={16} color={colors.gray[400]} />
+                    <Text style={[styles.tvCurrentContentText, { color: colors.gray[400] }]}>
+                      İçerik atanmamış
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      {/* TV Icerik Kuyrugu */}
+      <View style={styles.tvSection}>
+        <Text style={styles.tvSectionTitle}>İçerik Kuyruğu</Text>
+        {tvContents.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="tv-outline" size={48} color={colors.gray[300]} />
+            <Text style={styles.emptyText}>TV içeriği yok</Text>
+            <Text style={styles.emptySubtext}>Sipariş onaylandığında içerik otomatik eklenir</Text>
+          </View>
+        ) : (
+          tvContents.map((content) => {
+            const tvSc = TV_STATUS_COLORS[content.status] || TV_STATUS_COLORS.pending;
+            return (
+              <View key={content.id} style={styles.tvContentCard}>
+                <Image source={{ uri: content.mediaUrl }} style={styles.tvContentThumb} resizeMode="cover" />
+                <View style={styles.tvContentInfo}>
+                  <Text style={styles.tvContentTitle} numberOfLines={1}>{content.adTitle}</Text>
+                  <View style={styles.tvContentMeta}>
+                    <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
+                    <Text style={styles.tvContentMetaText}>{content.panelName}</Text>
+                  </View>
+                  <View style={styles.tvContentMeta}>
+                    <Ionicons name="time-outline" size={12} color={colors.textSecondary} />
+                    <Text style={styles.tvContentMetaText}>{content.duration}sn | {content.scheduledDates?.length || 0} gün</Text>
+                  </View>
+                  <View style={styles.tvContentFooter}>
+                    <View style={[styles.statusBadge, { backgroundColor: tvSc.bg }]}>
+                      <Text style={[styles.statusBadgeText, { color: tvSc.text }]}>
+                        {TV_STATUS_LABELS[content.status]}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.quickActions}>
+                  {content.status === 'approved' && (
+                    <TouchableOpacity
+                      style={styles.quickApprove}
+                      onPress={() => startPlaying(content.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="play" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  )}
+                  {content.status === 'playing' && (
+                    <TouchableOpacity
+                      style={[styles.quickApprove, { backgroundColor: '#6A1B9A' }]}
+                      onPress={() => markComplete(content.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="checkmark-done" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  )}
+                  {content.status !== 'completed' && (
+                    <TouchableOpacity
+                      style={styles.quickReject}
+                      onPress={() => remove(content.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="trash" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            );
+          })
+        )}
+      </View>
+
+      <View style={{ height: 24 }} />
+    </ScrollView>
+  );
+
+  // =====================================================
+  // ANA EKRAN
+  // =====================================================
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <BackHeader title="Admin Paneli" onBack={() => navigation.goBack()} />
+
+      {/* Ana Sekme Bari */}
+      <View style={styles.mainTabBar}>
+        <TouchableOpacity
+          style={[styles.mainTab, mainTab === 'orders' && styles.mainTabActive]}
+          onPress={() => setMainTab('orders')}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="receipt-outline" size={18} color={mainTab === 'orders' ? colors.white : colors.textSecondary} />
+          <Text style={[styles.mainTabText, mainTab === 'orders' && styles.mainTabTextActive]}>
+            Siparişler
+          </Text>
+          {pendingCount > 0 && (
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>{pendingCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.mainTab, mainTab === 'tv' && styles.mainTabActive]}
+          onPress={() => setMainTab('tv')}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="tv-outline" size={18} color={mainTab === 'tv' ? colors.white : colors.textSecondary} />
+          <Text style={[styles.mainTabText, mainTab === 'tv' && styles.mainTabTextActive]}>
+            TV Yönetimi
+          </Text>
+          {playingCount > 0 && (
+            <View style={[styles.tabBadge, { backgroundColor: '#2E7D32' }]}>
+              <Text style={styles.tabBadgeText}>{playingCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Sekme Icerigi */}
+      {mainTab === 'orders' ? renderOrdersTab() : renderTVTab()}
 
       {/* Siparis Detay Modal */}
       {selectedOrder && renderOrderDetail()}
@@ -329,12 +514,9 @@ export default function AdminScreen({ navigation }) {
           <View style={styles.rejectModalContent}>
             <View style={styles.rejectModalHeader}>
               <Ionicons name="close-circle" size={40} color="#C62828" />
-              <Text style={styles.rejectModalTitle}>Siparisi Reddet</Text>
-              <Text style={styles.rejectModalSubtitle}>
-                Ret sebebini belirtin (opsiyonel)
-              </Text>
+              <Text style={styles.rejectModalTitle}>Siparişi Reddet</Text>
+              <Text style={styles.rejectModalSubtitle}>Ret sebebini belirtin (opsiyonel)</Text>
             </View>
-
             <TextInput
               style={styles.rejectInput}
               placeholder="Ret sebebi girin..."
@@ -344,17 +526,13 @@ export default function AdminScreen({ navigation }) {
               multiline
               numberOfLines={3}
             />
-
             <View style={styles.rejectModalButtons}>
               <TouchableOpacity
                 style={styles.rejectModalCancel}
-                onPress={() => {
-                  setShowRejectModal(false);
-                  setRejectTargetId(null);
-                }}
+                onPress={() => { setShowRejectModal(false); setRejectTargetId(null); }}
                 activeOpacity={0.7}
               >
-                <Text style={styles.rejectModalCancelText}>Vazgec</Text>
+                <Text style={styles.rejectModalCancelText}>Vazgeç</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.rejectModalConfirm}
@@ -377,11 +555,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  // Ana Sekme Bari
+  mainTabBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 10,
+  },
+  mainTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  mainTabActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  mainTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  mainTabTextActive: {
+    color: colors.white,
+  },
+  tabBadge: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  tabBadgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
+  },
   // Stats
   statsRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     gap: 10,
   },
   statCard: {
@@ -431,12 +654,13 @@ const styles = StyleSheet.create({
   filterChipTextActive: {
     color: colors.white,
   },
-  // Order list
-  orderList: {
+  // List area
+  listArea: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 8,
   },
+  // Order card
   orderCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -483,7 +707,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 10,
   },
-  statusText: {
+  statusBadgeText: {
     fontSize: 11,
     fontWeight: '700',
   },
@@ -520,6 +744,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textSecondary,
     marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: colors.gray[400],
+    marginTop: 4,
+    textAlign: 'center',
   },
   // Detail modal
   detailScroll: {
@@ -684,7 +914,6 @@ const styles = StyleSheet.create({
     color: '#C62828',
     lineHeight: 20,
   },
-  // Action Buttons
   actionButtons: {
     flexDirection: 'row',
     gap: 12,
@@ -704,7 +933,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
-  rejectButton: {
+  rejectBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -714,10 +943,126 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 8,
   },
-  rejectButtonText: {
+  rejectBtnText: {
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
+  },
+  // TV Section
+  tvSection: {
+    marginBottom: 20,
+  },
+  tvSectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  tvPanelCard: {
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tvPanelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  tvPanelNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  onlineDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  tvPanelName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  tvOnlineBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  tvOnlineBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  tvPanelBody: {
+    gap: 4,
+  },
+  tvPanelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  tvPanelText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  tvCurrentContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+    backgroundColor: colors.gray[100],
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  tvCurrentContentText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#2E7D32',
+  },
+  // TV Content Card
+  tvContentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tvContentThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    backgroundColor: colors.gray[200],
+  },
+  tvContentInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  tvContentTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  tvContentMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  tvContentMetaText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+  },
+  tvContentFooter: {
+    marginTop: 4,
   },
   // Reject modal
   rejectModalOverlay: {
