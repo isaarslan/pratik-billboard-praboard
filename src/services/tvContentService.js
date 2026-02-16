@@ -44,13 +44,24 @@ const notifyListeners = () => _listeners.forEach((fn) => fn());
 export function startListening() {
   // TV Content dinle
   if (!_unsubContent) {
-    const q = query(tvContentRef, orderBy('createdAt', 'desc'));
-    _unsubContent = onSnapshot(q, (snapshot) => {
-      _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      notifyListeners();
-    }, (error) => {
-      console.warn('tvContent dinleme hatasi:', error);
-    });
+    try {
+      const q = query(tvContentRef, orderBy('createdAt', 'desc'));
+      _unsubContent = onSnapshot(q, (snapshot) => {
+        _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        notifyListeners();
+      }, (error) => {
+        console.warn('tvContent dinleme hatasi (orderBy):', error);
+        // orderBy index yoksa index'siz dene
+        _unsubContent = onSnapshot(tvContentRef, (snapshot) => {
+          _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          notifyListeners();
+        }, (err2) => {
+          console.warn('tvContent dinleme hatasi (fallback):', err2);
+        });
+      });
+    } catch (e) {
+      console.warn('tvContent listener kurulum hatasi:', e);
+    }
   }
 
   // TV Panels dinle
@@ -250,6 +261,19 @@ initializeDefaultPanels();
 // ============================================================
 // VERI OKUMA
 // ============================================================
+
+/** Firestore'dan direkt oku (snapshot calismiyorsa fallback) */
+export async function fetchContentsDirectly() {
+  try {
+    const snapshot = await getDocs(tvContentRef);
+    _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    notifyListeners();
+    return _tvContents;
+  } catch (error) {
+    console.warn('fetchContentsDirectly hatasi:', error);
+    return _tvContents;
+  }
+}
 
 /** Tum TV iceriklerini getir (cache'den) */
 export function getTvContents() {

@@ -22,9 +22,11 @@ import {
   subscribe,
   getActiveContentsByPanel,
   getTvPanels,
+  getTvContents,
   updatePanelHeartbeat,
   updatePanelCurrentContent,
   registerPanel,
+  fetchContentsDirectly,
 } from '../../services/tvContentService';
 
 const HEARTBEAT_INTERVAL = 30000; // 30 saniye
@@ -41,7 +43,14 @@ export default function TVDisplayScreen({ panelId }) {
 
   // Panel bilgilerini ve iceriklerini guncelle
   const refreshData = useCallback(() => {
-    const activeContents = getActiveContentsByPanel(panelId);
+    let activeContents = getActiveContentsByPanel(panelId);
+
+    // Fallback: panele ozel icerik yoksa tum playing icerikleri goster
+    if (activeContents.length === 0) {
+      const all = getTvContents();
+      activeContents = all.filter((c) => c.status === 'playing' || c.status === 'approved');
+    }
+
     setContents(activeContents);
 
     const panels = getTvPanels();
@@ -56,7 +65,17 @@ export default function TVDisplayScreen({ panelId }) {
       refreshData();
       setConnected(true);
     });
-    return unsubscribe;
+
+    // Snapshot calismiyorsa her 5 saniyede bir direkt Firestore'dan oku
+    const pollTimer = setInterval(async () => {
+      await fetchContentsDirectly();
+      refreshData();
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(pollTimer);
+    };
   }, [refreshData]);
 
   // Paneli Firebase'e kaydet ve heartbeat gonder
