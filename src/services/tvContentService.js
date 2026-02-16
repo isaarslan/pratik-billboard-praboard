@@ -97,10 +97,12 @@ export async function pushContentToTV(order) {
   try {
     await setDoc(doc(tvContentRef, contentId), content);
 
-    // Panelin mevcut icerigini de guncelle
-    await updateDoc(doc(tvPanelsRef, order.panel.id), {
+    // Panelin mevcut icerigini ve durumunu guncelle (setDoc+merge: dokuman yoksa olusturur)
+    await setDoc(doc(tvPanelsRef, order.panel.id), {
       currentContentId: contentId,
-    }).catch(() => {});
+      status: 'online',
+      lastHeartbeat: Date.now(),
+    }, { merge: true }).catch(() => {});
 
     return { id: contentId, ...content };
   } catch (error) {

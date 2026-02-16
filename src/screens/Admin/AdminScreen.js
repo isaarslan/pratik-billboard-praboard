@@ -344,8 +344,9 @@ export default function AdminScreen({ navigation }) {
       <View style={styles.tvSection}>
         <Text style={styles.tvSectionTitle}>Pano Durumları</Text>
         {tvPanels.map((panel) => {
-          const isOnline = panel.status === 'online';
-          const currentContent = tvContents.find((c) => c.id === panel.currentContentId);
+          const currentContent = tvContents.find((c) => c.id === panel.currentContentId)
+            || tvContents.find((c) => c.panelId === panel.id && c.status === 'playing');
+          const isOnline = panel.status === 'online' || !!currentContent;
           return (
             <View key={panel.id} style={styles.tvPanelCard}>
               <View style={styles.tvPanelHeader}>
