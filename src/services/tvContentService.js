@@ -93,9 +93,15 @@ startListening();
 async function uploadImageToStorage(imageUri, contentId) {
   try {
     if (!imageUri) return null;
+    // Zaten HTTP URL ise aynen dondur
     if (imageUri.startsWith('http://') || imageUri.startsWith('https://')) {
       return imageUri;
     }
+    // Base64 data URI ise direkt Firestore'a kaydet (Storage gereksiz)
+    if (imageUri.startsWith('data:')) {
+      return imageUri;
+    }
+    // Blob veya file URI ise Storage'a yukle
     const response = await fetch(imageUri);
     const blob = await response.blob();
     const storageRef = ref(storage, `tvContent/${contentId}.jpg`);

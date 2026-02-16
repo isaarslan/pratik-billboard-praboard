@@ -43,11 +43,18 @@ const AdUploadScreen = ({ navigation }) => {
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [16, 9],
-      quality: 1,
+      quality: 0.7,
+      base64: true,
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      setSelectedImage(result.assets[0].uri);
+      const asset = result.assets[0];
+      if (asset.base64) {
+        const mimeType = asset.mimeType || 'image/jpeg';
+        setSelectedImage(`data:${mimeType};base64,${asset.base64}`);
+      } else {
+        setSelectedImage(asset.uri);
+      }
     }
   };
 
