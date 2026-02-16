@@ -77,7 +77,7 @@ startListening();
 // TV ICERIK ISLEMLERI
 // ============================================================
 
-/** Onaylanan siparisi TV icin icerik olarak Firestore'a yaz */
+/** Onaylanan siparisi TV icin icerik olarak Firestore'a yaz ve direkt oynat */
 export async function pushContentToTV(order) {
   const contentId = `tv-${Date.now()}`;
   const content = {
@@ -89,17 +89,22 @@ export async function pushContentToTV(order) {
     panelName: order.panel.name,
     duration: parseInt(order.adDuration) || 15,
     scheduledDates: order.dates || [],
-    status: 'approved',
+    status: 'playing',
     createdAt: Date.now(),
     approvedAt: Date.now(),
   };
 
   try {
     await setDoc(doc(tvContentRef, contentId), content);
+
+    // Panelin mevcut icerigini de guncelle
+    await updateDoc(doc(tvPanelsRef, order.panel.id), {
+      currentContentId: contentId,
+    }).catch(() => {});
+
     return { id: contentId, ...content };
   } catch (error) {
     console.warn('pushContentToTV hatasi:', error);
-    // Lokal fallback
     _tvContents = [{ id: contentId, ...content }, ..._tvContents];
     notifyListeners();
     return { id: contentId, ...content };
