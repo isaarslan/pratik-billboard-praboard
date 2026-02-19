@@ -52,16 +52,21 @@ export default function TVDisplayScreen({ panelId }) {
 
   // Firestore degisikliklerini dinle
   useEffect(() => {
-    refreshData();
+    // Ilk yuklemede direkt Firestore'dan oku
+    fetchContentsDirectly().then(() => {
+      refreshData();
+    });
+
     const unsubscribe = subscribe(() => {
       refreshData();
       setConnected(true);
     });
 
     // Snapshot calismiyorsa her 5 saniyede bir direkt Firestore'dan oku
-    const pollTimer = setInterval(async () => {
-      await fetchContentsDirectly();
-      refreshData();
+    const pollTimer = setInterval(() => {
+      fetchContentsDirectly().then(() => {
+        refreshData();
+      });
     }, 5000);
 
     return () => {

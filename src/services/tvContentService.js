@@ -118,12 +118,13 @@ async function uploadImageToStorage(imageUri, contentId) {
 export async function pushContentToTV(order) {
   const contentId = `tv-${Date.now()}`;
   const mediaUrl = await uploadImageToStorage(order.adImage, contentId);
+  const panelId = String(order.panel.id);
   const content = {
     orderId: order.id,
     adTitle: order.adTitle,
     mediaUrl: mediaUrl || order.adImage,
     mediaType: 'image',
-    panelId: order.panel.id,
+    panelId: panelId,
     panelName: order.panel.name,
     duration: parseInt(order.adDuration) || 15,
     scheduledDates: order.dates || [],
@@ -135,7 +136,7 @@ export async function pushContentToTV(order) {
   try {
     // Ayni panodaki eski playing/approved icerikleri completed yap
     const oldContents = _tvContents.filter(
-      (c) => c.panelId === order.panel.id && (c.status === 'playing' || c.status === 'approved')
+      (c) => String(c.panelId) === panelId && (c.status === 'playing' || c.status === 'approved')
     );
     for (const old of oldContents) {
       await updateDoc(doc(tvContentRef, old.id), { status: 'completed' }).catch(() => {});
@@ -144,11 +145,18 @@ export async function pushContentToTV(order) {
     await setDoc(doc(tvContentRef, contentId), content);
 
     // Panelin mevcut icerigini ve durumunu guncelle (setDoc+merge: dokuman yoksa olusturur)
-    await setDoc(doc(tvPanelsRef, order.panel.id), {
+    await setDoc(doc(tvPanelsRef, panelId), {
       currentContentId: contentId,
       status: 'online',
       lastHeartbeat: Date.now(),
     }, { merge: true }).catch(() => {});
+
+    // Lokal cache'i hemen guncelle (onSnapshot gecikmesini bekleme)
+    _tvContents = _tvContents
+      .map((c) => (String(c.panelId) === panelId && (c.status === 'playing' || c.status === 'approved'))
+        ? { ...c, status: 'completed' } : c);
+    _tvContents = [{ id: contentId, ...content }, ..._tvContents];
+    notifyListeners();
 
     return { id: contentId, ...content };
   } catch (error) {
@@ -317,13 +325,15 @@ export function getTvContents() {
 
 /** Belirli panoya ait icerikleri getir */
 export function getContentsByPanel(panelId) {
-  return _tvContents.filter((c) => c.panelId === panelId);
+  const pid = String(panelId);
+  return _tvContents.filter((c) => String(c.panelId) === pid);
 }
 
 /** Belirli panoya ait aktif (oynatilacak) icerikleri getir */
 export function getActiveContentsByPanel(panelId) {
+  const pid = String(panelId);
   return _tvContents.filter(
-    (c) => c.panelId === panelId && (c.status === 'approved' || c.status === 'playing')
+    (c) => String(c.panelId) === pid && (c.status === 'approved' || c.status === 'playing')
   );
 }
 
