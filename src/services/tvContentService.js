@@ -133,6 +133,14 @@ export async function pushContentToTV(order) {
   };
 
   try {
+    // Ayni panodaki eski playing/approved icerikleri completed yap
+    const oldContents = _tvContents.filter(
+      (c) => c.panelId === order.panel.id && (c.status === 'playing' || c.status === 'approved')
+    );
+    for (const old of oldContents) {
+      await updateDoc(doc(tvContentRef, old.id), { status: 'completed' }).catch(() => {});
+    }
+
     await setDoc(doc(tvContentRef, contentId), content);
 
     // Panelin mevcut icerigini ve durumunu guncelle (setDoc+merge: dokuman yoksa olusturur)
