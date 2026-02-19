@@ -39,7 +39,7 @@ export function TVContentProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  // Artik async - Firebase'e yazar
+  // Async - Supabase'e yazar
   const pushToTV = useCallback(async (order) => {
     return await pushContentToTV(order);
   }, []);

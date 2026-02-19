@@ -2,14 +2,14 @@
  * TV Display Ekrani
  *
  * Bu ekran, dijital billboard / TV cihazinda tam ekran olarak calisir.
- * Firebase Firestore'dan gercek zamanli icerik ceker ve gosterir.
+ * Supabase Realtime ile gercek zamanli icerik ceker ve gosterir.
  *
  * Kullanim:
  *   Web'de URL'ye ?tv=PANEL_ID parametresi ekleyerek acilir.
  *   Ornegin: https://praboard.vercel.app/?tv=1
  *
  * Ozellikler:
- *   - Gercek zamanli icerik guncelleme (Firestore onSnapshot)
+ *   - Gercek zamanli icerik guncelleme (Supabase Realtime)
  *   - Birden fazla reklam arasi otomatik gecis
  *   - Heartbeat gondererek admin panelde online/offline durumu
  *   - Icerik yokken bekleme ekrani
@@ -51,7 +51,7 @@ export default function TVDisplayScreen({ panelId }) {
     if (panel) setPanelInfo(panel);
   }, [panelId]);
 
-  // Firestore degisikliklerini dinle
+  // Supabase degisikliklerini dinle
   useEffect(() => {
     // onSnapshot degisikliklerini dinle
     const unsubscribe = subscribe(() => {
@@ -59,11 +59,11 @@ export default function TVDisplayScreen({ panelId }) {
       setConnected(true);
     });
 
-    // Ilk yuklemede direkt Firestore'dan oku (onSnapshot gecikmeli olabilir)
+    // Ilk yuklemede direkt Supabase'den oku (realtime gecikmeli olabilir)
     const initialFetch = async () => {
       await fetchContentsDirectly();
       refreshData();
-      // 2sn sonra tekrar dene (onSnapshot henuz baglanamadiginda)
+      // 2sn sonra tekrar dene (realtime henuz baglanamadiginda)
       setTimeout(async () => {
         await fetchContentsDirectly();
         refreshData();
@@ -71,7 +71,7 @@ export default function TVDisplayScreen({ panelId }) {
     };
     initialFetch();
 
-    // Polling: onSnapshot calismiyorsa her 30sn'de bir oku
+    // Polling: realtime calismiyorsa her 30sn'de bir oku
     const pollTimer = setInterval(() => {
       fetchContentsDirectly().then(() => {
         refreshData();
@@ -84,7 +84,7 @@ export default function TVDisplayScreen({ panelId }) {
     };
   }, [refreshData]);
 
-  // Paneli Firebase'e kaydet ve heartbeat gonder
+  // Paneli Supabase'e kaydet ve heartbeat gonder
   useEffect(() => {
     registerPanel(panelId, {
       status: 'online',

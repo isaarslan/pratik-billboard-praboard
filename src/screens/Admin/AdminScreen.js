@@ -58,7 +58,7 @@ export default function AdminScreen({ navigation }) {
 
     updateOrderStatus(order.id, next);
 
-    // Siparis onaylandiginda otomatik olarak TV'ye icerik gonder (Firebase'e yazar)
+    // Siparis onaylandiginda otomatik olarak TV'ye icerik gonder (Supabase'e yazar)
     if (order.status === 'onay_bekliyor' && next === 'hazirlaniyor') {
       await pushToTV(order);
     }
