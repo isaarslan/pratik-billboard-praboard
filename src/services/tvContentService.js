@@ -34,9 +34,31 @@ let _tvPanels = [];
 let _listeners = [];
 let _unsubContent = null;
 let _unsubPanels = null;
-let _snapshotActive = false; // onSnapshot calisiyor mu?
+let _snapshotActive = false;
+let _quotaExceeded = false;
+let _retryTimer = null;
 
 const notifyListeners = () => _listeners.forEach((fn) => fn());
+
+/** Hata quota hatasi mi kontrol et */
+function isQuotaError(error) {
+  const msg = String(error?.message || error?.code || '');
+  return msg.includes('resource-exhausted') || msg.includes('quota') || msg.includes('Quota');
+}
+
+/** Quota asildiginda tum dinlemeleri durdur ve gecikmeli tekrar dene */
+function handleQuotaExceeded() {
+  if (_quotaExceeded) return;
+  _quotaExceeded = true;
+  console.warn('Firebase kotasi asildi - 2 dakika sonra tekrar denenecek');
+  stopListening();
+  if (_retryTimer) clearTimeout(_retryTimer);
+  _retryTimer = setTimeout(() => {
+    _quotaExceeded = false;
+    console.log('Firebase baglantisi tekrar deneniyor...');
+    startListening();
+  }, 120000); // 2 dakika bekle
+}
 
 /** onSnapshot'in aktif olup olmadigini dondur */
 export function isSnapshotActive() {
@@ -49,6 +71,8 @@ export function isSnapshotActive() {
 
 /** Firestore dinlemelerini baslat */
 export function startListening() {
+  if (_quotaExceeded) return;
+
   // TV Content dinle
   if (!_unsubContent) {
     try {
@@ -56,18 +80,27 @@ export function startListening() {
       _unsubContent = onSnapshot(q, (snapshot) => {
         _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
         _snapshotActive = true;
+        _quotaExceeded = false;
         notifyListeners();
       }, (error) => {
-        console.warn('tvContent dinleme hatasi (orderBy):', error);
+        console.warn('tvContent dinleme hatasi (orderBy):', error.message);
         _snapshotActive = false;
-        // orderBy index yoksa index'siz dene
+
+        if (isQuotaError(error)) {
+          handleQuotaExceeded();
+          return; // Yeni listener olusturma
+        }
+
+        // Sadece index hatasi ise fallback dene (bir kez)
+        if (_unsubContent) { _unsubContent(); _unsubContent = null; }
         _unsubContent = onSnapshot(tvContentRef, (snapshot) => {
           _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
           _snapshotActive = true;
           notifyListeners();
         }, (err2) => {
-          console.warn('tvContent dinleme hatasi (fallback):', err2);
+          console.warn('tvContent dinleme hatasi (fallback):', err2.message);
           _snapshotActive = false;
+          if (isQuotaError(err2)) handleQuotaExceeded();
         });
       });
     } catch (e) {
@@ -82,7 +115,8 @@ export function startListening() {
       _tvPanels = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       notifyListeners();
     }, (error) => {
-      console.warn('tvPanels dinleme hatasi:', error);
+      console.warn('tvPanels dinleme hatasi:', error.message);
+      if (isQuotaError(error)) handleQuotaExceeded();
     });
   }
 }
@@ -91,6 +125,7 @@ export function startListening() {
 export function stopListening() {
   if (_unsubContent) { _unsubContent(); _unsubContent = null; }
   if (_unsubPanels) { _unsubPanels(); _unsubPanels = null; }
+  _snapshotActive = false;
 }
 
 // Uygulama basladiginda dinlemeyi otomatik baslat
@@ -104,15 +139,12 @@ startListening();
 async function uploadImageToStorage(imageUri, contentId) {
   try {
     if (!imageUri) return null;
-    // Zaten HTTP URL ise aynen dondur
     if (imageUri.startsWith('http://') || imageUri.startsWith('https://')) {
       return imageUri;
     }
-    // Base64 data URI ise direkt Firestore'a kaydet (Storage gereksiz)
     if (imageUri.startsWith('data:')) {
       return imageUri;
     }
-    // Blob veya file URI ise Storage'a yukle
     const response = await fetch(imageUri);
     const blob = await response.blob();
     const storageRef = ref(storage, `tvContent/${contentId}.jpg`);
@@ -144,10 +176,17 @@ export async function pushContentToTV(order) {
     approvedAt: Date.now(),
   };
 
+  // Lokal cache'i hemen guncelle (UI aninda gorsun)
+  _tvContents = _tvContents
+    .map((c) => (String(c.panelId) === panelId && (c.status === 'playing' || c.status === 'approved'))
+      ? { ...c, status: 'completed' } : c);
+  _tvContents = [{ id: contentId, ...content }, ..._tvContents];
+  notifyListeners();
+
   try {
     // Ayni panodaki eski playing/approved icerikleri completed yap
     const oldContents = _tvContents.filter(
-      (c) => String(c.panelId) === panelId && (c.status === 'playing' || c.status === 'approved')
+      (c) => c.id !== contentId && String(c.panelId) === panelId && (c.status === 'playing' || c.status === 'approved')
     );
     for (const old of oldContents) {
       await updateDoc(doc(tvContentRef, old.id), { status: 'completed' }).catch(() => {});
@@ -155,35 +194,32 @@ export async function pushContentToTV(order) {
 
     await setDoc(doc(tvContentRef, contentId), content);
 
-    // Panelin mevcut icerigini ve durumunu guncelle (setDoc+merge: dokuman yoksa olusturur)
+    // Panelin mevcut icerigini ve durumunu guncelle
     await setDoc(doc(tvPanelsRef, panelId), {
       currentContentId: contentId,
       status: 'online',
       lastHeartbeat: Date.now(),
     }, { merge: true }).catch(() => {});
 
-    // Lokal cache'i hemen guncelle (onSnapshot gecikmesini bekleme)
-    _tvContents = _tvContents
-      .map((c) => (String(c.panelId) === panelId && (c.status === 'playing' || c.status === 'approved'))
-        ? { ...c, status: 'completed' } : c);
-    _tvContents = [{ id: contentId, ...content }, ..._tvContents];
-    notifyListeners();
-
     return { id: contentId, ...content };
   } catch (error) {
     console.warn('pushContentToTV hatasi:', error);
-    _tvContents = [{ id: contentId, ...content }, ..._tvContents];
-    notifyListeners();
+    if (isQuotaError(error)) handleQuotaExceeded();
+    // Lokal cache zaten guncellendi, Firestore yazamasa bile UI calisir
     return { id: contentId, ...content };
   }
 }
 
 /** Icerigi TV'de oynatmaya basla */
 export async function startPlayingContent(contentId) {
+  // Lokal cache hemen guncelle
+  _tvContents = _tvContents.map((c) =>
+    c.id === contentId ? { ...c, status: 'playing' } : c
+  );
+  notifyListeners();
+
   try {
     await updateDoc(doc(tvContentRef, contentId), { status: 'playing' });
-
-    // Icerigin panelini de guncelle
     const content = _tvContents.find((c) => c.id === contentId);
     if (content) {
       await updateDoc(doc(tvPanelsRef, content.panelId), {
@@ -193,33 +229,33 @@ export async function startPlayingContent(contentId) {
     }
   } catch (error) {
     console.warn('startPlayingContent hatasi:', error);
-    _tvContents = _tvContents.map((c) =>
-      c.id === contentId ? { ...c, status: 'playing' } : c
-    );
-    notifyListeners();
+    if (isQuotaError(error)) handleQuotaExceeded();
   }
 }
 
 /** Icerigi tamamla */
 export async function completeContent(contentId) {
+  _tvContents = _tvContents.map((c) =>
+    c.id === contentId ? { ...c, status: 'completed' } : c
+  );
+  notifyListeners();
+
   try {
     await updateDoc(doc(tvContentRef, contentId), { status: 'completed' });
   } catch (error) {
     console.warn('completeContent hatasi:', error);
-    _tvContents = _tvContents.map((c) =>
-      c.id === contentId ? { ...c, status: 'completed' } : c
-    );
-    notifyListeners();
+    if (isQuotaError(error)) handleQuotaExceeded();
   }
 }
 
 /** Icerigi kaldir/iptal et */
 export async function removeContent(contentId) {
-  try {
-    const content = _tvContents.find((c) => c.id === contentId);
-    await deleteDoc(doc(tvContentRef, contentId));
+  const content = _tvContents.find((c) => c.id === contentId);
+  _tvContents = _tvContents.filter((c) => c.id !== contentId);
+  notifyListeners();
 
-    // Panodaki mevcut icerigi temizle
+  try {
+    await deleteDoc(doc(tvContentRef, contentId));
     if (content) {
       await updateDoc(doc(tvPanelsRef, content.panelId), {
         currentContentId: null,
@@ -227,8 +263,7 @@ export async function removeContent(contentId) {
     }
   } catch (error) {
     console.warn('removeContent hatasi:', error);
-    _tvContents = _tvContents.filter((c) => c.id !== contentId);
-    notifyListeners();
+    if (isQuotaError(error)) handleQuotaExceeded();
   }
 }
 
@@ -238,6 +273,7 @@ export async function removeContent(contentId) {
 
 /** Pano kaydet veya guncelle (TV ilk acildiginda) */
 export async function registerPanel(panelId, panelData) {
+  if (_quotaExceeded) return;
   try {
     await setDoc(doc(tvPanelsRef, panelId), {
       name: panelData.name || `Panel ${panelId}`,
@@ -250,11 +286,13 @@ export async function registerPanel(panelId, panelData) {
     }, { merge: true });
   } catch (error) {
     console.warn('registerPanel hatasi:', error);
+    if (isQuotaError(error)) handleQuotaExceeded();
   }
 }
 
-/** Pano heartbeat gonder (TV her 30 saniyede bir cagirsin) */
+/** Pano heartbeat gonder */
 export async function updatePanelHeartbeat(panelId) {
+  if (_quotaExceeded) return;
   try {
     await updateDoc(doc(tvPanelsRef, panelId), {
       status: 'online',
@@ -262,11 +300,13 @@ export async function updatePanelHeartbeat(panelId) {
     });
   } catch (error) {
     console.warn('updatePanelHeartbeat hatasi:', error);
+    if (isQuotaError(error)) handleQuotaExceeded();
   }
 }
 
 /** Panoya su anda oynatilan icerigi kaydet */
 export async function updatePanelCurrentContent(panelId, contentId) {
+  if (_quotaExceeded) return;
   try {
     await updateDoc(doc(tvPanelsRef, panelId), {
       currentContentId: contentId,
@@ -274,6 +314,7 @@ export async function updatePanelCurrentContent(panelId, contentId) {
     });
   } catch (error) {
     console.warn('updatePanelCurrentContent hatasi:', error);
+    if (isQuotaError(error)) handleQuotaExceeded();
   }
 }
 
@@ -292,10 +333,9 @@ const DEFAULT_PANELS = [
 
 let _panelsInitialized = false;
 export async function initializeDefaultPanels() {
-  if (_panelsInitialized) return;
+  if (_panelsInitialized || _quotaExceeded) return;
   _panelsInitialized = true;
   try {
-    // Eger onSnapshot zaten panel verisi getirdiyse tekrar sorgu yapma
     if (_tvPanels.length > 0) return;
     const snapshot = await getDocs(tvPanelsRef);
     if (snapshot.empty) {
@@ -310,13 +350,14 @@ export async function initializeDefaultPanels() {
       console.log('Varsayilan panolar olusturuldu');
     }
   } catch (error) {
-    _panelsInitialized = false; // Hata olursa tekrar denenebilsin
+    _panelsInitialized = false;
     console.warn('initializeDefaultPanels hatasi:', error);
+    if (isQuotaError(error)) handleQuotaExceeded();
   }
 }
 
-// Uygulama basladiginda varsayilan panolari olustur
-initializeDefaultPanels();
+// Panolari 3 saniye gecikmeyle olustur (baslangic yukunu azalt)
+setTimeout(() => initializeDefaultPanels(), 3000);
 
 // ============================================================
 // VERI OKUMA
@@ -324,6 +365,7 @@ initializeDefaultPanels();
 
 /** Firestore'dan direkt oku (snapshot calismiyorsa fallback) */
 export async function fetchContentsDirectly() {
+  if (_quotaExceeded) return _tvContents;
   try {
     const snapshot = await getDocs(tvContentRef);
     _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -331,6 +373,7 @@ export async function fetchContentsDirectly() {
     return _tvContents;
   } catch (error) {
     console.warn('fetchContentsDirectly hatasi:', error);
+    if (isQuotaError(error)) handleQuotaExceeded();
     return _tvContents;
   }
 }
