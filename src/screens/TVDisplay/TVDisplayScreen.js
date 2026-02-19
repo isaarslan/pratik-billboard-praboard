@@ -22,7 +22,6 @@ import {
   subscribe,
   getActiveContentsByPanel,
   getTvPanels,
-  getTvContents,
   updatePanelHeartbeat,
   updatePanelCurrentContent,
   registerPanel,
@@ -43,14 +42,7 @@ export default function TVDisplayScreen({ panelId }) {
 
   // Panel bilgilerini ve iceriklerini guncelle
   const refreshData = useCallback(() => {
-    let activeContents = getActiveContentsByPanel(panelId);
-
-    // Fallback: panele ozel icerik yoksa tum playing icerikleri goster
-    if (activeContents.length === 0) {
-      const all = getTvContents();
-      activeContents = all.filter((c) => c.status === 'playing' || c.status === 'approved');
-    }
-
+    const activeContents = getActiveContentsByPanel(panelId);
     setContents(activeContents);
 
     const panels = getTvPanels();
