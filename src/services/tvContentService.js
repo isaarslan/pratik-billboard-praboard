@@ -34,8 +34,14 @@ let _tvPanels = [];
 let _listeners = [];
 let _unsubContent = null;
 let _unsubPanels = null;
+let _snapshotActive = false; // onSnapshot calisiyor mu?
 
 const notifyListeners = () => _listeners.forEach((fn) => fn());
+
+/** onSnapshot'in aktif olup olmadigini dondur */
+export function isSnapshotActive() {
+  return _snapshotActive;
+}
 
 // ============================================================
 // GERCEK ZAMANLI DINLEME (onSnapshot)
@@ -49,19 +55,24 @@ export function startListening() {
       const q = query(tvContentRef, orderBy('createdAt', 'desc'));
       _unsubContent = onSnapshot(q, (snapshot) => {
         _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        _snapshotActive = true;
         notifyListeners();
       }, (error) => {
         console.warn('tvContent dinleme hatasi (orderBy):', error);
+        _snapshotActive = false;
         // orderBy index yoksa index'siz dene
         _unsubContent = onSnapshot(tvContentRef, (snapshot) => {
           _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          _snapshotActive = true;
           notifyListeners();
         }, (err2) => {
           console.warn('tvContent dinleme hatasi (fallback):', err2);
+          _snapshotActive = false;
         });
       });
     } catch (e) {
       console.warn('tvContent listener kurulum hatasi:', e);
+      _snapshotActive = false;
     }
   }
 
@@ -279,8 +290,13 @@ const DEFAULT_PANELS = [
   { id: '6', name: 'Gölbaşı Sahil Yolu', location: 'Gölbaşı, Ankara', resolution: '1920x1080' },
 ];
 
+let _panelsInitialized = false;
 export async function initializeDefaultPanels() {
+  if (_panelsInitialized) return;
+  _panelsInitialized = true;
   try {
+    // Eger onSnapshot zaten panel verisi getirdiyse tekrar sorgu yapma
+    if (_tvPanels.length > 0) return;
     const snapshot = await getDocs(tvPanelsRef);
     if (snapshot.empty) {
       for (const panel of DEFAULT_PANELS) {
@@ -294,6 +310,7 @@ export async function initializeDefaultPanels() {
       console.log('Varsayilan panolar olusturuldu');
     }
   } catch (error) {
+    _panelsInitialized = false; // Hata olursa tekrar denenebilsin
     console.warn('initializeDefaultPanels hatasi:', error);
   }
 }

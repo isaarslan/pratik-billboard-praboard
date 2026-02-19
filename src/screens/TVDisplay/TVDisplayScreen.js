@@ -26,9 +26,10 @@ import {
   updatePanelCurrentContent,
   registerPanel,
   fetchContentsDirectly,
+  isSnapshotActive,
 } from '../../services/tvContentService';
 
-const HEARTBEAT_INTERVAL = 30000; // 30 saniye
+const HEARTBEAT_INTERVAL = 120000; // 2 dakika (kota tasarrufu)
 const SLIDE_DURATION = 15000; // Varsayilan 15 saniye her reklam
 
 export default function TVDisplayScreen({ panelId }) {
@@ -52,7 +53,7 @@ export default function TVDisplayScreen({ panelId }) {
 
   // Firestore degisikliklerini dinle
   useEffect(() => {
-    // Ilk yuklemede direkt Firestore'dan oku
+    // Ilk yuklemede direkt Firestore'dan oku (tek seferlik)
     fetchContentsDirectly().then(() => {
       refreshData();
     });
@@ -62,12 +63,14 @@ export default function TVDisplayScreen({ panelId }) {
       setConnected(true);
     });
 
-    // Snapshot calismiyorsa her 5 saniyede bir direkt Firestore'dan oku
+    // Sadece onSnapshot calismiyorsa fallback polling yap (60sn arayla)
     const pollTimer = setInterval(() => {
-      fetchContentsDirectly().then(() => {
-        refreshData();
-      });
-    }, 5000);
+      if (!isSnapshotActive()) {
+        fetchContentsDirectly().then(() => {
+          refreshData();
+        });
+      }
+    }, 60000);
 
     return () => {
       unsubscribe();
