@@ -76,32 +76,23 @@ export function startListening() {
   // TV Content dinle
   if (!_unsubContent) {
     try {
-      const q = query(tvContentRef, orderBy('createdAt', 'desc'));
-      _unsubContent = onSnapshot(q, (snapshot) => {
+      // Basit sorgu ile basla (index gerektirmez)
+      _unsubContent = onSnapshot(tvContentRef, (snapshot) => {
         _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
         _snapshotActive = true;
         _quotaExceeded = false;
         notifyListeners();
       }, (error) => {
-        console.warn('tvContent dinleme hatasi (orderBy):', error.message);
+        console.warn('tvContent dinleme hatasi:', error.message);
         _snapshotActive = false;
 
         if (isQuotaError(error)) {
           handleQuotaExceeded();
-          return; // Yeni listener olusturma
+          return;
         }
 
-        // Sadece index hatasi ise fallback dene (bir kez)
-        if (_unsubContent) { _unsubContent(); _unsubContent = null; }
-        _unsubContent = onSnapshot(tvContentRef, (snapshot) => {
-          _tvContents = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-          _snapshotActive = true;
-          notifyListeners();
-        }, (err2) => {
-          console.warn('tvContent dinleme hatasi (fallback):', err2.message);
-          _snapshotActive = false;
-          if (isQuotaError(err2)) handleQuotaExceeded();
-        });
+        // Hata durumunda direkt okuma yap (tek seferlik)
+        fetchContentsDirectly().catch(() => {});
       });
     } catch (e) {
       console.warn('tvContent listener kurulum hatasi:', e);
@@ -275,15 +266,16 @@ export async function removeContent(contentId) {
 export async function registerPanel(panelId, panelData) {
   if (_quotaExceeded) return;
   try {
-    await setDoc(doc(tvPanelsRef, panelId), {
+    // currentContentId'yi silmeyelim - admin atamis olabilir
+    const data = {
       name: panelData.name || `Panel ${panelId}`,
       location: panelData.location || '',
       status: 'online',
       lastHeartbeat: Date.now(),
-      currentContentId: null,
       resolution: panelData.resolution || '1920x1080',
       ...panelData,
-    }, { merge: true });
+    };
+    await setDoc(doc(tvPanelsRef, panelId), data, { merge: true });
   } catch (error) {
     console.warn('registerPanel hatasi:', error);
     if (isQuotaError(error)) handleQuotaExceeded();

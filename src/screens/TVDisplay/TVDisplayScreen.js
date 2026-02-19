@@ -53,24 +53,30 @@ export default function TVDisplayScreen({ panelId }) {
 
   // Firestore degisikliklerini dinle
   useEffect(() => {
-    // Ilk yuklemede direkt Firestore'dan oku (tek seferlik)
-    fetchContentsDirectly().then(() => {
-      refreshData();
-    });
-
+    // onSnapshot degisikliklerini dinle
     const unsubscribe = subscribe(() => {
       refreshData();
       setConnected(true);
     });
 
-    // Sadece onSnapshot calismiyorsa fallback polling yap (60sn arayla)
+    // Ilk yuklemede direkt Firestore'dan oku (onSnapshot gecikmeli olabilir)
+    const initialFetch = async () => {
+      await fetchContentsDirectly();
+      refreshData();
+      // 2sn sonra tekrar dene (onSnapshot henuz baglanamadiginda)
+      setTimeout(async () => {
+        await fetchContentsDirectly();
+        refreshData();
+      }, 2000);
+    };
+    initialFetch();
+
+    // Polling: onSnapshot calismiyorsa her 30sn'de bir oku
     const pollTimer = setInterval(() => {
-      if (!isSnapshotActive()) {
-        fetchContentsDirectly().then(() => {
-          refreshData();
-        });
-      }
-    }, 60000);
+      fetchContentsDirectly().then(() => {
+        refreshData();
+      });
+    }, 30000);
 
     return () => {
       unsubscribe();
