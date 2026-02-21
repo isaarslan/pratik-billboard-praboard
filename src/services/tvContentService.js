@@ -40,11 +40,18 @@ export function startListening() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tv_contents' }, (payload) => {
         handleContentChange(payload);
       })
-      .subscribe((status) => {
+      .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           _snapshotActive = true;
-          // Ilk baglantiginda mevcut verileri cek
           fetchContentsDirectly().catch(() => {});
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[TVContent] Realtime baglanti basarisiz, lokal veriyle devam ediliyor.');
+          _snapshotActive = false;
+          // Kanal temizle ki tekrar denemede yeni kanal acilsin
+          if (_contentSubscription) {
+            supabase.removeChannel(_contentSubscription);
+            _contentSubscription = null;
+          }
         }
       });
   }
@@ -56,9 +63,15 @@ export function startListening() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tv_panels' }, (payload) => {
         handlePanelChange(payload);
       })
-      .subscribe((status) => {
+      .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           fetchPanelsDirectly().catch(() => {});
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[TVPanels] Realtime baglanti basarisiz, lokal veriyle devam ediliyor.');
+          if (_panelsSubscription) {
+            supabase.removeChannel(_panelsSubscription);
+            _panelsSubscription = null;
+          }
         }
       });
   }

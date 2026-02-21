@@ -8,6 +8,7 @@ import {
   FlatList,
   Image,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -64,17 +65,25 @@ const AdUploadScreen = ({ navigation }) => {
   };
 
   const pickVideo = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['videos'],
-      allowsEditing: true,
-      quality: 0.7,
-      videoMaxDuration: 60,
-    });
+    try {
+      const options = {
+        mediaTypes: ['videos'],
+      };
+      // allowsEditing ve videoMaxDuration sadece native'de destekleniyor
+      if (Platform.OS !== 'web') {
+        options.allowsEditing = true;
+        options.videoMaxDuration = 60;
+      }
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const asset = result.assets[0];
-      setMediaType('video');
-      setSelectedMedia(asset.uri);
+      const result = await ImagePicker.launchImageLibraryAsync(options);
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setMediaType('video');
+        setSelectedMedia(asset.uri);
+      }
+    } catch (e) {
+      Alert.alert('Hata', 'Video seçilirken bir sorun oluştu. Lütfen tekrar deneyin.');
     }
   };
 
