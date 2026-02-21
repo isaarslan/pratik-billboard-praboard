@@ -16,38 +16,57 @@ function VideoPreviewNative({ uri, style, shouldPlay = false }) {
     <VideoView
       player={player}
       style={style}
-      nativeControls
+      nativeControls={!shouldPlay}
       contentFit="cover"
     />
   );
 }
 
-// Web: DOM video elementine ref ile event baglama (RN Web synthetic event sorunu yok)
-function VideoPreviewWeb({ uri, poster, style }) {
-  const [showPoster, setShowPoster] = useState(!!poster);
+// Web: shouldPlay=true ise TV modu (autoplay, kontrol yok), degilse normal preview
+function VideoPreviewWeb({ uri, poster, style, shouldPlay = false }) {
+  const [showPoster, setShowPoster] = useState(!shouldPlay && !!poster);
   const videoRef = useRef(null);
   const flatStyle = StyleSheet.flatten(style) || {};
 
-  // Video DOM elementine direkt ref ile event bagla
+  // shouldPlay modunda: DOM'a mount olunca otomatik oynat
   useEffect(() => {
+    if (!shouldPlay) return;
+    const el = videoRef.current;
+    if (!el) return;
+    // Tarayici politikasi: muted video autoplay'e izin verir
+    el.muted = true;
+    el.play().then(() => {
+      // Oynatma basladi, sesi ac (kullanici etkilesimi sonrasi)
+      // TV modunda sessiz kalmasi daha guvenli, istege bagli acilebilir
+    }).catch(() => {
+      // Autoplay engellendiyse sessiz dene
+      el.muted = true;
+      el.play().catch(() => {});
+    });
+  }, [shouldPlay, uri]);
+
+  // Normal modda play eventini dinle
+  useEffect(() => {
+    if (shouldPlay) return;
     const el = videoRef.current;
     if (!el) return;
     const handler = () => setShowPoster(false);
     el.addEventListener('play', handler);
     return () => el.removeEventListener('play', handler);
-  }, []);
+  }, [shouldPlay]);
 
   const containerStyle = {
     width: flatStyle.width || '100%',
-    aspectRatio: flatStyle.aspectRatio || '16/9',
-    borderRadius: flatStyle.borderRadius || 12,
+    height: flatStyle.height || undefined,
+    aspectRatio: flatStyle.height ? undefined : (flatStyle.aspectRatio || '16/9'),
+    borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 12),
     backgroundColor: '#000',
     position: 'relative',
     overflow: 'hidden',
   };
 
-  // Poster varsa thumbnail + play butonu goster
-  if (showPoster && poster) {
+  // Poster modu (sadece normal preview icin, TV modunda devre disi)
+  if (showPoster && poster && !shouldPlay) {
     return (
       <Pressable onPress={() => setShowPoster(false)}>
         <View style={containerStyle}>
@@ -66,20 +85,22 @@ function VideoPreviewWeb({ uri, poster, style }) {
     );
   }
 
-  // Video oynatici - hicbir overlay yok, direkt native video
+  // Video oynatici
   return React.createElement('video', {
     ref: videoRef,
     src: uri,
-    controls: true,
+    controls: !shouldPlay,
     playsInline: true,
     loop: true,
-    preload: 'metadata',
+    muted: shouldPlay,
+    autoPlay: shouldPlay,
+    preload: shouldPlay ? 'auto' : 'metadata',
     style: {
       width: flatStyle.width || '100%',
-      aspectRatio: flatStyle.aspectRatio || '16/9',
-      borderRadius: flatStyle.borderRadius || 12,
-      backgroundColor: '#000',
+      height: flatStyle.height || '100%',
       objectFit: 'cover',
+      borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 12),
+      backgroundColor: '#000',
       display: 'block',
     },
   });

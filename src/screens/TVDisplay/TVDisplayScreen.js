@@ -211,7 +211,7 @@ export default function TVDisplayScreen({ panelId }) {
         {currentContent.mediaType === 'video' ? (
           <VideoPreview
             uri={currentContent.mediaUrl}
-            style={styles.adImage}
+            style={styles.adVideo}
             shouldPlay
           />
         ) : (
@@ -411,6 +411,17 @@ const styles = StyleSheet.create({
   adImage: {
     width: '100%',
     height: '100%',
+  },
+  adVideo: {
+    width: '100%',
+    height: '100%',
+    ...(Platform.OS === 'web' ? {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    } : {}),
   },
   adOverlay: {
     position: 'absolute',
