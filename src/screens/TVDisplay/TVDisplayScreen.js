@@ -18,6 +18,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, Animated, Platform } from 'react-native';
+import VideoPreview from '../../components/VideoPreview';
 import {
   subscribe,
   getActiveContentsByPanel,
@@ -207,11 +208,19 @@ export default function TVDisplayScreen({ panelId }) {
     <View style={styles.container}>
       {/* Tam ekran reklam gorseli */}
       <Animated.View style={[styles.adContainer, { opacity: fadeAnim }]}>
-        <Image
-          source={{ uri: currentContent.mediaUrl }}
-          style={styles.adImage}
-          resizeMode="cover"
-        />
+        {currentContent.mediaType === 'video' ? (
+          <VideoPreview
+            uri={currentContent.mediaUrl}
+            style={styles.adImage}
+            shouldPlay
+          />
+        ) : (
+          <Image
+            source={{ uri: currentContent.mediaUrl }}
+            style={styles.adImage}
+            resizeMode="cover"
+          />
+        )}
 
         {/* Reklam bilgi katmani (altta) */}
         <View style={styles.adOverlay}>

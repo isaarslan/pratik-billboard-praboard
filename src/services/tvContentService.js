@@ -166,28 +166,32 @@ startListening();
 // TV ICERIK ISLEMLERI
 // ============================================================
 
-/** Resmi Supabase Storage'a yukle ve public URL'ini dondur */
-async function uploadImageToStorage(imageUri, contentId) {
+/** Medyayi (gorsel veya video) Supabase Storage'a yukle ve public URL'ini dondur */
+async function uploadMediaToStorage(mediaUri, contentId, mediaType) {
   try {
-    if (!imageUri) return null;
-    if (imageUri.startsWith('http://') || imageUri.startsWith('https://')) {
-      return imageUri;
+    if (!mediaUri) return null;
+    if (mediaUri.startsWith('http://') || mediaUri.startsWith('https://')) {
+      return mediaUri;
     }
-    if (imageUri.startsWith('data:')) {
-      return imageUri;
+    if (mediaUri.startsWith('data:')) {
+      return mediaUri;
     }
 
-    const response = await fetch(imageUri);
+    const isVideo = mediaType === 'video';
+    const ext = isVideo ? 'mp4' : 'jpg';
+    const contentType = isVideo ? 'video/mp4' : 'image/jpeg';
+
+    const response = await fetch(mediaUri);
     const blob = await response.blob();
-    const filePath = `${contentId}.jpg`;
+    const filePath = `${contentId}.${ext}`;
 
     const { error } = await supabase.storage
       .from('tv-content')
-      .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
+      .upload(filePath, blob, { contentType, upsert: true });
 
     if (error) {
       console.warn('Supabase Storage yukleme hatasi:', error.message);
-      return imageUri;
+      return mediaUri;
     }
 
     const { data } = supabase.storage
@@ -196,21 +200,22 @@ async function uploadImageToStorage(imageUri, contentId) {
 
     return data.publicUrl;
   } catch (error) {
-    console.warn('Resim yukleme hatasi:', error);
-    return imageUri;
+    console.warn('Medya yukleme hatasi:', error);
+    return mediaUri;
   }
 }
 
 /** Onaylanan siparisi TV icin icerik olarak Supabase'e yaz ve direkt oynat */
 export async function pushContentToTV(order) {
   const contentId = `tv-${Date.now()}`;
-  const mediaUrl = await uploadImageToStorage(order.adImage, contentId);
+  const orderMediaType = order.mediaType || 'image';
+  const mediaUrl = await uploadMediaToStorage(order.adImage, contentId, orderMediaType);
   const panelId = String(order.panel.id);
   const content = {
     orderId: order.id,
     adTitle: order.adTitle,
     mediaUrl: mediaUrl || order.adImage,
-    mediaType: 'image',
+    mediaType: orderMediaType,
     panelId: panelId,
     panelName: order.panel.name,
     duration: parseInt(order.adDuration) || 15,

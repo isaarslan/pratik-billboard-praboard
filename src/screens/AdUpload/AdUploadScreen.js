@@ -554,6 +554,7 @@ const AdUploadScreen = ({ navigation }) => {
               addOrder({
                 adTitle,
                 adImage: selectedMedia,
+                mediaType: mediaType || 'image',
                 panel: selectedPanel,
                 dates,
                 adDuration,

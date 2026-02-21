@@ -97,6 +97,7 @@ export function OrderProvider({ children }) {
       id,
       adTitle: orderData.adTitle,
       adImage: orderData.adImage,
+      mediaType: orderData.mediaType || 'image',
       panel: orderData.panel,
       dates: orderData.dates,
       adDuration: `${orderData.adDuration || 15} saniye`,
