@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { Platform, View, StyleSheet, ActivityIndicator, Image, Pressable } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { Platform, View, StyleSheet, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Web: dogrudan HTML <video> kullan (expo-video web'de sorunlu)
 // Native: expo-video kullan
 function VideoPreviewNative({ uri, style, shouldPlay = false }) {
   const { useVideoPlayer, VideoView } = require('expo-video');
@@ -23,31 +22,40 @@ function VideoPreviewNative({ uri, style, shouldPlay = false }) {
   );
 }
 
+// Web: DOM video elementine ref ile event baglama (RN Web synthetic event sorunu yok)
 function VideoPreviewWeb({ uri, poster, style }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [playRequested, setPlayRequested] = useState(false);
+  const [showPoster, setShowPoster] = useState(!!poster);
+  const videoRef = useRef(null);
   const flatStyle = StyleSheet.flatten(style) || {};
+
+  // Video DOM elementine direkt ref ile event bagla
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    const handler = () => setShowPoster(false);
+    el.addEventListener('play', handler);
+    return () => el.removeEventListener('play', handler);
+  }, []);
 
   const containerStyle = {
     width: flatStyle.width || '100%',
-    aspectRatio: flatStyle.aspectRatio || 16 / 9,
+    aspectRatio: flatStyle.aspectRatio || '16/9',
     borderRadius: flatStyle.borderRadius || 12,
     backgroundColor: '#000',
     position: 'relative',
     overflow: 'hidden',
   };
 
-  // Poster varsa ve henuz play istenmemisse thumbnail goster
-  if (poster && !playRequested) {
+  // Poster varsa thumbnail + play butonu goster
+  if (showPoster && poster) {
     return (
-      <Pressable onPress={() => setPlayRequested(true)}>
+      <Pressable onPress={() => setShowPoster(false)}>
         <View style={containerStyle}>
           <Image
             source={{ uri: poster }}
             style={{ width: '100%', height: '100%', borderRadius: flatStyle.borderRadius || 12 }}
             resizeMode="cover"
           />
-          {/* Play butonu overlay */}
           <View style={webStyles.playOverlay}>
             <View style={webStyles.playButton}>
               <Ionicons name="play" size={32} color="#fff" />
@@ -58,41 +66,23 @@ function VideoPreviewWeb({ uri, poster, style }) {
     );
   }
 
-  // Video oynatici
-  return (
-    <View style={containerStyle}>
-      {isLoading && (
-        <View style={webStyles.loadingOverlay}>
-          {poster ? (
-            <Image
-              source={{ uri: poster }}
-              style={{ width: '100%', height: '100%', position: 'absolute' }}
-              resizeMode="cover"
-            />
-          ) : null}
-          <ActivityIndicator size="large" color="#fff" style={{ zIndex: 1 }} />
-        </View>
-      )}
-      {React.createElement('video', {
-        src: uri,
-        controls: true,
-        playsInline: true,
-        loop: true,
-        autoPlay: playRequested,
-        preload: 'auto',
-        poster: poster || undefined,
-        onCanPlay: () => setIsLoading(false),
-        onLoadedData: () => setIsLoading(false),
-        style: {
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          borderRadius: flatStyle.borderRadius || 12,
-          display: 'block',
-        },
-      })}
-    </View>
-  );
+  // Video oynatici - hicbir overlay yok, direkt native video
+  return React.createElement('video', {
+    ref: videoRef,
+    src: uri,
+    controls: true,
+    playsInline: true,
+    loop: true,
+    preload: 'metadata',
+    style: {
+      width: flatStyle.width || '100%',
+      aspectRatio: flatStyle.aspectRatio || '16/9',
+      borderRadius: flatStyle.borderRadius || 12,
+      backgroundColor: '#000',
+      objectFit: 'cover',
+      display: 'block',
+    },
+  });
 }
 
 const webStyles = StyleSheet.create({
@@ -110,13 +100,6 @@ const webStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingLeft: 4,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-    zIndex: 2,
   },
 });
 

@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 /**
  * Video URI'den thumbnail (ilk kare) cikarir.
- * Web: Canvas API ile aninda cikarir (ek paket gereksiz)
+ * Web: Canvas API ile - blob: URL'ler icin CORS sorunu yok
  * Native: expo-video-thumbnails kullanir
  */
 export async function extractThumbnail(videoUri) {
@@ -14,16 +14,27 @@ export async function extractThumbnail(videoUri) {
 
 function extractThumbnailWeb(videoUri) {
   return new Promise((resolve) => {
+    let resolved = false;
+    const done = (result) => {
+      if (resolved) return;
+      resolved = true;
+      resolve(result);
+    };
+
     try {
       const video = document.createElement('video');
-      video.crossOrigin = 'anonymous';
-      video.src = videoUri;
       video.muted = true;
-      video.preload = 'metadata';
+      video.playsInline = true;
+      // blob: URL'ler icin crossOrigin gerekli degil, sadece remote icin
+      if (!videoUri.startsWith('blob:')) {
+        video.crossOrigin = 'anonymous';
+      }
+      video.preload = 'auto';
+      video.src = videoUri;
 
       video.onloadeddata = () => {
-        // 1. saniyeye atla (kapak karesi icin)
-        video.currentTime = 1;
+        // 0.1 saniyeye atla (kisa videolar icin guvenli)
+        video.currentTime = 0.1;
       };
 
       video.onseeked = () => {
@@ -35,28 +46,21 @@ function extractThumbnailWeb(videoUri) {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
           // Temizlik
-          video.src = '';
+          video.pause();
+          video.removeAttribute('src');
           video.load();
-          resolve(dataUrl);
+          done(dataUrl);
         } catch {
-          resolve(null);
+          done(null);
         }
       };
 
-      video.onerror = () => {
-        resolve(null);
-      };
+      video.onerror = () => done(null);
 
-      // 5 saniye timeout - thumbnail cikaramazsa null don
-      setTimeout(() => {
-        if (!video.seeked) {
-          video.src = '';
-          video.load();
-          resolve(null);
-        }
-      }, 5000);
+      // 8 saniye timeout
+      setTimeout(() => done(null), 8000);
     } catch {
-      resolve(null);
+      done(null);
     }
   });
 }
@@ -65,12 +69,11 @@ async function extractThumbnailNative(videoUri) {
   try {
     const VideoThumbnails = require('expo-video-thumbnails');
     const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
-      time: 1000, // 1. saniye
+      time: 100, // 0.1 saniye
       quality: 0.7,
     });
     return uri;
   } catch {
-    // expo-video-thumbnails yuklenmemis olabilir, null don
     return null;
   }
 }
