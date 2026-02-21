@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, View, StyleSheet } from 'react-native';
 
 // Web: dogrudan HTML <video> kullan (expo-video web'de sorunlu)
 // Native: expo-video kullan
@@ -24,23 +24,23 @@ function VideoPreviewNative({ uri, style, shouldPlay = false }) {
 
 function VideoPreviewWeb({ uri, style }) {
   // React Native Web ortaminda React.createElement ile native HTML video olustur
-  return (
-    <View style={[style, { overflow: 'hidden' }]}>
-      {React.createElement('video', {
-        src: uri,
-        controls: true,
-        playsInline: true,
-        loop: true,
-        style: {
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          borderRadius: 12,
-          backgroundColor: '#000',
-        },
-      })}
-    </View>
-  );
+  // preload="metadata" ilk kareyi yukler, poster olarak gosterir
+  const flatStyle = StyleSheet.flatten(style) || {};
+  return React.createElement('video', {
+    src: uri,
+    controls: true,
+    playsInline: true,
+    loop: true,
+    preload: 'metadata',
+    style: {
+      width: flatStyle.width || '100%',
+      aspectRatio: flatStyle.aspectRatio || '16/9',
+      borderRadius: flatStyle.borderRadius || 12,
+      backgroundColor: '#000',
+      objectFit: 'cover',
+      display: 'block',
+    },
+  });
 }
 
 export default function VideoPreview(props) {
