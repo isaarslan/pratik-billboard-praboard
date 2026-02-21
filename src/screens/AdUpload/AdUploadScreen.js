@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { Video, ResizeMode } from 'expo-av';
+import VideoPreview from '../../components/VideoPreview';
 import {
   Stepper,
   PrimaryButton,
@@ -39,7 +39,6 @@ const AdUploadScreen = ({ navigation }) => {
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [mediaType, setMediaType] = useState(null); // 'image' | 'video'
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const videoRef = useRef(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [editingDateIndex, setEditingDateIndex] = useState(null);
 
@@ -278,17 +277,7 @@ const AdUploadScreen = ({ navigation }) => {
   const renderMediaPreview = (style) => {
     if (!selectedMedia) return null;
     if (mediaType === 'video') {
-      return (
-        <Video
-          ref={videoRef}
-          source={{ uri: selectedMedia }}
-          style={style}
-          resizeMode={ResizeMode.COVER}
-          shouldPlay={false}
-          useNativeControls
-          isLooping
-        />
-      );
+      return <VideoPreview uri={selectedMedia} style={style} />;
     }
     return (
       <Image
@@ -454,13 +443,8 @@ const AdUploadScreen = ({ navigation }) => {
               <View style={styles.montageFrame}>
                 {selectedMedia ? (
                   mediaType === 'video' ? (
-                    <View style={styles.montageAdImg}>
-                      <Video
-                        source={{ uri: selectedMedia }}
-                        style={styles.montageAdImg}
-                        resizeMode={ResizeMode.COVER}
-                        shouldPlay={false}
-                      />
+                    <View style={[styles.montageAdImg, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.gray[800] }]}>
+                      <Ionicons name="videocam" size={28} color="rgba(255,255,255,0.7)" />
                       <View style={styles.montagePlayIcon}>
                         <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
                       </View>
@@ -498,13 +482,8 @@ const AdUploadScreen = ({ navigation }) => {
 
         {selectedMedia ? (
           mediaType === 'video' ? (
-            <View style={styles.feedPreviewImage}>
-              <Video
-                source={{ uri: selectedMedia }}
-                style={StyleSheet.absoluteFill}
-                resizeMode={ResizeMode.COVER}
-                shouldPlay={false}
-              />
+            <View style={[styles.feedPreviewImage, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.gray[800] }]}>
+              <Ionicons name="videocam" size={36} color="rgba(255,255,255,0.5)" />
               <View style={styles.feedPreviewPlayIcon}>
                 <Ionicons name="play-circle" size={48} color="rgba(255,255,255,0.9)" />
               </View>

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Video, ResizeMode } from 'expo-av';
 import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
 
 export default function AdDetailScreen({ navigation }) {
   const ad = navigation.currentRoute.params || {};
-  const videoRef = useRef(null);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
