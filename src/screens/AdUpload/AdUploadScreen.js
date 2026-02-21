@@ -32,6 +32,7 @@ const AdUploadScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [adTitle, setAdTitle] = useState('');
   const [adDuration, setAdDuration] = useState('');
+  const [campaignDetails, setCampaignDetails] = useState('');
   const [dates, setDates] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -103,6 +104,12 @@ const AdUploadScreen = ({ navigation }) => {
           <Text style={styles.summaryLabel}>Toplam Fiyat:</Text>
           <Text style={styles.summaryValue}>{totalPrice} TL</Text>
         </View>
+        {campaignDetails ? (
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Kampanya Detayı:</Text>
+            <Text style={[styles.summaryValue, { flex: 1, textAlign: 'right' }]} numberOfLines={2}>{campaignDetails}</Text>
+          </View>
+        ) : null}
       </View>
     );
   };
@@ -142,6 +149,21 @@ const AdUploadScreen = ({ navigation }) => {
           placeholder="Süre girin"
           keyboardType="number-pad"
         />
+        <View style={styles.campaignDetailsInputContainer}>
+          <View style={styles.campaignDetailsLabelRow}>
+            <Ionicons name="megaphone-outline" size={18} color={colors.primary} />
+            <Text style={styles.campaignDetailsLabel}>Kampanya Detayı</Text>
+            <Text style={styles.campaignDetailsOptional}>(Opsiyonel)</Text>
+          </View>
+          <TextInput
+            value={campaignDetails}
+            onChangeText={setCampaignDetails}
+            placeholder="Kampanyanızla ilgili özel açıklamalarınızı yazın (indirim detayları, tarihler, koşullar vb.)"
+            multiline
+            numberOfLines={4}
+            style={styles.campaignDetailsInput}
+          />
+        </View>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -411,6 +433,7 @@ const AdUploadScreen = ({ navigation }) => {
               duration: adDuration,
               dates,
               image: selectedImage,
+              campaignDetails,
             });
             if (selectedPanel) {
               addOrder({
@@ -476,6 +499,7 @@ const AdUploadScreen = ({ navigation }) => {
           setCurrentStep(1);
           setAdTitle('');
           setAdDuration('');
+          setCampaignDetails('');
           setSelectedImage(null);
           navigation.navigate('HomeTab');
         }}
@@ -518,6 +542,28 @@ const styles = StyleSheet.create({
   formContainer: {
     marginTop: 8,
     gap: 16,
+  },
+  campaignDetailsInputContainer: {
+    marginTop: 4,
+  },
+  campaignDetailsLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  campaignDetailsLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  campaignDetailsOptional: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  campaignDetailsInput: {
+    minHeight: 100,
+    textAlignVertical: 'top',
   },
   buttonContainer: {
     marginTop: 32,

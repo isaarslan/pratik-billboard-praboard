@@ -16,6 +16,7 @@ const DEFAULT_ADS = [
     image: 'https://picsum.photos/seed/billboard1/800/500',
     sector: 'Perakende',
     isOwn: false,
+    campaignDetails: 'Bu kampanya 1-28 Şubat tarihleri arasında geçerlidir. Tüm mağazalarımızda geçerli olan bu indirimde, seçili ürünlerde %50\'ye varan fırsatlar sizi bekliyor. Kart ile ödemelerde ekstra %10 indirim!',
   },
   {
     id: '2',
@@ -29,6 +30,7 @@ const DEFAULT_ADS = [
     image: 'https://picsum.photos/seed/billboard2/800/500',
     sector: 'Etkinlik',
     isOwn: false,
+    campaignDetails: 'Etkinlik 22 Şubat Cumartesi saat 14:00\'te Çankaya Parkı\'nda başlayacaktır. Canlı müzik, yiyecek stantları ve çocuklar için aktiviteler olacak. Giriş ücretsizdir, kayıt için web sitemizi ziyaret edin.',
   },
   {
     id: '3',
@@ -42,6 +44,7 @@ const DEFAULT_ADS = [
     image: 'https://picsum.photos/seed/billboard3/800/500',
     sector: 'Restoran',
     isOwn: false,
+    campaignDetails: 'Etimesgut şubemiz açıldı! Açılışa özel ilk hafta tüm menüde %30 indirim. Aile menülerinde ek %15 indirim fırsatı. Paket siparişlerde ücretsiz teslimat. Adres: Etimesgut Bulvarı No:42.',
   },
   {
     id: '4',
@@ -55,6 +58,7 @@ const DEFAULT_ADS = [
     image: 'https://picsum.photos/seed/billboard4/800/500',
     sector: 'Spor',
     isOwn: false,
+    campaignDetails: 'Doğa yürüyüşü rotası: Keçiören Kalaba Parkı - Atatürk Ormanı (toplam 8 km). Buluşma noktası: Kalaba Parkı girişi, saat 09:00. Yanınızda su ve rahat ayakkabı getirmeyi unutmayın. Her yaş grubuna uygundur.',
   },
   {
     id: '5',
@@ -68,6 +72,7 @@ const DEFAULT_ADS = [
     image: 'https://picsum.photos/seed/billboard5/800/500',
     sector: 'Teknoloji',
     isOwn: false,
+    campaignDetails: 'Ankara Teknoloji Fuarı 2026, 1-3 Mart tarihlerinde ATO Congresium\'da düzenlenecektir. 200\'den fazla teknoloji firması katılacak. Öğrencilere özel ücretsiz giriş. Erken kayıt indirimi 28 Şubat\'a kadar geçerlidir.',
   },
 ];
 
@@ -88,6 +93,7 @@ const DEFAULT_OWN_ADS = [
     totalDays: '30',
     adDuration: '15 saniye',
     publishDate: '15 Ocak 2026',
+    campaignDetails: 'Kızılay Meydanı\'ndaki premium billboard kampanyamız 30 gün boyunca yayında kalacaktır. Günde ortalama 50.000 kişiye ulaşılması hedeflenmektedir.',
   },
   {
     id: 'own-2',
@@ -104,6 +110,7 @@ const DEFAULT_OWN_ADS = [
     totalDays: '45',
     adDuration: '20 saniye',
     publishDate: '10 Ocak 2026',
+    campaignDetails: 'Yaz koleksiyonu tanıtım kampanyamız Tunalı Hilmi Caddesi\'nin en işlek noktasında 45 gün süreyle yayınlanacaktır. Hedef kitle: 18-35 yaş arası moda tutkunları.',
   },
   {
     id: 'own-3',
@@ -120,6 +127,7 @@ const DEFAULT_OWN_ADS = [
     totalDays: '14',
     adDuration: '10 saniye',
     publishDate: '5 Ocak 2026',
+    campaignDetails: 'Kış sezonu özel indirimleri kampanyası. 2 hafta süreyle Ulus Meydanı\'nda yayında. Tüm kış ürünlerinde %40\'a varan indirimler.',
   },
 ];
 
@@ -147,6 +155,7 @@ export function AdProvider({ children }) {
       totalDays: String(newAd.dates?.length || 1),
       adDuration: `${newAd.duration || 15} saniye`,
       publishDate: dateStr,
+      campaignDetails: newAd.campaignDetails || '',
     };
 
     setOwnAds((prev) => [ad, ...prev]);

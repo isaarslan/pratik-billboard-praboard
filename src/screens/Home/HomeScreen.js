@@ -67,6 +67,12 @@ const HomeScreen = ({ navigation }) => {
           <Ionicons name="share-outline" size={24} color={colors.gray[700]} />
           <Text style={styles.interactionText}>{item.shares}</Text>
         </View>
+        {item.campaignDetails ? (
+          <View style={styles.interactionItem}>
+            <Ionicons name="megaphone-outline" size={22} color={colors.primary} />
+            <Text style={styles.campaignBadgeText}>Detay</Text>
+          </View>
+        ) : null}
       </View>
 
       {/* Description */}
@@ -307,6 +313,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.gray[700],
     marginLeft: 6,
+  },
+  campaignBadgeText: {
+    fontSize: 13,
+    color: colors.primary,
+    fontWeight: '600',
+    marginLeft: 4,
   },
   descriptionContainer: {
     paddingHorizontal: 16,

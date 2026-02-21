@@ -85,6 +85,23 @@ export default function AdDetailScreen({ navigation }) {
               Bu reklam, billboard üzerinden geniş kitlelere ulaşmak için tasarlanmıştır. Detaylı bilgi için profili ziyaret edebilirsiniz.
             </Text>
           </View>
+
+          {/* Campaign Details */}
+          {ad.campaignDetails ? (
+            <View style={styles.campaignDetailsCard}>
+              <View style={styles.campaignDetailsHeader}>
+                <View style={styles.campaignDetailsIcon}>
+                  <Ionicons name="megaphone" size={18} color={colors.primary} />
+                </View>
+                <Text style={styles.campaignDetailsTitle}>Kampanya Detayı</Text>
+              </View>
+              <Text style={styles.campaignDetailsText}>{ad.campaignDetails}</Text>
+              <View style={styles.campaignDetailsBadge}>
+                <Ionicons name="shield-checkmark" size={14} color="#2E7D32" />
+                <Text style={styles.campaignDetailsBadgeText}>Reklam veren tarafından eklendi</Text>
+              </View>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -211,6 +228,54 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.gray[600],
     lineHeight: 22,
+  },
+  campaignDetailsCard: {
+    backgroundColor: '#FFF5F5',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FFE0E0',
+  },
+  campaignDetailsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  campaignDetailsIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFE0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  campaignDetailsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.gray[900],
+  },
+  campaignDetailsText: {
+    fontSize: 14,
+    color: colors.gray[700],
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  campaignDetailsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#E8F5E9',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  campaignDetailsBadgeText: {
+    fontSize: 11,
+    color: '#2E7D32',
+    fontWeight: '600',
   },
   bottomBar: {
     flexDirection: 'row',
