@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { Video, ResizeMode } from 'expo-av';
 import {
   Stepper,
   PrimaryButton,
@@ -34,8 +35,10 @@ const AdUploadScreen = ({ navigation }) => {
   const [adDuration, setAdDuration] = useState('');
   const [campaignDetails, setCampaignDetails] = useState('');
   const [dates, setDates] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedMedia, setSelectedMedia] = useState(null);
+  const [mediaType, setMediaType] = useState(null); // 'image' | 'video'
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const videoRef = useRef(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [editingDateIndex, setEditingDateIndex] = useState(null);
 
@@ -50,12 +53,28 @@ const AdUploadScreen = ({ navigation }) => {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
+      setMediaType('image');
       if (asset.base64) {
         const mimeType = asset.mimeType || 'image/jpeg';
-        setSelectedImage(`data:${mimeType};base64,${asset.base64}`);
+        setSelectedMedia(`data:${mimeType};base64,${asset.base64}`);
       } else {
-        setSelectedImage(asset.uri);
+        setSelectedMedia(asset.uri);
       }
+    }
+  };
+
+  const pickVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsEditing: true,
+      quality: 0.7,
+      videoMaxDuration: 60,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      setMediaType('video');
+      setSelectedMedia(asset.uri);
     }
   };
 
@@ -99,6 +118,10 @@ const AdUploadScreen = ({ navigation }) => {
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Reklam Süresi:</Text>
           <Text style={styles.summaryValue}>{adDuration} saniye</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Medya Türü:</Text>
+          <Text style={styles.summaryValue}>{mediaType === 'video' ? 'Video' : 'Görsel'}</Text>
         </View>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Toplam Fiyat:</Text>
@@ -243,40 +266,104 @@ const AdUploadScreen = ({ navigation }) => {
     </View>
   );
 
+  const renderMediaPreview = (style) => {
+    if (!selectedMedia) return null;
+    if (mediaType === 'video') {
+      return (
+        <Video
+          ref={videoRef}
+          source={{ uri: selectedMedia }}
+          style={style}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay={false}
+          useNativeControls
+          isLooping
+        />
+      );
+    }
+    return (
+      <Image
+        source={{ uri: selectedMedia }}
+        style={style}
+        resizeMode="cover"
+      />
+    );
+  };
+
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.title}>Reklam İçeriğini Yükle</Text>
       <Stepper currentStep={3} totalSteps={6} />
       <Text style={styles.description}>
-        Hangi içerik yayınlanacak? Detayları buradan ekle!
+        Hangi içerik yayınlanacak? Görsel veya video yükleyebilirsin!
       </Text>
 
-      {!selectedImage ? (
-        <TouchableOpacity
-          style={styles.uploadPlaceholder}
-          onPress={pickImage}
-        >
-          <Ionicons name="cloud-upload-outline" size={64} color={colors.gray[400]} />
-          <Text style={styles.uploadText}>Galeriden resim seçmek için dokunun</Text>
-        </TouchableOpacity>
+      {!selectedMedia ? (
+        <View style={styles.mediaPickerContainer}>
+          {/* Image Upload Option */}
+          <TouchableOpacity
+            style={styles.mediaPickerCard}
+            activeOpacity={0.7}
+            onPress={pickImage}
+          >
+            <View style={[styles.mediaPickerIcon, { backgroundColor: '#E3F2FD' }]}>
+              <Ionicons name="image-outline" size={36} color="#1976D2" />
+            </View>
+            <Text style={styles.mediaPickerTitle}>Görsel Yükle</Text>
+            <Text style={styles.mediaPickerDesc}>JPG, PNG formatlarında</Text>
+          </TouchableOpacity>
+
+          {/* Video Upload Option */}
+          <TouchableOpacity
+            style={[styles.mediaPickerCard, styles.mediaPickerCardVideo]}
+            activeOpacity={0.7}
+            onPress={pickVideo}
+          >
+            <View style={[styles.mediaPickerIcon, { backgroundColor: '#F3E5F5' }]}>
+              <Ionicons name="videocam-outline" size={36} color="#7B1FA2" />
+            </View>
+            <Text style={styles.mediaPickerTitle}>Video Yükle</Text>
+            <Text style={styles.mediaPickerDesc}>MP4 formatında, maks. 60sn</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <View style={styles.previewContainer}>
+          <View style={styles.mediaTypeBadgeRow}>
+            <View style={[
+              styles.mediaTypeBadge,
+              mediaType === 'video' ? styles.mediaTypeBadgeVideo : styles.mediaTypeBadgeImage,
+            ]}>
+              <Ionicons
+                name={mediaType === 'video' ? 'videocam' : 'image'}
+                size={14}
+                color={mediaType === 'video' ? '#7B1FA2' : '#1976D2'}
+              />
+              <Text style={[
+                styles.mediaTypeBadgeText,
+                { color: mediaType === 'video' ? '#7B1FA2' : '#1976D2' },
+              ]}>
+                {mediaType === 'video' ? 'Video' : 'Görsel'}
+              </Text>
+            </View>
+          </View>
           <Text style={styles.previewTitle}>
             İçeriğin Billboard'da böyle gözükecek. Beğendin mi?
           </Text>
           <View style={styles.billboardPreview}>
-            <Image
-              source={{ uri: selectedImage }}
-              style={styles.previewImage}
-              resizeMode="cover"
-            />
+            {renderMediaPreview(styles.previewImage)}
           </View>
 
           <View style={styles.buttonContainer}>
-            <OutlinedButton
-              title="İçeriğini beğenmedin mi? Değiştir"
-              onPress={pickImage}
-            />
+            <View style={styles.changeMediaRow}>
+              <TouchableOpacity style={styles.changeMediaBtn} onPress={pickImage} activeOpacity={0.7}>
+                <Ionicons name="image-outline" size={18} color="#1976D2" />
+                <Text style={[styles.changeMediaBtnText, { color: '#1976D2' }]}>Görsel Değiştir</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.changeMediaBtn, styles.changeMediaBtnVideo]} onPress={pickVideo} activeOpacity={0.7}>
+                <Ionicons name="videocam-outline" size={18} color="#7B1FA2" />
+                <Text style={[styles.changeMediaBtnText, { color: '#7B1FA2' }]}>Video Değiştir</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.buttonSpacer} />
             <PrimaryButton
               title="İçerik Özetini Gör"
@@ -356,8 +443,22 @@ const AdUploadScreen = ({ navigation }) => {
             />
             <View style={styles.montageOverlay}>
               <View style={styles.montageFrame}>
-                {selectedImage ? (
-                  <Image source={{ uri: selectedImage }} style={styles.montageAdImg} resizeMode="cover" />
+                {selectedMedia ? (
+                  mediaType === 'video' ? (
+                    <View style={styles.montageAdImg}>
+                      <Video
+                        source={{ uri: selectedMedia }}
+                        style={styles.montageAdImg}
+                        resizeMode={ResizeMode.COVER}
+                        shouldPlay={false}
+                      />
+                      <View style={styles.montagePlayIcon}>
+                        <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
+                      </View>
+                    </View>
+                  ) : (
+                    <Image source={{ uri: selectedMedia }} style={styles.montageAdImg} resizeMode="cover" />
+                  )
                 ) : (
                   <View style={[styles.montageAdImg, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.gray[200] }]}>
                     <Ionicons name="image-outline" size={40} color={colors.gray[400]} />
@@ -386,12 +487,26 @@ const AdUploadScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {selectedImage ? (
-          <Image
-            source={{ uri: selectedImage }}
-            style={styles.feedPreviewImage}
-            resizeMode="cover"
-          />
+        {selectedMedia ? (
+          mediaType === 'video' ? (
+            <View style={styles.feedPreviewImage}>
+              <Video
+                source={{ uri: selectedMedia }}
+                style={StyleSheet.absoluteFill}
+                resizeMode={ResizeMode.COVER}
+                shouldPlay={false}
+              />
+              <View style={styles.feedPreviewPlayIcon}>
+                <Ionicons name="play-circle" size={48} color="rgba(255,255,255,0.9)" />
+              </View>
+            </View>
+          ) : (
+            <Image
+              source={{ uri: selectedMedia }}
+              style={styles.feedPreviewImage}
+              resizeMode="cover"
+            />
+          )
         ) : (
           <View style={[styles.feedPreviewImage, styles.feedPreviewImagePlaceholder]}>
             <Ionicons name="image-outline" size={48} color={colors.gray[300]} />
@@ -432,13 +547,14 @@ const AdUploadScreen = ({ navigation }) => {
               title: adTitle,
               duration: adDuration,
               dates,
-              image: selectedImage,
+              image: selectedMedia,
+              mediaType: mediaType || 'image',
               campaignDetails,
             });
             if (selectedPanel) {
               addOrder({
                 adTitle,
-                adImage: selectedImage,
+                adImage: selectedMedia,
                 panel: selectedPanel,
                 dates,
                 adDuration,
@@ -500,7 +616,8 @@ const AdUploadScreen = ({ navigation }) => {
           setAdTitle('');
           setAdDuration('');
           setCampaignDetails('');
-          setSelectedImage(null);
+          setSelectedMedia(null);
+          setMediaType(null);
           navigation.navigate('HomeTab');
         }}
       />
@@ -652,22 +769,100 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  uploadPlaceholder: {
+  mediaPickerContainer: {
+    flexDirection: 'row',
+    gap: 12,
     marginTop: 16,
+  },
+  mediaPickerCard: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderRadius: 16,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: colors.gray[300],
-    borderRadius: 16,
-    padding: 48,
+    borderColor: '#BBDEFB',
+    padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.gray[100],
   },
-  uploadText: {
-    marginTop: 16,
-    fontSize: 16,
+  mediaPickerCardVideo: {
+    borderColor: '#CE93D8',
+  },
+  mediaPickerIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  mediaPickerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  mediaPickerDesc: {
+    fontSize: 11,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  mediaTypeBadgeRow: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  mediaTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  mediaTypeBadgeImage: {
+    backgroundColor: '#E3F2FD',
+  },
+  mediaTypeBadgeVideo: {
+    backgroundColor: '#F3E5F5',
+  },
+  mediaTypeBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  changeMediaRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  changeMediaBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BBDEFB',
+    backgroundColor: '#F5F9FF',
+  },
+  changeMediaBtnVideo: {
+    borderColor: '#CE93D8',
+    backgroundColor: '#FDF5FF',
+  },
+  changeMediaBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  montagePlayIcon: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  feedPreviewPlayIcon: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
   previewContainer: {
     marginTop: 16,

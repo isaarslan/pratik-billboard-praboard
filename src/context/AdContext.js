@@ -30,6 +30,7 @@ const DEFAULT_ADS = [
     image: 'https://picsum.photos/seed/billboard2/800/500',
     sector: 'Etkinlik',
     isOwn: false,
+    mediaType: 'video',
     campaignDetails: 'Etkinlik 22 Şubat Cumartesi saat 14:00\'te Çankaya Parkı\'nda başlayacaktır. Canlı müzik, yiyecek stantları ve çocuklar için aktiviteler olacak. Giriş ücretsizdir, kayıt için web sitemizi ziyaret edin.',
   },
   {
@@ -58,6 +59,7 @@ const DEFAULT_ADS = [
     image: 'https://picsum.photos/seed/billboard4/800/500',
     sector: 'Spor',
     isOwn: false,
+    mediaType: 'video',
     campaignDetails: 'Doğa yürüyüşü rotası: Keçiören Kalaba Parkı - Atatürk Ormanı (toplam 8 km). Buluşma noktası: Kalaba Parkı girişi, saat 09:00. Yanınızda su ve rahat ayakkabı getirmeyi unutmayın. Her yaş grubuna uygundur.',
   },
   {
@@ -156,6 +158,7 @@ export function AdProvider({ children }) {
       adDuration: `${newAd.duration || 15} saniye`,
       publishDate: dateStr,
       campaignDetails: newAd.campaignDetails || '',
+      mediaType: newAd.mediaType || 'image',
     };
 
     setOwnAds((prev) => [ad, ...prev]);

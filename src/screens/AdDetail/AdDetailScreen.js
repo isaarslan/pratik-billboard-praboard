@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -9,22 +9,43 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Video, ResizeMode } from 'expo-av';
 import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
 
 export default function AdDetailScreen({ navigation }) {
   const ad = navigation.currentRoute.params || {};
+  const videoRef = useRef(null);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <BackHeader title="" onBack={() => navigation.goBack()} />
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Hero Image */}
-        <Image
-          source={{ uri: ad.image || 'https://picsum.photos/seed/detail/800/500' }}
-          style={styles.heroImage}
-          resizeMode="cover"
-        />
+        {/* Hero Image / Video */}
+        {ad.mediaType === 'video' ? (
+          <View style={styles.heroVideoContainer}>
+            <Image
+              source={{ uri: ad.image || 'https://picsum.photos/seed/detail/800/500' }}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
+            <View style={styles.heroVideoOverlay}>
+              <View style={styles.heroPlayBtn}>
+                <Ionicons name="play" size={32} color={colors.white} />
+              </View>
+            </View>
+            <View style={styles.heroVideoBadge}>
+              <Ionicons name="videocam" size={14} color={colors.white} />
+              <Text style={styles.heroVideoBadgeText}>Video Reklam</Text>
+            </View>
+          </View>
+        ) : (
+          <Image
+            source={{ uri: ad.image || 'https://picsum.photos/seed/detail/800/500' }}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+        )}
 
         {/* Content */}
         <View style={styles.content}>
@@ -133,6 +154,40 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
+  },
+  heroVideoContainer: {
+    position: 'relative',
+  },
+  heroVideoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroPlayBtn: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: 4,
+  },
+  heroVideoBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  heroVideoBadgeText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '600',
   },
   content: {
     padding: 20,

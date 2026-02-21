@@ -41,13 +41,24 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Image */}
+      {/* Image / Video Thumbnail */}
       <View style={styles.adImageContainer}>
         <Image
           source={{ uri: item.image }}
           style={styles.adImage}
           resizeMode="cover"
         />
+        {item.mediaType === 'video' && (
+          <View style={styles.videoOverlay}>
+            <View style={styles.videoPlayBtn}>
+              <Ionicons name="play" size={24} color={colors.white} />
+            </View>
+            <View style={styles.videoBadge}>
+              <Ionicons name="videocam" size={12} color={colors.white} />
+              <Text style={styles.videoBadgeText}>Video</Text>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Page Indicator Dots */}
@@ -276,11 +287,43 @@ const styles = StyleSheet.create({
   adImageContainer: {
     width: '100%',
     overflow: 'hidden',
+    position: 'relative',
   },
   adImage: {
     width: '100%',
     aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
+  },
+  videoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoPlayBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: 3,
+  },
+  videoBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  videoBadgeText: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: '600',
   },
   pageIndicator: {
     flexDirection: 'row',
