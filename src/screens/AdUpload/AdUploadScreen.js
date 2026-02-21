@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import VideoPreview from '../../components/VideoPreview';
+import { extractThumbnail } from '../../utils/videoThumbnail';
 import {
   Stepper,
   PrimaryButton,
@@ -38,6 +39,7 @@ const AdUploadScreen = ({ navigation }) => {
   const [dates, setDates] = useState([]);
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [mediaType, setMediaType] = useState(null); // 'image' | 'video'
+  const [videoThumbnail, setVideoThumbnail] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [editingDateIndex, setEditingDateIndex] = useState(null);
@@ -54,6 +56,7 @@ const AdUploadScreen = ({ navigation }) => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
       setMediaType('image');
+      setVideoThumbnail(null);
       if (asset.base64) {
         const mimeType = asset.mimeType || 'image/jpeg';
         setSelectedMedia(`data:${mimeType};base64,${asset.base64}`);
@@ -80,6 +83,10 @@ const AdUploadScreen = ({ navigation }) => {
         const asset = result.assets[0];
         setMediaType('video');
         setSelectedMedia(asset.uri);
+        // Thumbnail'i arka planda cikar (aninda gosterilecek)
+        extractThumbnail(asset.uri).then((thumb) => {
+          if (thumb) setVideoThumbnail(thumb);
+        });
       }
     } catch (e) {
       Alert.alert('Hata', 'Video seçilirken bir sorun oluştu. Lütfen tekrar deneyin.');
@@ -277,7 +284,7 @@ const AdUploadScreen = ({ navigation }) => {
   const renderMediaPreview = (style) => {
     if (!selectedMedia) return null;
     if (mediaType === 'video') {
-      return <VideoPreview uri={selectedMedia} style={style} />;
+      return <VideoPreview uri={selectedMedia} poster={videoThumbnail} style={style} />;
     }
     return (
       <Image
@@ -444,7 +451,9 @@ const AdUploadScreen = ({ navigation }) => {
                 {selectedMedia ? (
                   mediaType === 'video' ? (
                     <View style={[styles.montageAdImg, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.gray[800] }]}>
-                      <Ionicons name="videocam" size={28} color="rgba(255,255,255,0.7)" />
+                      {videoThumbnail ? (
+                        <Image source={{ uri: videoThumbnail }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                      ) : null}
                       <View style={styles.montagePlayIcon}>
                         <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
                       </View>
@@ -483,7 +492,9 @@ const AdUploadScreen = ({ navigation }) => {
         {selectedMedia ? (
           mediaType === 'video' ? (
             <View style={[styles.feedPreviewImage, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.gray[800] }]}>
-              <Ionicons name="videocam" size={36} color="rgba(255,255,255,0.5)" />
+              {videoThumbnail ? (
+                <Image source={{ uri: videoThumbnail }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+              ) : null}
               <View style={styles.feedPreviewPlayIcon}>
                 <Ionicons name="play-circle" size={48} color="rgba(255,255,255,0.9)" />
               </View>
@@ -606,6 +617,7 @@ const AdUploadScreen = ({ navigation }) => {
           setCampaignDetails('');
           setSelectedMedia(null);
           setMediaType(null);
+          setVideoThumbnail(null);
           navigation.navigate('HomeTab');
         }}
       />
