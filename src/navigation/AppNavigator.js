@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { colors } from '../theme';
 import BottomTabBar from '../components/BottomTabBar';
+import CreateActionModal from '../components/CreateActionModal';
 
 // Screens
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
@@ -26,13 +27,14 @@ const MAIN_TABS = ['HomeTab', 'Panels', 'Notifications', 'ProfileTab'];
 
 export default function AppNavigator({ navigation }) {
   const [activeTab, setActiveTab] = useState('HomeTab');
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const currentRoute = navigation.currentRoute.name;
 
   const isMainScreen = MAIN_TABS.includes(currentRoute);
 
   const handleTabPress = (tabName) => {
     if (tabName === 'AddAd') {
-      navigation.navigate('AdUpload');
+      setShowCreateModal(true);
       return;
     }
     setActiveTab(tabName);
@@ -79,6 +81,18 @@ export default function AppNavigator({ navigation }) {
           <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
         )}
       </View>
+
+      <CreateActionModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSharePost={() => {
+          navigation.navigate('AdUpload');
+        }}
+        onCreateAd={() => {
+          setActiveTab('Panels');
+          navigation.reset('Panels');
+        }}
+      />
     </View>
   );
 }
