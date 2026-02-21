@@ -17,7 +17,8 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, Image, StyleSheet, Animated, Platform } from 'react-native';
+import { View, Text, Image, StyleSheet, Animated, Platform, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import VideoPreview from '../../components/VideoPreview';
 import {
   subscribe,
@@ -39,6 +40,7 @@ export default function TVDisplayScreen({ panelId }) {
   const [panelInfo, setPanelInfo] = useState(null);
   const [connected, setConnected] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideTimerRef = useRef(null);
 
@@ -213,6 +215,7 @@ export default function TVDisplayScreen({ panelId }) {
             uri={currentContent.mediaUrl}
             style={styles.adVideo}
             shouldPlay
+            muted={!soundEnabled}
           />
         ) : (
           <Image
@@ -256,6 +259,21 @@ export default function TVDisplayScreen({ panelId }) {
           )}
         </View>
       </View>
+
+      {/* Ses kontrol butonu (video icerik varken goster) */}
+      {currentContent.mediaType === 'video' && (
+        <TouchableOpacity
+          style={styles.soundButton}
+          onPress={() => setSoundEnabled((prev) => !prev)}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={soundEnabled ? 'volume-high' : 'volume-mute'}
+            size={20}
+            color="#fff"
+          />
+        </TouchableOpacity>
+      )}
 
       {/* Ilerleme cubugu */}
       {contents.length > 1 && (
@@ -497,6 +515,20 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     overflow: 'hidden',
+  },
+
+  // Ses butonu
+  soundButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
 
   // Ilerleme cubugu

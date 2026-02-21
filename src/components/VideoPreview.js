@@ -23,7 +23,8 @@ function VideoPreviewNative({ uri, style, shouldPlay = false }) {
 }
 
 // Web: shouldPlay=true ise TV modu (autoplay, kontrol yok), degilse normal preview
-function VideoPreviewWeb({ uri, poster, style, shouldPlay = false }) {
+function VideoPreviewWeb({ uri, poster, style, shouldPlay = false, muted: mutedProp }) {
+  const isMuted = mutedProp !== undefined ? mutedProp : shouldPlay;
   const [showPoster, setShowPoster] = useState(!shouldPlay && !!poster);
   const videoRef = useRef(null);
   const flatStyle = StyleSheet.flatten(style) || {};
@@ -33,17 +34,20 @@ function VideoPreviewWeb({ uri, poster, style, shouldPlay = false }) {
     if (!shouldPlay) return;
     const el = videoRef.current;
     if (!el) return;
-    // Tarayici politikasi: muted video autoplay'e izin verir
-    el.muted = true;
-    el.play().then(() => {
-      // Oynatma basladi, sesi ac (kullanici etkilesimi sonrasi)
-      // TV modunda sessiz kalmasi daha guvenli, istege bagli acilebilir
-    }).catch(() => {
-      // Autoplay engellendiyse sessiz dene
+    el.muted = isMuted;
+    el.play().catch(() => {
+      // Sesli autoplay engellendiyse sessiz dene
       el.muted = true;
       el.play().catch(() => {});
     });
-  }, [shouldPlay, uri]);
+  }, [shouldPlay, uri, isMuted]);
+
+  // muted prop degisince video elementini guncelle
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = isMuted;
+  }, [isMuted]);
 
   // Normal modda play eventini dinle
   useEffect(() => {
@@ -92,7 +96,7 @@ function VideoPreviewWeb({ uri, poster, style, shouldPlay = false }) {
     controls: !shouldPlay,
     playsInline: true,
     loop: true,
-    muted: shouldPlay,
+    muted: isMuted,
     autoPlay: shouldPlay,
     preload: shouldPlay ? 'auto' : 'metadata',
     style: {
