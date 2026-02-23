@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);       // Supabase auth user
   const [profile, setProfile] = useState(null);  // profiles tablosu
   const [loading, setLoading] = useState(true);  // ilk yükleme
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   // Profili çek
   const fetchProfile = useCallback(async (userId) => {
@@ -41,8 +42,13 @@ export function AuthProvider({ children }) {
     });
 
     // Auth değişikliklerini dinle
-    const unsubscribe = authService.onAuthStateChange((session) => {
+    const unsubscribe = authService.onAuthStateChange((session, event) => {
       if (!mounted) return;
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+        setUser(session.user);
+        return;
+      }
       if (session?.user) {
         setUser(session.user);
         fetchProfile(session.user.id);
@@ -99,6 +105,15 @@ export function AuthProvider({ children }) {
     return updated;
   }, [user]);
 
+  // Yeni şifre belirle (recovery sonrası)
+  const updatePassword = useCallback(async (newPassword) => {
+    await authService.updatePassword(newPassword);
+    setIsPasswordRecovery(false);
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  }, [user, fetchProfile]);
+
   // Profili yeniden yükle
   const refreshProfile = useCallback(async () => {
     if (!user) return;
@@ -112,10 +127,12 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     hasUsername: !!profile?.username,
     isAdmin: profile?.role === 'admin',
+    isPasswordRecovery,
     signUp,
     signIn,
     signOut,
     resetPassword,
+    updatePassword,
     updateProfile,
     setUsername,
     refreshProfile,

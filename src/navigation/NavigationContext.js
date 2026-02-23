@@ -4,14 +4,17 @@ import { useAuth } from '../context/AuthContext';
 const NavigationContext = createContext(null);
 
 export function NavigationProvider({ children }) {
-  const { isAuthenticated, hasUsername, loading } = useAuth();
+  const { isAuthenticated, hasUsername, loading, isPasswordRecovery } = useAuth();
   const [stack, setStack] = useState([{ name: 'Loading', params: {} }]);
 
   // Auth durumuna göre başlangıç ekranını belirle
   useEffect(() => {
     if (loading) return; // Henüz yükleniyor, bekle
 
-    if (!isAuthenticated) {
+    if (isPasswordRecovery) {
+      // Şifre sıfırlama linkinden geldi → Yeni şifre ekranı
+      setStack([{ name: 'ResetPassword', params: {} }]);
+    } else if (!isAuthenticated) {
       // Giriş yapılmamış → Onboarding
       setStack([{ name: 'Onboarding', params: {} }]);
     } else if (!hasUsername) {
@@ -21,7 +24,7 @@ export function NavigationProvider({ children }) {
       // Tam giriş → Ana sayfa
       setStack([{ name: 'HomeTab', params: {} }]);
     }
-  }, [isAuthenticated, hasUsername, loading]);
+  }, [isAuthenticated, hasUsername, loading, isPasswordRecovery]);
 
   const navigate = useCallback((name, params = {}) => {
     setStack((prev) => [...prev, { name, params }]);

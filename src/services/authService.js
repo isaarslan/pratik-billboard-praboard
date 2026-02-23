@@ -38,9 +38,12 @@ export async function signOut() {
 
 /**
  * Şifre sıfırlama e-postası gönder
+ * redirectTo: Kullanıcı e-postadaki linke tıklayınca bu URL'e yönlendirilir
  */
 export async function resetPassword(email) {
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://praboard.vercel.app/?type=recovery',
+  });
   if (error) throw error;
 }
 
@@ -67,8 +70,8 @@ export async function getCurrentSession() {
  */
 export function onAuthStateChange(callback) {
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (_event, session) => {
-      callback(session);
+    (event, session) => {
+      callback(session, event);
     }
   );
   return () => subscription.unsubscribe();
