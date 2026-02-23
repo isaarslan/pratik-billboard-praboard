@@ -5,22 +5,44 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TextInput, PrimaryButton } from '../../components';
 import { colors } from '../../theme/colors';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
-  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = () => {
-    navigation.reset('HomeTab');
-  };
-
-  const handleAdminLogin = () => {
-    navigation.reset('HomeTab');
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      setError('Lütfen e-posta ve şifre alanlarını doldurun.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      await signIn({ email: email.trim(), password });
+      // Auth state değişince navigation otomatik yönlendirecek
+    } catch (err) {
+      const msg = err?.message || '';
+      if (msg.includes('Invalid login credentials')) {
+        setError('E-posta veya şifre hatalı.');
+      } else if (msg.includes('Email not confirmed')) {
+        setError('Lütfen önce e-posta adresinizi doğrulayın.');
+      } else {
+        setError('Giriş yapılırken bir hata oluştu. Tekrar deneyin.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,17 +59,25 @@ export default function LoginScreen({ navigation }) {
               Giriş yapmak için lütfen bilgilerini gir.
             </Text>
 
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
             <View style={styles.form}>
               <TextInput
-                label="E-Posta / Kullanıcı Adı"
-                value={emailOrUsername}
-                onChangeText={setEmailOrUsername}
+                label="E-Posta"
+                value={email}
+                onChangeText={(t) => { setEmail(t); setError(''); }}
+                keyboardType="email-address"
+                autoCapitalize="none"
               />
 
               <TextInput
                 label="Şifre"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); setError(''); }}
                 secureTextEntry
               />
 
@@ -59,18 +89,17 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
 
               <PrimaryButton
-                title="Giriş Yap"
+                title={loading ? '' : 'Giriş Yap'}
                 onPress={handleLogin}
+                disabled={loading}
                 style={styles.submitButton}
               />
-
-              <TouchableOpacity
-                onPress={handleAdminLogin}
-                style={styles.adminButton}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.adminButtonText}>Admin Girişi (Test)</Text>
-              </TouchableOpacity>
+              {loading && (
+                <ActivityIndicator
+                  color={colors.white}
+                  style={styles.loadingIndicator}
+                />
+              )}
 
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.linkText}>
@@ -131,6 +160,17 @@ const styles = StyleSheet.create({
   form: {
     width: '100%',
   },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    textAlign: 'center',
+  },
   forgotPasswordContainer: {
     alignSelf: 'flex-end',
     marginTop: -8,
@@ -144,17 +184,10 @@ const styles = StyleSheet.create({
   submitButton: {
     marginBottom: 12,
   },
-  adminButton: {
-    backgroundColor: colors.textPrimary,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  adminButtonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '700',
+  loadingIndicator: {
+    position: 'absolute',
+    alignSelf: 'center',
+    bottom: 58,
   },
   linkText: {
     fontSize: 14,

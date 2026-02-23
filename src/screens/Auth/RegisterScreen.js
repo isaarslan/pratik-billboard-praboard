@@ -7,36 +7,66 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   TextInput,
   PrimaryButton,
-  BottomSheetModal,
-  VerificationCodeInput,
   SuccessModal,
 } from '../../components';
 import { colors } from '../../theme/colors';
+import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterScreen({ navigation }) {
+  const { signUp } = useAuth();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showVerification, setShowVerification] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
 
-  const handleRegister = () => {
-    // Doğrulama adımını atla, direkt başarı göster
-    setShowSuccess(true);
+  const validate = () => {
+    if (!fullName.trim()) return 'Ad Soyad alanı zorunludur.';
+    if (!email.trim()) return 'E-posta alanı zorunludur.';
+    if (!password.trim()) return 'Şifre alanı zorunludur.';
+    if (password.length < 6) return 'Şifre en az 6 karakter olmalıdır.';
+    // Basit e-posta formatı kontrolü
+    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Geçerli bir e-posta adresi girin.';
+    return null;
   };
 
-  const handleVerify = () => {
-    setShowVerification(false);
-    setShowSuccess(true);
+  const handleRegister = async () => {
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      await signUp({
+        email: email.trim(),
+        password,
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+      });
+      setShowSuccess(true);
+    } catch (err) {
+      const msg = err?.message || '';
+      if (msg.includes('already registered') || msg.includes('already been registered')) {
+        setError('Bu e-posta adresi zaten kayıtlı. Giriş yapmayı deneyin.');
+      } else if (msg.includes('password')) {
+        setError('Şifre en az 6 karakter olmalıdır.');
+      } else {
+        setError('Kayıt sırasında bir hata oluştu. Tekrar deneyin.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSuccess = () => {
@@ -63,40 +93,54 @@ export default function RegisterScreen({ navigation }) {
               Hemen kaydol ve Praboard'un fırsatlarını keşfet!
             </Text>
 
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
             <View style={styles.form}>
               <TextInput
                 label="Ad Soyad"
                 value={fullName}
-                onChangeText={setFullName}
+                onChangeText={(t) => { setFullName(t); setError(''); }}
                 autoCapitalize="words"
               />
 
               <TextInput
                 label="Telefon"
                 value={phone}
-                onChangeText={setPhone}
+                onChangeText={(t) => { setPhone(t); setError(''); }}
                 keyboardType="phone-pad"
               />
 
               <TextInput
                 label="E-Posta"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => { setEmail(t); setError(''); }}
                 keyboardType="email-address"
+                autoCapitalize="none"
               />
 
               <TextInput
                 label="Şifre"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); setError(''); }}
                 secureTextEntry
               />
 
               <PrimaryButton
-                title="Keşfetmeye Başla!"
+                title={loading ? '' : 'Keşfetmeye Başla!'}
                 onPress={handleRegister}
+                disabled={loading}
                 style={styles.submitButton}
               />
+              {loading && (
+                <ActivityIndicator
+                  color={colors.white}
+                  style={styles.loadingIndicator}
+                />
+              )}
 
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.linkText}>
@@ -108,23 +152,9 @@ export default function RegisterScreen({ navigation }) {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <BottomSheetModal
-        visible={showVerification}
-        onClose={() => setShowVerification(false)}
-        title="Doğrulama Kodu"
-      >
-        <Text style={styles.modalDescription}>
-          Lütfen e-posta adresine gönderdiğimiz 6 haneli doğrulama kodunu girin.
-        </Text>
-
-        <VerificationCodeInput code={verificationCode} setCode={setVerificationCode} />
-
-        <PrimaryButton title="Doğrula" onPress={handleVerify} style={styles.modalButton} />
-      </BottomSheetModal>
-
       <SuccessModal
         visible={showSuccess}
-        message="E-posta adresin başarıyla doğrulandı!"
+        message="Hesabın başarıyla oluşturuldu! Şimdi bir kullanıcı adı seç."
         buttonTitle="Devam Et"
         onPress={handleSuccess}
       />
@@ -180,9 +210,25 @@ const styles = StyleSheet.create({
   form: {
     width: '100%',
   },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    textAlign: 'center',
+  },
   submitButton: {
     marginTop: 8,
     marginBottom: 16,
+  },
+  loadingIndicator: {
+    position: 'absolute',
+    alignSelf: 'center',
+    bottom: 52,
   },
   linkText: {
     fontSize: 14,
@@ -192,15 +238,5 @@ const styles = StyleSheet.create({
   linkBold: {
     color: colors.primary,
     fontWeight: 'bold',
-  },
-  modalDescription: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 22,
-  },
-  modalButton: {
-    marginTop: 16,
   },
 });

@@ -4,45 +4,76 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput, PrimaryButton } from '../../components';
 import { colors } from '../../theme/colors';
+import { useAuth } from '../../context/AuthContext';
+import { checkUsernameAvailable } from '../../services/userService';
 
 export default function UsernameSelectScreen({ navigation }) {
+  const { setUsername: saveUsername } = useAuth();
   const [username, setUsername] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (username.length > 0) {
-      setIsValidating(true);
+    if (username.length === 0) {
       setError('');
       setSuccess('');
-
-      const timer = setTimeout(() => {
-        if (username.toLowerCase().includes('test')) {
-          setError('Maalesef, bu kullanıcı adı kullanımda. Farklı bir kullanıcı adı seçin.');
-          setSuccess('');
-        } else {
-          setSuccess('Harika! Kullanıcı adın kaydedildi, bir sonraki adıma geçebilirsin.');
-          setError('');
-        }
-        setIsValidating(false);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    } else {
-      setError('');
-      setSuccess('');
+      return;
     }
+
+    // Basit format kontrolü
+    if (username.length < 3) {
+      setError('Kullanıcı adı en az 3 karakter olmalıdır.');
+      setSuccess('');
+      return;
+    }
+    if (!/^[a-zA-Z0-9_.]+$/.test(username)) {
+      setError('Sadece harf, rakam, nokta ve alt çizgi kullanılabilir.');
+      setSuccess('');
+      return;
+    }
+
+    setIsValidating(true);
+    setError('');
+    setSuccess('');
+
+    const timer = setTimeout(async () => {
+      try {
+        const available = await checkUsernameAvailable(username);
+        if (available) {
+          setSuccess('Harika! Bu kullanıcı adı müsait.');
+          setError('');
+        } else {
+          setError('Bu kullanıcı adı zaten alınmış. Farklı bir tane dene.');
+          setSuccess('');
+        }
+      } catch {
+        setError('Kontrol edilirken bir hata oluştu.');
+        setSuccess('');
+      } finally {
+        setIsValidating(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
   }, [username]);
 
-  const handleComplete = () => {
-    if (success) {
+  const handleComplete = async () => {
+    if (!success || saving) return;
+    setSaving(true);
+    try {
+      await saveUsername(username.toLowerCase());
+      // Auth state güncellenince navigation otomatik yönlendirir
       navigation.reset('HomeTab');
+    } catch {
+      setError('Kullanıcı adı kaydedilirken hata oluştu.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -50,7 +81,7 @@ export default function UsernameSelectScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Text style={styles.icon}>👤</Text>
+          <Text style={styles.icon}>{'👤'}</Text>
         </View>
 
         <Text style={styles.title}>Hesabını Tamamla!</Text>
@@ -70,9 +101,9 @@ export default function UsernameSelectScreen({ navigation }) {
           />
 
           <PrimaryButton
-            title="Hesabını Oluştur"
+            title={saving ? 'Kaydediliyor...' : 'Hesabını Oluştur'}
             onPress={handleComplete}
-            disabled={!success || isValidating}
+            disabled={!success || isValidating || saving}
             style={styles.submitButton}
           />
 

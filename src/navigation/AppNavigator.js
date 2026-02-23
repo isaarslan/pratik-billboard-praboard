@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { colors } from '../theme';
 import BottomTabBar from '../components/BottomTabBar';
 import CreateActionModal from '../components/CreateActionModal';
@@ -55,6 +55,11 @@ export default function AppNavigator({ navigation }) {
 
     // For non-tab screens
     switch (currentRoute) {
+      case 'Loading': return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      );
       case 'Onboarding': return <OnboardingScreen navigation={navigation} />;
       case 'Register': return <RegisterScreen navigation={navigation} />;
       case 'Login': return <LoginScreen navigation={navigation} />;

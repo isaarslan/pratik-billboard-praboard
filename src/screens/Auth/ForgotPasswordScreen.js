@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,127 +13,42 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   TextInput,
   PrimaryButton,
-  VerificationCodeInput,
   SuccessModal,
 } from '../../components';
 import { colors } from '../../theme/colors';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ForgotPasswordScreen({ navigation }) {
-  const [step, setStep] = useState(1);
-  const [emailOrUsername, setEmailOrUsername] = useState('');
-  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const { resetPassword } = useAuth();
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleSendCode = () => {
-    setStep(2);
-  };
-
-  const handleVerifyCode = () => {
-    setStep(3);
-  };
-
-  const handleChangePassword = () => {
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Şifreler eşleşmiyor.');
+  const handleSendReset = async () => {
+    if (!email.trim()) {
+      setError('Lütfen e-posta adresinizi girin.');
       return;
     }
-    if (newPassword.length < 6) {
-      setPasswordError('Şifre en az 6 karakter olmalıdır.');
+    if (!/\S+@\S+\.\S+/.test(email.trim())) {
+      setError('Geçerli bir e-posta adresi girin.');
       return;
     }
-    setPasswordError('');
-    setShowSuccess(true);
+    setError('');
+    setLoading(true);
+    try {
+      await resetPassword(email.trim());
+      setShowSuccess(true);
+    } catch {
+      setError('Şifre sıfırlama e-postası gönderilemedi. Tekrar deneyin.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSuccess = () => {
     setShowSuccess(false);
     navigation.navigate('Login');
-  };
-
-  const renderStepContent = () => {
-    switch (step) {
-      case 1:
-        return (
-          <>
-            <Text style={styles.title}>Şifremi Unuttum</Text>
-            <Text style={styles.description}>
-              Hesabını doğrulamak için e-posta adresini veya kullanıcı adını yazabilirsin.
-            </Text>
-
-            <TextInput
-              label="Kullanıcı Adı / E-Posta"
-              value={emailOrUsername}
-              onChangeText={setEmailOrUsername}
-            />
-
-            <PrimaryButton
-              title="Doğrulama Kodu Gönder"
-              onPress={handleSendCode}
-              style={styles.button}
-            />
-          </>
-        );
-
-      case 2:
-        return (
-          <>
-            <Text style={styles.title}>Doğrulama Kodu</Text>
-            <Text style={styles.description}>
-              Lütfen e-posta adresine gönderdiğimiz 6 haneli doğrulama kodunu girin.
-            </Text>
-
-            <VerificationCodeInput code={verificationCode} setCode={setVerificationCode} />
-
-            <PrimaryButton
-              title="Kodu Onayla"
-              onPress={handleVerifyCode}
-              style={styles.button}
-            />
-
-            <TouchableOpacity style={styles.resendContainer}>
-              <Text style={styles.resendText}>Kodu almadın mı?</Text>
-            </TouchableOpacity>
-          </>
-        );
-
-      case 3:
-        return (
-          <>
-            <Text style={styles.title}>Şifreni Belirle</Text>
-            <Text style={styles.description}>
-              Şimdi yeni bir şifre oluşturun ve hesabınıza güvenle erişin.
-            </Text>
-
-            <TextInput
-              label="Yeni Şifre"
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry
-              error={passwordError && !confirmPassword ? passwordError : ''}
-            />
-
-            <TextInput
-              label="Yeni Şifre Tekrar"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              error={passwordError && confirmPassword ? passwordError : ''}
-            />
-
-            <PrimaryButton
-              title="Şifremi Değiştir"
-              onPress={handleChangePassword}
-              style={styles.button}
-            />
-          </>
-        );
-
-      default:
-        return null;
-    }
   };
 
   return (
@@ -141,27 +57,53 @@ export default function ForgotPasswordScreen({ navigation }) {
         <LinearGradient colors={['#FF4B4B', '#FF6B6B']} style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => {
-              if (step > 1) {
-                setStep(step - 1);
-              } else {
-                navigation.goBack();
-              }
-            }}
+            onPress={() => navigation.goBack()}
           >
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
         </LinearGradient>
 
         <View style={styles.content}>
-          <View style={styles.card}>{renderStepContent()}</View>
+          <View style={styles.card}>
+            <Text style={styles.title}>Şifremi Unuttum</Text>
+            <Text style={styles.description}>
+              E-posta adresini gir, sana şifre sıfırlama bağlantısı gönderelim.
+            </Text>
+
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
+            <TextInput
+              label="E-Posta"
+              value={email}
+              onChangeText={(t) => { setEmail(t); setError(''); }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+
+            <PrimaryButton
+              title={loading ? '' : 'Sıfırlama Bağlantısı Gönder'}
+              onPress={handleSendReset}
+              disabled={loading}
+              style={styles.button}
+            />
+            {loading && (
+              <ActivityIndicator
+                color={colors.primary}
+                style={styles.loadingIndicator}
+              />
+            )}
+          </View>
         </View>
       </ScrollView>
 
       <SuccessModal
         visible={showSuccess}
-        message="Yeni şifren oluşturuldu, hesabına giriş yapabilirsin."
-        buttonTitle="Buradan Giriş Yapabilirsin"
+        message="Şifre sıfırlama bağlantısı e-posta adresine gönderildi. Lütfen e-postanı kontrol et."
+        buttonTitle="Giriş Sayfasına Dön"
         onPress={handleSuccess}
       />
     </SafeAreaView>
@@ -216,16 +158,21 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     lineHeight: 22,
   },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    textAlign: 'center',
+  },
   button: {
     marginTop: 8,
   },
-  resendContainer: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  resendText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '600',
+  loadingIndicator: {
+    marginTop: 12,
   },
 });

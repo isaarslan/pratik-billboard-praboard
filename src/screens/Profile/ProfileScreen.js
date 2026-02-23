@@ -13,11 +13,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
+import { useAuth } from '../../context/AuthContext';
 
 const ProfileScreen = ({ navigation }) => {
+  const { profile, isAdmin, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('reklamlar');
   const { myAds, allAds } = useAds();
   const { orders, STATUS_LABELS, STATUS_COLORS } = useOrders();
+
+  const handleSignOut = async () => {
+    await signOut();
+    // Auth state değişince navigation otomatik Onboarding'e yönlendirir
+  };
 
   // Beğenilen ilanlar (ilk 3 başkasının ilanı)
   const likedAds = allAds.filter((a) => !a.isOwn).slice(0, 3);
@@ -171,12 +178,14 @@ const ProfileScreen = ({ navigation }) => {
               <Ionicons name="chevron-back" size={24} color={colors.white} />
             </TouchableOpacity>
             <View style={styles.rightIcons}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => navigation.navigate('Admin')}
-              >
-                <Ionicons name="shield-checkmark" size={24} color={colors.white} />
-              </TouchableOpacity>
+              {isAdmin && (
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => navigation.navigate('Admin')}
+                >
+                  <Ionicons name="shield-checkmark" size={24} color={colors.white} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={styles.plusBadge}>
                 <Text style={styles.plusBadgeText}>P+</Text>
               </TouchableOpacity>
@@ -194,19 +203,21 @@ const ProfileScreen = ({ navigation }) => {
 
           <View style={styles.profileInfo}>
             <View style={styles.nameRow}>
-              <Text style={styles.name}>İsa Arslan</Text>
+              <Text style={styles.name}>{profile?.full_name || 'Kullanıcı'}</Text>
               <View style={styles.goldBadge}>
                 <Text style={styles.goldBadgeText}>P</Text>
               </View>
             </View>
-            <Text style={styles.username}>@isaarslan</Text>
+            <Text style={styles.username}>@{profile?.username || '...'}</Text>
+
+            {profile?.bio ? (
+              <Text style={styles.bioText}>{profile.bio}</Text>
+            ) : null}
 
             <View style={styles.statsRow}>
               <Text style={styles.statsText}>{myAds.length} Reklam</Text>
               <Text style={styles.statsSeparator}>|</Text>
-              <Text style={styles.statsText}>1 Takip edilen</Text>
-              <Text style={styles.statsSeparator}>|</Text>
-              <Text style={styles.statsText}>1.2M Takipçi</Text>
+              <Text style={styles.statsText}>{orders.length} Sipariş</Text>
             </View>
 
             <View style={styles.profileButtons}>
@@ -216,12 +227,21 @@ const ProfileScreen = ({ navigation }) => {
               >
                 <Text style={styles.editButtonText}>Profili düzenle</Text>
               </TouchableOpacity>
+              {isAdmin && (
+                <TouchableOpacity
+                  style={styles.adminButton}
+                  onPress={() => navigation.navigate('Admin')}
+                >
+                  <Ionicons name="shield-checkmark" size={16} color={colors.white} />
+                  <Text style={styles.adminButtonText}>Admin Paneli</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
-                style={styles.adminButton}
-                onPress={() => navigation.navigate('Admin')}
+                style={styles.logoutButton}
+                onPress={handleSignOut}
               >
-                <Ionicons name="shield-checkmark" size={16} color={colors.white} />
-                <Text style={styles.adminButtonText}>Admin Paneli</Text>
+                <Ionicons name="log-out-outline" size={16} color={colors.primary} />
+                <Text style={styles.logoutButtonText}>Çıkış</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -463,6 +483,28 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 14,
     fontWeight: '600',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  logoutButtonText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  bioText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
   },
   tabBar: {
     flexDirection: 'row',

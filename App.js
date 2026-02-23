@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider } from './src/navigation/NavigationContext';
 import { AdProvider } from './src/context/AdContext';
 import { OrderProvider } from './src/context/OrderContext';
@@ -39,18 +40,20 @@ export default function App() {
   // Normal uygulama modu
   return (
     <SafeAreaProvider>
-      <AdProvider>
-        <OrderProvider>
-          <TVContentProvider>
-            <View style={{ flex: 1 }}>
-              <StatusBar style="auto" />
-              <NavigationProvider>
-                {(navigation) => <AppNavigator navigation={navigation} />}
-              </NavigationProvider>
-            </View>
-          </TVContentProvider>
-        </OrderProvider>
-      </AdProvider>
+      <AuthProvider>
+        <AdProvider>
+          <OrderProvider>
+            <TVContentProvider>
+              <View style={{ flex: 1 }}>
+                <StatusBar style="auto" />
+                <NavigationProvider>
+                  {(navigation) => <AppNavigator navigation={navigation} />}
+                </NavigationProvider>
+              </View>
+            </TVContentProvider>
+          </OrderProvider>
+        </AdProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }
