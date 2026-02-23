@@ -33,7 +33,10 @@ export default function LoginScreen({ navigation }) {
       // Auth state değişince navigation otomatik yönlendirecek
     } catch (err) {
       const msg = err?.message || '';
-      if (msg.includes('Invalid login credentials')) {
+      const status = err?.status || err?.statusCode;
+      if (status === 429 || msg.includes('rate limit') || msg.includes('too many requests')) {
+        setError('Çok fazla deneme yaptınız. Lütfen birkaç dakika bekleyip tekrar deneyin.');
+      } else if (msg.includes('Invalid login credentials')) {
         setError('E-posta veya şifre hatalı.');
       } else if (msg.includes('Email not confirmed')) {
         setError('Lütfen önce e-posta adresinizi doğrulayın.');
