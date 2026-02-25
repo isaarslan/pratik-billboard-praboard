@@ -60,3 +60,14 @@ CREATE POLICY "Public delete tv_panels" ON tv_panels FOR DELETE USING (true);
 -- 7. Realtime yayin aktif et (onSnapshot yerine)
 ALTER PUBLICATION supabase_realtime ADD TABLE tv_contents;
 ALTER PUBLICATION supabase_realtime ADD TABLE tv_panels;
+
+-- 8. Profiles tablosuna role sutunu ekle (admin paneli icin gerekli)
+-- Eger profiles tablosu Supabase Auth trigger ile olusturulduysa, role sutunu olmayabilir.
+-- Bu komut role sutununu ekler. Varsayilan deger 'user' olur.
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+
+-- 9. Kendinizi admin yapmak icin asagidaki SQL'i calistirin
+-- (email adresinizi degistirin)
+-- UPDATE profiles SET role = 'admin' WHERE id = (
+--   SELECT id FROM auth.users WHERE email = 'sizin@email.com'
+-- );
