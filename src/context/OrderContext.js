@@ -1,70 +1,8 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../config/supabase';
+import * as orderService from '../services/orderService';
 
 const OrderContext = createContext(null);
-
-// Varsayilan siparis verileri (demo icin)
-const DEFAULT_ORDERS = [
-  {
-    id: 'ORD-20260115-001',
-    adTitle: 'Premium billboard reklamımız Kızılay Meydanında yayında!',
-    adImage: 'https://picsum.photos/seed/myad1/800/500',
-    panel: {
-      id: '1',
-      name: 'Kızılay Meydanı',
-      location: 'Kızılay, Ankara',
-      size: '3m x 6m',
-      price: '1.166 TL/gün',
-      image: 'https://picsum.photos/seed/panel1/400/250',
-    },
-    dates: ['15 Ocak 2026 10:00', '16 Ocak 2026 10:00', '17 Ocak 2026 10:00'],
-    adDuration: '15 saniye',
-    totalPrice: '3.498 TL',
-    status: 'live', // onay_bekliyor, hazirlaniyor, live, completed
-    createdAt: '15 Ocak 2026',
-    proofPhoto: 'https://picsum.photos/seed/proof1/800/500',
-    proofDate: '15 Ocak 2026 10:30',
-  },
-  {
-    id: 'ORD-20260110-002',
-    adTitle: 'Tunalı Hilmi Caddesindeki billboard kampanyamız',
-    adImage: 'https://picsum.photos/seed/myad2/800/500',
-    panel: {
-      id: '2',
-      name: 'Tunalı Hilmi Caddesi',
-      location: 'Çankaya, Ankara',
-      size: '4m x 8m',
-      price: '2.350 TL/gün',
-      image: 'https://picsum.photos/seed/panel2/400/250',
-    },
-    dates: ['10 Ocak 2026 12:00', '11 Ocak 2026 12:00'],
-    adDuration: '20 saniye',
-    totalPrice: '4.700 TL',
-    status: 'completed',
-    createdAt: '10 Ocak 2026',
-    proofPhoto: 'https://picsum.photos/seed/proof2/800/500',
-    proofDate: '10 Ocak 2026 14:00',
-  },
-  {
-    id: 'ORD-20260205-003',
-    adTitle: 'Kış kampanyası billboard reklamı',
-    adImage: 'https://picsum.photos/seed/myad3/800/500',
-    panel: {
-      id: '4',
-      name: 'Bahçelievler AVM Girişi',
-      location: 'Çankaya, Ankara',
-      size: '3m x 4m',
-      price: '1.500 TL/gün',
-      image: 'https://picsum.photos/seed/panel4/400/250',
-    },
-    dates: ['5 Şubat 2026 09:00', '6 Şubat 2026 09:00', '7 Şubat 2026 09:00'],
-    adDuration: '10 saniye',
-    totalPrice: '4.500 TL',
-    status: 'hazirlaniyor',
-    createdAt: '3 Şubat 2026',
-    proofPhoto: null,
-    proofDate: null,
-  },
-];
 
 const STATUS_LABELS = {
   onay_bekliyor: 'Onay Bekliyor',
@@ -85,49 +23,76 @@ const STATUS_COLORS = {
 const STATUS_STEPS = ['onay_bekliyor', 'hazirlaniyor', 'live', 'completed'];
 
 export function OrderProvider({ children }) {
-  const [orders, setOrders] = useState(DEFAULT_ORDERS);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const addOrder = useCallback((orderData) => {
-    const id = `ORD-${Date.now()}`;
-    const today = new Date();
-    const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-    const dateStr = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
-
-    const order = {
-      id,
-      adTitle: orderData.adTitle,
-      adImage: orderData.adImage,
-      mediaType: orderData.mediaType || 'image',
-      panel: orderData.panel,
-      dates: orderData.dates,
-      adDuration: `${orderData.adDuration || 15} saniye`,
-      totalPrice: `${(orderData.dates?.length || 1) * (parseInt(orderData.panel?.price) || 1166)} TL`,
-      status: 'onay_bekliyor',
-      createdAt: dateStr,
-      proofPhoto: null,
-      proofDate: null,
-    };
-
-    setOrders((prev) => [order, ...prev]);
-    return order;
+  // Siparisleri Supabase'den yukle
+  const loadOrders = useCallback(async () => {
+    try {
+      const data = await orderService.fetchOrders();
+      setOrders(data);
+    } catch (error) {
+      console.warn('Siparisler yuklenemedi:', error.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const updateOrderStatus = useCallback((orderId, newStatus) => {
+  // Ilk yukleme ve Realtime dinleme
+  useEffect(() => {
+    loadOrders();
+
+    const channel = supabase
+      .channel('orders_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        loadOrders();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadOrders]);
+
+  const addOrder = useCallback(async (orderData) => {
+    try {
+      const order = await orderService.createOrder(orderData);
+      setOrders((prev) => [order, ...prev]);
+      return order;
+    } catch (error) {
+      console.warn('Siparis olusturulamadi:', error.message);
+      throw error;
+    }
+  }, []);
+
+  const updateOrderStatus = useCallback(async (orderId, newStatus) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
-  }, []);
+    try {
+      await orderService.updateOrderStatus(orderId, newStatus);
+    } catch (error) {
+      console.warn('Siparis durumu guncellenemedi:', error.message);
+      loadOrders();
+    }
+  }, [loadOrders]);
 
-  const rejectOrder = useCallback((orderId, reason) => {
+  const rejectOrder = useCallback(async (orderId, reason) => {
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId ? { ...o, status: 'rejected', rejectReason: reason || 'Reklam içeriği uygun bulunmadı.' } : o
       )
     );
-  }, []);
+    try {
+      await orderService.rejectOrderInDB(orderId, reason);
+    } catch (error) {
+      console.warn('Siparis reddedilemedi:', error.message);
+      loadOrders();
+    }
+  }, [loadOrders]);
 
   return (
-    <OrderContext.Provider value={{ orders, addOrder, updateOrderStatus, rejectOrder, STATUS_LABELS, STATUS_COLORS, STATUS_STEPS }}>
+    <OrderContext.Provider value={{ orders, loading, addOrder, updateOrderStatus, rejectOrder, STATUS_LABELS, STATUS_COLORS, STATUS_STEPS }}>
       {children}
     </OrderContext.Provider>
   );

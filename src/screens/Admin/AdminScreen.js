@@ -56,7 +56,7 @@ export default function AdminScreen({ navigation }) {
     const next = getNextStatus(order.status);
     if (!next) return;
 
-    updateOrderStatus(order.id, next);
+    await updateOrderStatus(order.id, next);
 
     // Siparis onaylandiginda otomatik olarak TV'ye icerik gonder (Supabase'e yazar)
     if (order.status === 'onay_bekliyor' && next === 'hazirlaniyor') {
@@ -70,9 +70,9 @@ export default function AdminScreen({ navigation }) {
     setShowRejectModal(true);
   };
 
-  const handleConfirmReject = () => {
+  const handleConfirmReject = async () => {
     if (rejectTargetId) {
-      rejectOrder(rejectTargetId, rejectReason);
+      await rejectOrder(rejectTargetId, rejectReason);
     }
     setShowRejectModal(false);
     setRejectTargetId(null);
