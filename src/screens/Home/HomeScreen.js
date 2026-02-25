@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,52 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useAds } from '../../context/AdContext';
+import { useOrders } from '../../context/OrderContext';
+
+function getTimeAgo(dateStr) {
+  if (!dateStr) return '';
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now - date;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Az önce';
+  if (diffMin < 60) return `${diffMin} dk önce`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour} saat önce`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay < 30) return `${diffDay} gün önce`;
+  const diffMonth = Math.floor(diffDay / 30);
+  return `${diffMonth} ay önce`;
+}
+
+function orderToAd(order) {
+  return {
+    id: `order-${order.id}`,
+    user: order.adTitle,
+    username: 'praboard',
+    time: getTimeAgo(order.createdAt),
+    location: order.panel?.location || 'Ankara',
+    likes: '0',
+    shares: '0',
+    description: order.campaignDetails || order.adTitle,
+    image: order.adImage,
+    sector: 'Reklam',
+    isOwn: false,
+    mediaType: order.mediaType || 'image',
+    campaignDetails: order.campaignDetails || '',
+  };
+}
 
 const HomeScreen = ({ navigation }) => {
   const { allAds } = useAds();
+  const { orders } = useOrders();
+
+  const feedData = useMemo(() => {
+    const approvedAds = orders
+      .filter((o) => o.status === 'hazirlaniyor' || o.status === 'live')
+      .map(orderToAd);
+    return [...approvedAds, ...allAds];
+  }, [orders, allAds]);
   const renderAdCard = ({ item }) => (
     <TouchableOpacity style={styles.adCard} onPress={() => navigation.navigate('AdDetail', item)} activeOpacity={0.8}>
       {/* Header */}
@@ -135,7 +178,7 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Feed */}
       <FlatList
-        data={allAds}
+        data={feedData}
         renderItem={renderAdCard}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.feedContainer}
