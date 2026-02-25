@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
+import VideoPreview from '../../components/VideoPreview';
 
 function getTimeAgo(dateStr) {
   if (!dateStr) return '';
@@ -84,23 +85,22 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Image / Video Thumbnail */}
+      {/* Image / Video */}
       <View style={styles.adImageContainer}>
-        <Image
-          source={{ uri: item.image }}
-          style={styles.adImage}
-          resizeMode="cover"
-        />
-        {item.mediaType === 'video' && (
-          <View style={styles.videoOverlay}>
-            <View style={styles.videoPlayBtn}>
-              <Ionicons name="play" size={24} color={colors.white} />
-            </View>
+        {item.mediaType === 'video' ? (
+          <>
+            <VideoPreview uri={item.image} style={styles.adImage} />
             <View style={styles.videoBadge}>
               <Ionicons name="videocam" size={12} color={colors.white} />
               <Text style={styles.videoBadgeText}>Video</Text>
             </View>
-          </View>
+          </>
+        ) : (
+          <Image
+            source={{ uri: item.image }}
+            style={styles.adImage}
+            resizeMode="cover"
+          />
         )}
       </View>
 
@@ -336,20 +336,6 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
-  },
-  videoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  videoPlayBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingLeft: 3,
   },
   videoBadge: {
     position: 'absolute',

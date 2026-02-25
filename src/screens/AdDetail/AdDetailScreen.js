@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
+import VideoPreview from '../../components/VideoPreview';
 
 export default function AdDetailScreen({ navigation }) {
   const ad = navigation.currentRoute.params || {};
@@ -22,16 +23,7 @@ export default function AdDetailScreen({ navigation }) {
         {/* Hero Image / Video */}
         {ad.mediaType === 'video' ? (
           <View style={styles.heroVideoContainer}>
-            <Image
-              source={{ uri: ad.image || 'https://picsum.photos/seed/detail/800/500' }}
-              style={styles.heroImage}
-              resizeMode="cover"
-            />
-            <View style={styles.heroVideoOverlay}>
-              <View style={styles.heroPlayBtn}>
-                <Ionicons name="play" size={32} color={colors.white} />
-              </View>
-            </View>
+            <VideoPreview uri={ad.image} style={styles.heroImage} />
             <View style={styles.heroVideoBadge}>
               <Ionicons name="videocam" size={14} color={colors.white} />
               <Text style={styles.heroVideoBadgeText}>Video Reklam</Text>
@@ -155,20 +147,6 @@ const styles = StyleSheet.create({
   },
   heroVideoContainer: {
     position: 'relative',
-  },
-  heroVideoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  heroPlayBtn: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingLeft: 4,
   },
   heroVideoBadge: {
     position: 'absolute',
