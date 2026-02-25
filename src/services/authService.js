@@ -10,6 +10,7 @@ export async function signUp({ email, password, fullName, phone }) {
     password,
     options: {
       data: { full_name: fullName, phone },
+      emailRedirectTo: 'https://praboard.vercel.app/',
     },
   });
   if (error) throw error;
