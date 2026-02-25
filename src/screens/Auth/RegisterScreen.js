@@ -60,12 +60,14 @@ export default function RegisterScreen({ navigation }) {
       const status = err?.status || err?.statusCode;
       if (status === 429 || msg.includes('rate limit') || msg.includes('too many requests')) {
         setError('Çok fazla deneme yaptınız. Lütfen birkaç dakika bekleyip tekrar deneyin.');
+      } else if (status === 406 || msg.includes('not acceptable')) {
+        setError('E-posta gönderim limiti aşıldı. Lütfen 1 saat bekleyip tekrar deneyin.');
       } else if (msg.includes('already registered') || msg.includes('already been registered')) {
         setError('Bu e-posta adresi zaten kayıtlı. Giriş yapmayı deneyin.');
       } else if (msg.includes('password')) {
         setError('Şifre en az 6 karakter olmalıdır.');
       } else {
-        setError('Kayıt sırasında bir hata oluştu. Tekrar deneyin.');
+        setError(`Kayıt hatası: ${msg || 'Bilinmeyen hata'} (${status || 'N/A'})`);
       }
     } finally {
       setLoading(false);
