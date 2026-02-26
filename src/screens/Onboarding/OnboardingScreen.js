@@ -66,13 +66,13 @@ const OnboardingScreen = ({ navigation }) => {
     } else if (icon === 'list') {
       return (
         <View style={styles.iconContainer}>
-          <Ionicons name="list" size={80} color="#FFFFFF" />
+          <Ionicons name="list" size={80} color={colors.white} />
         </View>
       );
     } else if (icon === 'cloud-upload') {
       return (
         <View style={styles.iconContainer}>
-          <Ionicons name="cloud-upload" size={80} color="#FFFFFF" />
+          <Ionicons name="cloud-upload" size={80} color={colors.white} />
         </View>
       );
     }
@@ -155,14 +155,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
   activeDot: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   skipButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
   skipText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -194,13 +194,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: colors.white,
     textAlign: 'center',
     marginBottom: 20,
   },
   subtitle: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.white,
     textAlign: 'center',
     lineHeight: 24,
     opacity: 0.9,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   ctaButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   ctaText: {
-    color: '#FF4B4B',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
   },

@@ -30,7 +30,7 @@ const MAIN_TABS = ['HomeTab', 'Panels', 'Notifications', 'ProfileTab'];
 export default function AppNavigator({ navigation }) {
   const [activeTab, setActiveTab] = useState('HomeTab');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const currentRoute = navigation.currentRoute.name;
+  const currentRoute = navigation.currentRoute?.name;
 
   const isMainScreen = MAIN_TABS.includes(currentRoute);
 
@@ -120,9 +120,5 @@ const styles = StyleSheet.create({
   },
   screenContainer: {
     flex: 1,
-  },
-  emptyScreen: {
-    flex: 1,
-    backgroundColor: colors.background,
   },
 });
