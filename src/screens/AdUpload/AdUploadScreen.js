@@ -541,7 +541,7 @@ const AdUploadScreen = ({ navigation }) => {
         <View style={styles.buttonSpacer} />
         <PrimaryButton
           title="Onayla ve Yayınla"
-          onPress={() => {
+          onPress={async () => {
             addAd({
               title: adTitle,
               duration: adDuration,
@@ -551,14 +551,18 @@ const AdUploadScreen = ({ navigation }) => {
               campaignDetails,
             });
             if (selectedPanel) {
-              addOrder({
-                adTitle,
-                adImage: selectedMedia,
-                mediaType: mediaType || 'image',
-                panel: selectedPanel,
-                dates,
-                adDuration,
-              });
+              try {
+                await addOrder({
+                  adTitle,
+                  adImage: selectedMedia,
+                  mediaType: mediaType || 'image',
+                  panel: selectedPanel,
+                  dates,
+                  adDuration,
+                });
+              } catch (err) {
+                console.warn('Siparis kaydetme hatasi:', err.message);
+              }
             }
             setShowSuccessModal(true);
           }}
