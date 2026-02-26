@@ -3,54 +3,77 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 
 /**
- * PraboardLogo — Elmas şekli + "P" harfi
+ * PraboardLogo — Billboard (panel + direk) şekli
  *
- * variant="onGradient"  → beyaz elmas, kırmızı P  (kırmızı header içinde)
- * variant="standalone"  → kırmızı elmas, beyaz P  (beyaz zemin üzerinde)
+ * variant="onGradient"  → beyaz panel + beyaz direk  (kırmızı/gradient zemin için)
+ * variant="standalone"  → kırmızı panel + kırmızı direk  (beyaz zemin için)
  */
 export default function PraboardLogo({ size = 80, variant = 'onGradient' }) {
   const isOnGradient = variant === 'onGradient';
-  const diamondBg = isOnGradient ? colors.white : colors.primary;
-  const letterColor = isOnGradient ? colors.primary : colors.white;
-  const fontSize = size * 0.38;
+  const logoColor = isOnGradient ? colors.white : colors.primary;
+
+  const panelW = size * 0.9;
+  const panelH = size * 0.55;
+  const poleW = size * 0.08;
+  const poleH = size * 0.32;
+  const fontSize = panelH * 0.62;
+  const borderRadius = size * 0.06;
 
   return (
     <View style={[styles.wrapper, { width: size, height: size }]}>
+      {/* Billboard paneli */}
       <View
         style={[
-          styles.diamond,
+          styles.panel,
           {
-            width: size * 0.78,
-            height: size * 0.78,
-            borderRadius: size * 0.08,
-            backgroundColor: diamondBg,
+            width: panelW,
+            height: panelH,
+            borderRadius,
+            backgroundColor: logoColor,
           },
         ]}
       >
-        <View style={styles.innerContent}>
-          <Text style={[styles.letter, { fontSize, color: letterColor }]}>P</Text>
-        </View>
+        <Text
+          style={[
+            styles.letter,
+            {
+              fontSize,
+              color: isOnGradient ? colors.primary : colors.white,
+            },
+          ]}
+        >
+          P
+        </Text>
       </View>
+
+      {/* Direk */}
+      <View
+        style={[
+          styles.pole,
+          {
+            width: poleW,
+            height: poleH,
+            borderRadius: poleW / 2,
+            backgroundColor: logoColor,
+          },
+        ]}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    backgroundColor: 'transparent',
   },
-  diamond: {
-    transform: [{ rotate: '45deg' }],
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  innerContent: {
-    transform: [{ rotate: '-45deg' }],
+  panel: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   letter: {
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
+  pole: {},
 });
