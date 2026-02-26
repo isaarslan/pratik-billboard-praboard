@@ -11,6 +11,7 @@ import LoginScreen from '../screens/Auth/LoginScreen';
 import UsernameSelectScreen from '../screens/Auth/UsernameSelectScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
+import EmailVerifiedScreen from '../screens/Auth/EmailVerifiedScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import LocationSelectScreen from '../screens/Location/LocationSelectScreen';
 import FilterScreen from '../screens/Filter/FilterScreen';
@@ -67,6 +68,7 @@ export default function AppNavigator({ navigation }) {
       case 'UsernameSelect': return <UsernameSelectScreen navigation={navigation} />;
       case 'ForgotPassword': return <ForgotPasswordScreen navigation={navigation} />;
       case 'ResetPassword': return <ResetPasswordScreen navigation={navigation} />;
+      case 'EmailVerified': return <EmailVerifiedScreen navigation={navigation} />;
       case 'LocationSelect': return <LocationSelectScreen navigation={navigation} />;
       case 'Filter': return <FilterScreen navigation={navigation} />;
       case 'AdUpload': return <AdUploadScreen navigation={navigation} />;
