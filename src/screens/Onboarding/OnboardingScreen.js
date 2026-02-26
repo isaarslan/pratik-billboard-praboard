@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../theme';
+import PraboardLogo from '../../components/PraboardLogo';
 
 const { width, height } = Dimensions.get('window');
 
@@ -59,7 +60,7 @@ const OnboardingScreen = ({ navigation }) => {
     if (icon === 'P') {
       return (
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>P</Text>
+          <PraboardLogo size={110} variant="onGradient" />
         </View>
       );
     } else if (icon === 'list') {
@@ -179,18 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 40,
-  },
-  logoText: {
-    fontSize: 72,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   iconContainer: {
     width: 120,
