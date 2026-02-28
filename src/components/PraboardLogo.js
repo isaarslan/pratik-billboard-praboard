@@ -1,67 +1,60 @@
 import React from 'react';
-import { View } from 'react-native';
+import Svg, { Line, Path } from 'react-native-svg';
 import { colors } from '../theme/colors';
 
 /**
- * PraboardLogo — Kalın çizgili P harfi
- *  · Üstte yatay çubuk (solda stem'den taşar)
- *  · Sol dikey gövde (tam yükseklik)
- *  · Sağda D-şekli yay
+ * PraboardLogo — SVG tabanlı P harfi (View/border yaklaşımından çok daha temiz eğri)
  *
  * variant="onGradient"  → beyaz P  (kırmızı/gradient zemin için)
  * variant="standalone"  → kırmızı P  (beyaz zemin için)
+ *
+ * Gereksinim: expo install react-native-svg
  */
 export default function PraboardLogo({ size = 80, variant = 'onGradient' }) {
-  const isOnGradient = variant === 'onGradient';
-  const color = isOnGradient ? colors.white : colors.primary;
+  const color = variant === 'onGradient' ? colors.white : colors.primary;
 
-  const sw    = Math.round(size * 0.185);       // stroke kalınlığı
-  const overh = Math.round(sw * 0.6);           // üst çubuğun sola taşması
-  const bowlH = Math.round(size * 0.63);        // D-yayın yüksekliği
-  const bowlX = overh + Math.round(sw * 0.5);  // D-yayın başladığı x
+  // Tüm koordinatlar 100×100 viewBox'a göre — size parametresiyle ölçeklenir
+  const sw     = 20;                       // stroke kalınlığı
+  const overh  = 11;                       // üst çubuğun sola taşması
+  const stemCX = overh + sw / 2;          // stem merkez X = 21
+  const bowlH  = 63;                       // D-yayının yüksekliği
+  const bowlRy = (bowlH - sw) / 2;        // dikey yarı-eksen = 21.5
+  const bowlRx = 69;                       // yatay yarı-eksen (sağ uca kadar uzanır)
+
+  // Eliptik ark: stem merkezinden aşağı dönerek tekrar stem merkezine döner
+  // sweep=1 (saat yönü) → sağa uzanır = D şekli
+  const bowlPath = `M ${stemCX} ${sw / 2} A ${bowlRx} ${bowlRy} 0 0 1 ${stemCX} ${bowlH - sw / 2}`;
 
   return (
-    <View style={{ width: size, height: size, backgroundColor: 'transparent' }}>
+    <Svg viewBox="0 0 100 100" width={size} height={size}>
 
       {/* Üst yatay çubuk — solda stem'den taşar, tam genişlik */}
-      <View style={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        width: size,
-        height: sw,
-        borderRadius: sw / 2,
-        backgroundColor: color,
-      }} />
+      <Line
+        x1="0" y1={sw / 2}
+        x2="100" y2={sw / 2}
+        strokeWidth={sw}
+        strokeLinecap="round"
+        stroke={color}
+      />
 
       {/* Dikey gövde — tam yükseklik */}
-      <View style={{
-        position: 'absolute',
-        left: overh,
-        top: 0,
-        width: sw,
-        height: size,
-        borderRadius: sw / 2,
-        backgroundColor: color,
-      }} />
+      <Line
+        x1={stemCX} y1="0"
+        x2={stemCX} y2="100"
+        strokeWidth={sw}
+        strokeLinecap="round"
+        stroke={color}
+      />
 
-      {/* D-şekli yay — üst/sağ/alt border, sol açık */}
-      <View style={{
-        position: 'absolute',
-        left: bowlX,
-        top: 0,
-        width: size - bowlX,
-        height: bowlH,
-        borderTopWidth: sw,
-        borderRightWidth: sw,
-        borderBottomWidth: sw,
-        borderLeftWidth: 0,
-        borderColor: color,
-        borderTopRightRadius: bowlH / 2,
-        borderBottomRightRadius: bowlH / 2,
-        backgroundColor: 'transparent',
-      }} />
+      {/* D-şekli eliptik yay */}
+      <Path
+        d={bowlPath}
+        strokeWidth={sw}
+        fill="none"
+        strokeLinecap="round"
+        stroke={color}
+      />
 
-    </View>
+    </Svg>
   );
 }
