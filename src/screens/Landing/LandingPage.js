@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
+import PraboardLogo from '../../components/PraboardLogo';
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 
@@ -33,7 +34,7 @@ function LogoMark({ size = 36, dark }) {
         ...(!dark ? BLUR : {}),
       }}
     >
-      <Text style={{ fontSize: size * 0.5, fontWeight: '800', color: '#fff' }}>P</Text>
+      <PraboardLogo size={size * 0.62} variant="onGradient" />
     </View>
   );
 }
