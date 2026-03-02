@@ -641,6 +641,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
+    ...(Platform.OS === 'web' ? { maxWidth: 680, alignSelf: 'center', width: '100%' } : {}),
   },
   stepContainer: {
     flex: 1,

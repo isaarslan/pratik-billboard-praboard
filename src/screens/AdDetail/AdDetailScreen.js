@@ -6,6 +6,8 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,105 +15,139 @@ import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
 import VideoPreview from '../../components/VideoPreview';
 
+const WEB_BREAKPOINT = 768;
+
 export default function AdDetailScreen({ navigation }) {
   const ad = navigation.currentRoute.params || {};
+  const { width } = useWindowDimensions();
+  const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
+
+  const heroContent = ad.mediaType === 'video' ? (
+    <View style={styles.heroVideoContainer}>
+      <VideoPreview uri={ad.image} style={[styles.heroImage, isWebWide && styles.heroImageWeb]} />
+      <View style={styles.heroVideoBadge}>
+        <Ionicons name="videocam" size={14} color={colors.white} />
+        <Text style={styles.heroVideoBadgeText}>Video Reklam</Text>
+      </View>
+    </View>
+  ) : (
+    <Image
+      source={{ uri: ad.image || 'https://picsum.photos/seed/detail/800/500' }}
+      style={[styles.heroImage, isWebWide && styles.heroImageWeb]}
+      resizeMode="cover"
+    />
+  );
+
+  const detailContent = (
+    <View style={[styles.content, isWebWide && styles.contentWeb]}>
+      <Text style={[styles.adTitle, isWebWide && styles.adTitleWeb]}>
+        {ad.description || 'Red Bull yeni A serisi ile kanatlanmaya hazırlan!'}
+      </Text>
+
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <Ionicons name="heart" size={16} color={colors.primary} />
+          <Text style={styles.statText}>{ad.likes || '345'} kişi beğendi</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Ionicons name="location" size={16} color={colors.primary} />
+          <Text style={styles.statText}>{ad.location || 'Gölbaşı, Ankara'}</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Ionicons name="share-social" size={16} color={colors.primary} />
+          <Text style={styles.statText}>{ad.shares || '12'} kişi paylaştı</Text>
+        </View>
+      </View>
+
+      <View style={styles.plusBadge}>
+        <View style={styles.plusIcon}>
+          <Text style={styles.plusIconText}>P+</Text>
+        </View>
+        <View>
+          <Text style={styles.plusTitle}>Praboard Plus</Text>
+          <Text style={styles.plusDesc}>Bu reklam Praboard Plus üyesi tarafından verilmiştir.</Text>
+        </View>
+      </View>
+
+      <View style={styles.infoCard}>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Yayın Tarihi</Text>
+          <Text style={styles.infoValue}>{ad.time || '14 Eylül 2024'}</Text>
+        </View>
+        <View style={styles.infoDivider} />
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Sektör</Text>
+          <Text style={styles.infoValue}>Teknoloji</Text>
+        </View>
+      </View>
+
+      <View style={styles.descriptionCard}>
+        <Text style={styles.descriptionTitle}>Açıklama</Text>
+        <Text style={styles.descriptionText}>
+          {ad.description || 'Yeni sezon indirimlerimiz başladı! Tüm ürünlerde %50ye varan fırsatları kaçırmayın.'}{' '}
+          Bu reklam, billboard üzerinden geniş kitlelere ulaşmak için tasarlanmıştır. Detaylı bilgi için profili ziyaret edebilirsiniz.
+        </Text>
+      </View>
+
+      {ad.campaignDetails ? (
+        <View style={styles.campaignDetailsCard}>
+          <View style={styles.campaignDetailsHeader}>
+            <View style={styles.campaignDetailsIcon}>
+              <Ionicons name="megaphone" size={18} color={colors.primary} />
+            </View>
+            <Text style={styles.campaignDetailsTitle}>Kampanya Detayı</Text>
+          </View>
+          <Text style={styles.campaignDetailsText}>{ad.campaignDetails}</Text>
+          <View style={styles.campaignDetailsBadge}>
+            <Ionicons name="shield-checkmark" size={14} color="#2E7D32" />
+            <Text style={styles.campaignDetailsBadgeText}>Reklam veren tarafından eklendi</Text>
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+
+  // Web wide: hero sol, detail sağ (side by side)
+  if (isWebWide) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <BackHeader title="" onBack={() => navigation.goBack()} />
+        <View style={styles.webSplitLayout}>
+          <View style={styles.webHeroSection}>
+            {heroContent}
+          </View>
+          <ScrollView style={styles.webDetailSection} showsVerticalScrollIndicator={false}>
+            {detailContent}
+
+            {/* Bottom Bar inline on web */}
+            <View style={styles.bottomBarWeb}>
+              <View style={styles.bottomLeft}>
+                <View style={styles.bottomAvatar}>
+                  <Ionicons name="person" size={20} color={colors.gray[400]} />
+                </View>
+                <View>
+                  <Text style={styles.bottomName}>{ad.user || 'Ahmet Yılmaz'}</Text>
+                  <Text style={styles.bottomUsername}>@{ad.username || 'ahmetyilmaz'}</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.followBtn} activeOpacity={0.7}>
+                <Text style={styles.followBtnText}>Takip Et</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <BackHeader title="" onBack={() => navigation.goBack()} />
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Hero Image / Video */}
-        {ad.mediaType === 'video' ? (
-          <View style={styles.heroVideoContainer}>
-            <VideoPreview uri={ad.image} style={styles.heroImage} />
-            <View style={styles.heroVideoBadge}>
-              <Ionicons name="videocam" size={14} color={colors.white} />
-              <Text style={styles.heroVideoBadgeText}>Video Reklam</Text>
-            </View>
-          </View>
-        ) : (
-          <Image
-            source={{ uri: ad.image || 'https://picsum.photos/seed/detail/800/500' }}
-            style={styles.heroImage}
-            resizeMode="cover"
-          />
-        )}
-
-        {/* Content */}
-        <View style={styles.content}>
-          <Text style={styles.adTitle}>
-            {ad.description || 'Red Bull yeni A serisi ile kanatlanmaya hazırlan!'}
-          </Text>
-
-          {/* Stats Row */}
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Ionicons name="heart" size={16} color={colors.primary} />
-              <Text style={styles.statText}>{ad.likes || '345'} kişi beğendi</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Ionicons name="location" size={16} color={colors.primary} />
-              <Text style={styles.statText}>{ad.location || 'Gölbaşı, Ankara'}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Ionicons name="share-social" size={16} color={colors.primary} />
-              <Text style={styles.statText}>{ad.shares || '12'} kişi paylaştı</Text>
-            </View>
-          </View>
-
-          {/* Praboard Plus Badge */}
-          <View style={styles.plusBadge}>
-            <View style={styles.plusIcon}>
-              <Text style={styles.plusIconText}>P+</Text>
-            </View>
-            <View>
-              <Text style={styles.plusTitle}>Praboard Plus</Text>
-              <Text style={styles.plusDesc}>Bu reklam Praboard Plus üyesi tarafından verilmiştir.</Text>
-            </View>
-          </View>
-
-          {/* Detail Info Cards */}
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Yayın Tarihi</Text>
-              <Text style={styles.infoValue}>{ad.time || '14 Eylül 2024'}</Text>
-            </View>
-            <View style={styles.infoDivider} />
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Sektör</Text>
-              <Text style={styles.infoValue}>Teknoloji</Text>
-            </View>
-          </View>
-
-          {/* Description */}
-          <View style={styles.descriptionCard}>
-            <Text style={styles.descriptionTitle}>Açıklama</Text>
-            <Text style={styles.descriptionText}>
-              {ad.description || 'Yeni sezon indirimlerimiz başladı! Tüm ürünlerde %50ye varan fırsatları kaçırmayın.'}{' '}
-              Bu reklam, billboard üzerinden geniş kitlelere ulaşmak için tasarlanmıştır. Detaylı bilgi için profili ziyaret edebilirsiniz.
-            </Text>
-          </View>
-
-          {/* Campaign Details */}
-          {ad.campaignDetails ? (
-            <View style={styles.campaignDetailsCard}>
-              <View style={styles.campaignDetailsHeader}>
-                <View style={styles.campaignDetailsIcon}>
-                  <Ionicons name="megaphone" size={18} color={colors.primary} />
-                </View>
-                <Text style={styles.campaignDetailsTitle}>Kampanya Detayı</Text>
-              </View>
-              <Text style={styles.campaignDetailsText}>{ad.campaignDetails}</Text>
-              <View style={styles.campaignDetailsBadge}>
-                <Ionicons name="shield-checkmark" size={14} color="#2E7D32" />
-                <Text style={styles.campaignDetailsBadgeText}>Reklam veren tarafından eklendi</Text>
-              </View>
-            </View>
-          ) : null}
-        </View>
+        {heroContent}
+        {detailContent}
       </ScrollView>
 
-      {/* Bottom Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.bottomLeft}>
           <View style={styles.bottomAvatar}>
@@ -140,8 +176,14 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
   },
+  heroImageWeb: {
+    aspectRatio: undefined,
+    height: '100%',
+    borderRadius: 12,
+  },
   heroVideoContainer: {
     position: 'relative',
+    flex: 1,
   },
   heroVideoBadge: {
     position: 'absolute',
@@ -163,12 +205,20 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
+  contentWeb: {
+    paddingHorizontal: 28,
+    paddingVertical: 24,
+  },
   adTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: colors.gray[900],
     lineHeight: 30,
     marginBottom: 16,
+  },
+  adTitleWeb: {
+    fontSize: 26,
+    lineHeight: 34,
   },
   statsRow: {
     flexDirection: 'row',
@@ -256,12 +306,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   campaignDetailsCard: {
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#F0FFF0',
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#FFE0E0',
+    borderColor: '#C8E6C9',
   },
   campaignDetailsHeader: {
     flexDirection: 'row',
@@ -273,7 +323,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#FFE0E0',
+    backgroundColor: '#C8E6C9',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -303,6 +353,31 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
     fontWeight: '600',
   },
+  // Web split layout
+  webSplitLayout: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  webHeroSection: {
+    flex: 1,
+    padding: 20,
+  },
+  webDetailSection: {
+    flex: 1,
+    borderLeftWidth: 1,
+    borderLeftColor: colors.gray[200],
+  },
+  bottomBarWeb: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray[200],
+    marginTop: 8,
+  },
+  // Mobile bottom bar
   bottomBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',

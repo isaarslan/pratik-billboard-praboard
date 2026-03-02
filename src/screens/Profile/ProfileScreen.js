@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,24 +16,28 @@ import { colors } from '../../theme/colors';
 import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
+import PraboardLogo from '../../components/PraboardLogo';
+
+const WEB_BREAKPOINT = 768;
 
 const ProfileScreen = ({ navigation }) => {
   const { profile, isAdmin, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('reklamlar');
   const { myAds, allAds } = useAds();
   const { orders, STATUS_LABELS, STATUS_COLORS } = useOrders();
+  const { width } = useWindowDimensions();
+
+  const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
 
   const handleSignOut = async () => {
     await signOut();
-    // Auth state değişince navigation otomatik Onboarding'e yönlendirir
   };
 
-  // Beğenilen ilanlar (ilk 3 başkasının ilanı)
   const likedAds = allAds.filter((a) => !a.isOwn).slice(0, 3);
 
   const renderAdCard = ({ item }) => (
     <TouchableOpacity
-      style={styles.adCard}
+      style={[styles.adCard, isWebWide && styles.adCardWeb]}
       onPress={() => navigation.navigate('AdDetail', item)}
       activeOpacity={0.8}
     >
@@ -44,11 +50,11 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   const renderMediaGrid = () => (
-    <View style={styles.mediaGrid}>
+    <View style={[styles.mediaGrid, isWebWide && styles.mediaGridWeb]}>
       {myAds.map((ad, index) => (
         <TouchableOpacity
           key={ad.id}
-          style={styles.mediaItem}
+          style={[styles.mediaItem, isWebWide && styles.mediaItemWeb]}
           onPress={() => navigation.navigate('AdDetail', ad)}
           activeOpacity={0.8}
         >
@@ -64,7 +70,7 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   const renderContentItem = ({ item }) => (
-    <View style={styles.contentCard}>
+    <View style={[styles.contentCard, isWebWide && styles.contentCardWeb]}>
       <Image source={{ uri: item.image }} style={styles.contentThumbnailImg} resizeMode="cover" />
       <View style={styles.contentDetails}>
         <View style={styles.contentRow}>
@@ -97,6 +103,9 @@ const ProfileScreen = ({ navigation }) => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.tabContent}
             scrollEnabled={false}
+            numColumns={isWebWide ? 2 : 1}
+            key={isWebWide ? 'ads-2' : 'ads-1'}
+            columnWrapperStyle={isWebWide ? styles.webGridRow : undefined}
           />
         );
       case 'medya':
@@ -119,6 +128,9 @@ const ProfileScreen = ({ navigation }) => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.tabContent}
             scrollEnabled={false}
+            numColumns={isWebWide ? 2 : 1}
+            key={isWebWide ? 'liked-2' : 'liked-1'}
+            columnWrapperStyle={isWebWide ? styles.webGridRow : undefined}
           />
         );
       case 'siparislerim':
@@ -135,7 +147,7 @@ const ProfileScreen = ({ navigation }) => {
                 return (
                   <TouchableOpacity
                     key={order.id}
-                    style={styles.orderCard}
+                    style={[styles.orderCard, isWebWide && styles.orderCardWeb]}
                     onPress={() => navigation.navigate('OrderDetail', order)}
                     activeOpacity={0.7}
                   >
@@ -164,19 +176,29 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
+  const TABS = [
+    { key: 'reklamlar', label: 'Reklamlar' },
+    { key: 'medya', label: 'Medya' },
+    { key: 'iceriklerim', label: 'İçeriklerim' },
+    { key: 'begenilenler', label: 'Beğeniler' },
+    { key: 'siparislerim', label: 'Siparişler' },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Cover Photo Section */}
-        <View style={styles.coverPhotoContainer}>
-          <View style={styles.coverPhoto} />
-          <View style={styles.coverOverlayIcons}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="chevron-back" size={24} color={colors.white} />
-            </TouchableOpacity>
+        <View style={[styles.coverPhotoContainer, isWebWide && styles.coverPhotoWeb]}>
+          <View style={[styles.coverPhoto, isWebWide && styles.coverPhotoInnerWeb]} />
+          <View style={[styles.coverOverlayIcons, isWebWide && styles.coverOverlayWeb]}>
+            {!isWebWide && (
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => navigation.goBack()}
+              >
+                <Ionicons name="chevron-back" size={24} color={colors.white} />
+              </TouchableOpacity>
+            )}
             <View style={styles.rightIcons}>
               {isAdmin && (
                 <TouchableOpacity
@@ -187,23 +209,25 @@ const ProfileScreen = ({ navigation }) => {
                 </TouchableOpacity>
               )}
               <TouchableOpacity style={styles.plusBadge}>
-                <Text style={styles.plusBadgeText}>P+</Text>
+                <PraboardLogo size={24} variant="onGradient" />
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
         {/* Profile Info Card */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, isWebWide && styles.profileCardWeb]}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={40} color={colors.textSecondary} />
+            <View style={[styles.avatar, isWebWide && styles.avatarWeb]}>
+              <Ionicons name="person" size={isWebWide ? 48 : 40} color={colors.textSecondary} />
             </View>
           </View>
 
           <View style={styles.profileInfo}>
             <View style={styles.nameRow}>
-              <Text style={styles.name}>{profile?.full_name || 'Kullanıcı'}</Text>
+              <Text style={[styles.name, isWebWide && styles.nameWeb]}>
+                {profile?.full_name || 'Kullanıcı'}
+              </Text>
               <View style={styles.goldBadge}>
                 <Text style={styles.goldBadgeText}>P</Text>
               </View>
@@ -214,13 +238,25 @@ const ProfileScreen = ({ navigation }) => {
               <Text style={styles.bioText}>{profile.bio}</Text>
             ) : null}
 
-            <View style={styles.statsRow}>
-              <Text style={styles.statsText}>{myAds.length} Reklam</Text>
+            <View style={[styles.statsRow, isWebWide && styles.statsRowWeb]}>
+              <View style={isWebWide ? styles.statItemWeb : null}>
+                <Text style={[styles.statsText, isWebWide && styles.statsTextWeb]}>
+                  {myAds.length}
+                </Text>
+                {isWebWide && <Text style={styles.statLabel}>Reklam</Text>}
+                {!isWebWide && <Text style={styles.statsText}> Reklam</Text>}
+              </View>
               <Text style={styles.statsSeparator}>|</Text>
-              <Text style={styles.statsText}>{orders.length} Sipariş</Text>
+              <View style={isWebWide ? styles.statItemWeb : null}>
+                <Text style={[styles.statsText, isWebWide && styles.statsTextWeb]}>
+                  {orders.length}
+                </Text>
+                {isWebWide && <Text style={styles.statLabel}>Sipariş</Text>}
+                {!isWebWide && <Text style={styles.statsText}> Sipariş</Text>}
+              </View>
             </View>
 
-            <View style={styles.profileButtons}>
+            <View style={[styles.profileButtons, isWebWide && styles.profileButtonsWeb]}>
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => navigation.navigate('EditProfile')}
@@ -247,77 +283,31 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           {/* Tab Bar */}
-          <View style={styles.tabBar}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'reklamlar' && styles.activeTab]}
-              onPress={() => setActiveTab('reklamlar')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'reklamlar' && styles.activeTabText,
-                ]}
+          <View style={[styles.tabBar, isWebWide && styles.tabBarWeb]}>
+            {TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tab, activeTab === tab.key && styles.activeTab, isWebWide && styles.tabWeb]}
+                onPress={() => setActiveTab(tab.key)}
               >
-                Reklamlar
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'medya' && styles.activeTab]}
-              onPress={() => setActiveTab('medya')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'medya' && styles.activeTabText,
-                ]}
-              >
-                Medya
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'iceriklerim' && styles.activeTab]}
-              onPress={() => setActiveTab('iceriklerim')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'iceriklerim' && styles.activeTabText,
-                ]}
-              >
-                İçeriklerim
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'begenilenler' && styles.activeTab]}
-              onPress={() => setActiveTab('begenilenler')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'begenilenler' && styles.activeTabText,
-                ]}
-              >
-                Beğeniler
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'siparislerim' && styles.activeTab]}
-              onPress={() => setActiveTab('siparislerim')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'siparislerim' && styles.activeTabText,
-                ]}
-              >
-                Siparişler
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab.key && styles.activeTabText,
+                    isWebWide && styles.tabTextWeb,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
         {/* Tab Content */}
-        {renderTabContent()}
+        <View style={isWebWide ? styles.tabContentWrapperWeb : null}>
+          {renderTabContent()}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -328,15 +318,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  // Cover
   coverPhotoContainer: {
     position: 'relative',
     width: '100%',
     height: 200,
   },
+  coverPhotoWeb: {
+    height: 240,
+  },
   coverPhoto: {
     width: '100%',
     height: 200,
     backgroundColor: '#2A2A2A',
+  },
+  coverPhotoInnerWeb: {
+    height: 240,
+    backgroundColor: colors.primaryDark,
   },
   coverOverlayIcons: {
     position: 'absolute',
@@ -346,6 +344,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+  },
+  coverOverlayWeb: {
+    top: 20,
+    paddingHorizontal: 32,
+    justifyContent: 'flex-end',
   },
   iconButton: {
     width: 40,
@@ -367,11 +370,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  plusBadgeText: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
+  // Profile Card
   profileCard: {
     backgroundColor: colors.white,
     marginTop: -40,
@@ -379,13 +378,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingBottom: 0,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  profileCardWeb: {
+    marginHorizontal: 32,
+    borderRadius: 16,
+    marginTop: -60,
   },
   avatarContainer: {
     alignItems: 'center',
@@ -400,6 +401,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 4,
     borderColor: colors.white,
+  },
+  avatarWeb: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 5,
   },
   profileInfo: {
     paddingHorizontal: 20,
@@ -416,6 +423,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: colors.textPrimary,
+  },
+  nameWeb: {
+    fontSize: 24,
   },
   goldBadge: {
     width: 24,
@@ -436,6 +446,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
+  bioText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -443,9 +460,25 @@ const styles = StyleSheet.create({
     marginTop: 12,
     gap: 8,
   },
+  statsRowWeb: {
+    gap: 24,
+    marginTop: 16,
+  },
   statsText: {
     fontSize: 14,
     color: colors.textPrimary,
+  },
+  statsTextWeb: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  statItemWeb: {
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   statsSeparator: {
     fontSize: 14,
@@ -457,6 +490,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     marginTop: 16,
+  },
+  profileButtonsWeb: {
+    marginTop: 20,
   },
   editButton: {
     paddingVertical: 10,
@@ -499,18 +535,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  bioText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 20,
-  },
+  // Tab Bar
   tabBar: {
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: colors.border,
     marginTop: 12,
+  },
+  tabBarWeb: {
+    marginTop: 16,
+    paddingHorizontal: 12,
   },
   tab: {
     flex: 1,
@@ -518,6 +552,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
+  },
+  tabWeb: {
+    paddingVertical: 14,
   },
   activeTab: {
     borderBottomColor: colors.primary,
@@ -527,26 +564,40 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontWeight: '500',
   },
+  tabTextWeb: {
+    fontSize: 14,
+  },
   activeTabText: {
     color: colors.primary,
     fontWeight: '600',
   },
+  // Tab Content
   tabContent: {
     padding: 16,
   },
+  tabContentWrapperWeb: {
+    paddingHorizontal: 16,
+    maxWidth: 900,
+  },
+  webGridRow: {
+    gap: 16,
+  },
+  // Ad Cards
   adCard: {
     backgroundColor: colors.white,
     borderRadius: 12,
     marginBottom: 12,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  adCardWeb: {
+    flex: 1,
+    maxWidth: '49%',
+    borderRadius: 14,
   },
   adImageReal: {
     width: '100%',
@@ -566,10 +617,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
   },
+  // Media Grid
   mediaGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 4,
+  },
+  mediaGridWeb: {
+    gap: 8,
   },
   mediaItem: {
     width: '32%',
@@ -577,6 +632,10 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderRadius: 8,
     overflow: 'hidden',
+  },
+  mediaItemWeb: {
+    width: '24%',
+    borderRadius: 12,
   },
   mediaImage: {
     width: '100%',
@@ -589,6 +648,7 @@ const styles = StyleSheet.create({
     left: '50%',
     transform: [{ translateX: -15 }, { translateY: -15 }],
   },
+  // Content Cards
   contentCard: {
     backgroundColor: colors.white,
     borderRadius: 12,
@@ -597,13 +657,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  contentCardWeb: {
+    padding: 16,
+    borderRadius: 14,
   },
   contentThumbnailImg: {
     width: 72,
@@ -628,7 +689,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '500',
   },
-  // Siparis stilleri
+  // Orders
   emptyOrderContainer: {
     alignItems: 'center',
     paddingVertical: 48,
@@ -647,6 +708,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  orderCardWeb: {
+    padding: 16,
+    borderRadius: 14,
   },
   orderThumb: {
     width: 72,

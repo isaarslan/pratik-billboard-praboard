@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Platform, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { colors } from '../theme';
 import BottomTabBar from '../components/BottomTabBar';
+import WebSidebar from '../components/WebSidebar';
 import CreateActionModal from '../components/CreateActionModal';
 
 // Screens
@@ -28,13 +29,18 @@ import AdminScreen from '../screens/Admin/AdminScreen';
 const MAIN_TABS = ['HomeTab', 'Panels', 'Notifications', 'ProfileTab'];
 const AUTH_SCREENS = ['Onboarding', 'Login', 'Register', 'UsernameSelect', 'ForgotPassword', 'ResetPassword'];
 
+// Web breakpoint
+const WEB_SIDEBAR_BREAKPOINT = 768;
+
 export default function AppNavigator({ navigation }) {
   const [activeTab, setActiveTab] = useState('HomeTab');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const currentRoute = navigation.currentRoute?.name;
+  const { width } = useWindowDimensions();
 
   const isMainScreen = MAIN_TABS.includes(currentRoute);
   const isAuthScreen = AUTH_SCREENS.includes(currentRoute);
+  const isWebWide = Platform.OS === 'web' && width >= WEB_SIDEBAR_BREAKPOINT;
 
   const handleTabPress = (tabName) => {
     if (tabName === 'AddAd') {
@@ -82,9 +88,53 @@ export default function AppNavigator({ navigation }) {
     }
   };
 
+  // Auth screens: full width, no sidebar
+  if (isAuthScreen) {
+    return (
+      <View style={styles.outerContainer}>
+        <View style={[styles.container, { maxWidth: undefined }]}>
+          <View style={styles.screenContainer}>
+            {renderScreen()}
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // Web wide layout: sidebar + content
+  if (isWebWide) {
+    return (
+      <View style={styles.outerContainer}>
+        <View style={styles.webLayout}>
+          {isMainScreen && (
+            <WebSidebar activeTab={activeTab} onTabPress={handleTabPress} />
+          )}
+          <View style={styles.webContent}>
+            <View style={styles.screenContainer}>
+              {renderScreen()}
+            </View>
+          </View>
+        </View>
+
+        <CreateActionModal
+          visible={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSharePost={() => {
+            navigation.navigate('AdUpload');
+          }}
+          onCreateAd={() => {
+            setActiveTab('Panels');
+            navigation.reset('Panels');
+          }}
+        />
+      </View>
+    );
+  }
+
+  // Mobile layout: content + bottom tabs
   return (
     <View style={styles.outerContainer}>
-      <View style={[styles.container, Platform.OS === 'web' && !isAuthScreen && { maxWidth: 480 }]}>
+      <View style={styles.container}>
         <View style={styles.screenContainer}>
           {renderScreen()}
         </View>
@@ -111,15 +161,25 @@ export default function AppNavigator({ navigation }) {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-    alignItems: 'center',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
     backgroundColor: colors.background,
     width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
   },
   screenContainer: {
     flex: 1,
+  },
+  // Web wide layout
+  webLayout: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  webContent: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
 });

@@ -6,12 +6,16 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import BillboardDetailModal from '../../components/BillboardDetailModal';
 import WebMap from '../../components/WebMap';
+
+const WEB_BREAKPOINT = 768;
 
 const MOCK_PANELS = [
   {
@@ -85,6 +89,8 @@ const MOCK_PANELS = [
 export default function PanelsScreen({ navigation }) {
   const [viewMode, setViewMode] = useState('map');
   const [selectedPanel, setSelectedPanel] = useState(null);
+  const { width } = useWindowDimensions();
+  const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
 
   const handlePanelPress = (panel) => {
     setSelectedPanel(panel);
@@ -170,6 +176,47 @@ export default function PanelsScreen({ navigation }) {
       showsVerticalScrollIndicator={false}
     />
   );
+
+  // Web wide: harita + liste yan yana
+  if (isWebWide) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={[styles.header, styles.headerWeb]}>
+          <View>
+            <Text style={[styles.title, styles.titleWeb]}>Panolar</Text>
+            <Text style={styles.subtitle}>Yakınındaki billboard panolarını keşfet</Text>
+          </View>
+        </View>
+
+        <View style={styles.webSplitContainer}>
+          <View style={styles.webMapSection}>
+            <WebMap
+              markers={mapMarkers}
+              center={{ lat: 39.925, lng: 32.836 }}
+              zoom={12}
+              onMarkerPress={handleMarkerPress}
+            />
+          </View>
+          <View style={styles.webListSection}>
+            <FlatList
+              data={MOCK_PANELS}
+              renderItem={renderPanel}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.webListContent}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </View>
+
+        <BillboardDetailModal
+          visible={!!selectedPanel}
+          panel={selectedPanel}
+          onClose={() => setSelectedPanel(null)}
+          onRent={handleRent}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -330,5 +377,30 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 14,
     fontWeight: '700',
+  },
+  // Web styles
+  headerWeb: {
+    paddingHorizontal: 32,
+    paddingVertical: 20,
+  },
+  titleWeb: {
+    fontSize: 28,
+  },
+  webSplitContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  webMapSection: {
+    flex: 1,
+  },
+  webListSection: {
+    width: 400,
+    borderLeftWidth: 1,
+    borderLeftColor: colors.gray[200],
+    backgroundColor: colors.background,
+  },
+  webListContent: {
+    padding: 16,
+    paddingBottom: 24,
   },
 });

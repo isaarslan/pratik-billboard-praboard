@@ -5,10 +5,14 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
+
+const WEB_BREAKPOINT = 768;
 
 const NOTIFICATIONS = [
   {
@@ -102,9 +106,16 @@ const NOTIFICATIONS = [
 ];
 
 const NotificationsScreen = () => {
+  const { width } = useWindowDimensions();
+  const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
+
   const renderNotification = ({ item }) => (
     <TouchableOpacity
-      style={[styles.notifCard, item.unread && styles.notifCardUnread]}
+      style={[
+        styles.notifCard,
+        item.unread && styles.notifCardUnread,
+        isWebWide && styles.notifCardWeb,
+      ]}
       activeOpacity={0.7}
     >
       <View style={[styles.iconCircle, { backgroundColor: item.iconBg }]}>
@@ -125,8 +136,13 @@ const NotificationsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bildirimler</Text>
+      <View style={[styles.header, isWebWide && styles.headerWeb]}>
+        <View>
+          <Text style={[styles.headerTitle, isWebWide && styles.headerTitleWeb]}>Bildirimler</Text>
+          {isWebWide && (
+            <Text style={styles.headerSubtitle}>Tüm bildirimlerini buradan takip et</Text>
+          )}
+        </View>
         <TouchableOpacity style={styles.markAllBtn}>
           <Text style={styles.markAllText}>Tümünü okundu işaretle</Text>
         </TouchableOpacity>
@@ -136,7 +152,7 @@ const NotificationsScreen = () => {
         data={NOTIFICATIONS}
         renderItem={renderNotification}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, isWebWide && styles.listContentWeb]}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -158,10 +174,22 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.gray[200],
     backgroundColor: colors.white,
   },
+  headerWeb: {
+    paddingHorizontal: 32,
+    paddingVertical: 20,
+  },
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: colors.textPrimary,
+  },
+  headerTitleWeb: {
+    fontSize: 24,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: colors.gray[500],
+    marginTop: 4,
   },
   markAllBtn: {
     paddingVertical: 6,
@@ -177,6 +205,11 @@ const styles = StyleSheet.create({
   listContent: {
     paddingVertical: 8,
   },
+  listContentWeb: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    maxWidth: 800,
+  },
   notifCard: {
     flexDirection: 'row',
     paddingHorizontal: 16,
@@ -187,6 +220,18 @@ const styles = StyleSheet.create({
   },
   notifCardUnread: {
     backgroundColor: '#F0F4FF',
+  },
+  notifCardWeb: {
+    borderRadius: 12,
+    marginBottom: 8,
+    borderBottomWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   iconCircle: {
     width: 46,

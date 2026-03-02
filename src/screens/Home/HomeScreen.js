@@ -6,13 +6,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
+import { useAuth } from '../../context/AuthContext';
 import VideoPreview from '../../components/VideoPreview';
+import PraboardLogo from '../../components/PraboardLogo';
 
 function getTimeAgo(dateStr) {
   if (!dateStr) return '';
@@ -48,9 +52,15 @@ function orderToAd(order) {
   };
 }
 
+const WEB_BREAKPOINT = 768;
+
 const HomeScreen = ({ navigation }) => {
   const { allAds } = useAds();
   const { orders } = useOrders();
+  const { profile } = useAuth();
+  const { width } = useWindowDimensions();
+
+  const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
 
   const feedData = useMemo(() => {
     const approvedAds = orders
@@ -58,13 +68,18 @@ const HomeScreen = ({ navigation }) => {
       .map(orderToAd);
     return [...approvedAds, ...allAds];
   }, [orders, allAds]);
+
   const renderAdCard = ({ item }) => (
-    <TouchableOpacity style={styles.adCard} onPress={() => navigation.navigate('AdDetail', item)} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={[styles.adCard, isWebWide && styles.adCardWeb]}
+      onPress={() => navigation.navigate('AdDetail', item)}
+      activeOpacity={0.8}
+    >
       {/* Header */}
       <View style={styles.adHeader}>
         <View style={styles.adHeaderLeft}>
           <View style={styles.profileCircle}>
-            <Ionicons name="person" size={24} color={colors.gray[400]} />
+            <Ionicons name="person" size={20} color={colors.gray[400]} />
           </View>
           <View style={styles.adHeaderInfo}>
             <Text style={styles.adUserName}>{item.user}</Text>
@@ -104,26 +119,19 @@ const HomeScreen = ({ navigation }) => {
         )}
       </View>
 
-      {/* Page Indicator Dots */}
-      <View style={styles.pageIndicator}>
-        <View style={[styles.dot, styles.dotActive]} />
-        <View style={styles.dot} />
-        <View style={styles.dot} />
-      </View>
-
       {/* Interaction Row */}
       <View style={styles.interactionRow}>
         <View style={styles.interactionItem}>
-          <Ionicons name="heart-outline" size={24} color={colors.gray[700]} />
+          <Ionicons name="heart-outline" size={22} color={colors.gray[700]} />
           <Text style={styles.interactionText}>{item.likes}</Text>
         </View>
         <View style={styles.interactionItem}>
-          <Ionicons name="share-outline" size={24} color={colors.gray[700]} />
+          <Ionicons name="share-outline" size={22} color={colors.gray[700]} />
           <Text style={styles.interactionText}>{item.shares}</Text>
         </View>
         {item.campaignDetails ? (
           <View style={styles.interactionItem}>
-            <Ionicons name="megaphone-outline" size={22} color={colors.primary} />
+            <Ionicons name="megaphone-outline" size={20} color={colors.primary} />
             <Text style={styles.campaignBadgeText}>Detay</Text>
           </View>
         ) : null}
@@ -139,27 +147,55 @@ const HomeScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Top Section */}
+  // Web header for wide screens
+  const renderWebHeader = () => (
+    <View style={styles.webHeader}>
+      <View style={styles.webHeaderInner}>
+        <View>
+          <Text style={styles.webGreeting}>
+            Merhaba, {profile?.full_name || 'Kullanıcı'}
+          </Text>
+          <Text style={styles.webSubGreeting}>
+            Reklam akışını keşfet
+          </Text>
+        </View>
+        <View style={styles.webHeaderActions}>
+          <TouchableOpacity
+            style={styles.webLocationPill}
+            onPress={() => navigation.navigate('LocationSelect')}
+          >
+            <Ionicons name="location" size={16} color={colors.primary} />
+            <Text style={styles.webLocationText}>Gölbaşı, Ankara</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.webFilterBtn}
+            onPress={() => navigation.navigate('Filter')}
+          >
+            <Ionicons name="options" size={20} color={colors.gray[600]} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+
+  // Mobile header
+  const renderMobileHeader = () => (
+    <>
       <View style={styles.topSection}>
         <View style={styles.topLeft}>
-          <View style={styles.profileCircle}>
+          <View style={styles.profileCircleLg}>
             <Ionicons name="person" size={24} color={colors.gray[400]} />
           </View>
           <View style={styles.greetingContainer}>
-            <Text style={styles.greetingText}>Günaydın</Text>
-            <Text style={styles.nameText}>İsa Arslan</Text>
+            <Text style={styles.greetingText}>Merhaba</Text>
+            <Text style={styles.nameText}>{profile?.full_name || 'Kullanıcı'}</Text>
           </View>
         </View>
         <View style={styles.topRight}>
-          <View style={styles.praboardPlusIcon}>
-            <Text style={styles.praboardPlusText}>P+</Text>
-          </View>
+          <PraboardLogo size={32} variant="standalone" />
         </View>
       </View>
 
-      {/* Location Bar */}
       <View style={styles.locationBar}>
         <TouchableOpacity
           style={styles.locationPill}
@@ -175,8 +211,32 @@ const HomeScreen = ({ navigation }) => {
           <Ionicons name="options" size={24} color={colors.gray[700]} />
         </TouchableOpacity>
       </View>
+    </>
+  );
 
-      {/* Feed */}
+  if (isWebWide) {
+    return (
+      <View style={styles.webContainer}>
+        {renderWebHeader()}
+        <View style={styles.webFeedContainer}>
+          <FlatList
+            data={feedData}
+            renderItem={renderAdCard}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.webFeedContent}
+            showsVerticalScrollIndicator={false}
+            numColumns={width >= 1200 ? 2 : 1}
+            key={width >= 1200 ? 'grid-2' : 'grid-1'}
+            columnWrapperStyle={width >= 1200 ? styles.webGridRow : undefined}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {renderMobileHeader()}
       <FlatList
         data={feedData}
         renderItem={renderAdCard}
@@ -189,6 +249,7 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  // === Mobile styles ===
   container: {
     flex: 1,
     backgroundColor: colors.white,
@@ -206,7 +267,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  profileCircle: {
+  profileCircleLg: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -229,19 +290,6 @@ const styles = StyleSheet.create({
   topRight: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  praboardPlusIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  praboardPlusText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.white,
   },
   locationBar: {
     flexDirection: 'row',
@@ -271,11 +319,97 @@ const styles = StyleSheet.create({
   feedContainer: {
     paddingBottom: 16,
   },
+
+  // === Web styles ===
+  webContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  webHeader: {
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[200],
+    paddingHorizontal: 32,
+    paddingVertical: 20,
+  },
+  webHeaderInner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    maxWidth: 1200,
+  },
+  webGreeting: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.gray[900],
+  },
+  webSubGreeting: {
+    fontSize: 14,
+    color: colors.gray[500],
+    marginTop: 4,
+  },
+  webHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  webLocationPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(34, 197, 94, 0.08)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
+  },
+  webLocationText: {
+    fontSize: 14,
+    color: colors.gray[700],
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  webFilterBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.gray[100],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  webFeedContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  webFeedContent: {
+    paddingBottom: 32,
+    maxWidth: 1200,
+  },
+  webGridRow: {
+    gap: 20,
+  },
+
+  // === Ad Card ===
   adCard: {
     backgroundColor: colors.white,
     marginTop: 16,
     borderBottomWidth: 8,
     borderBottomColor: colors.gray[100],
+  },
+  adCardWeb: {
+    borderRadius: 16,
+    borderBottomWidth: 0,
+    marginBottom: 20,
+    marginTop: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+    overflow: 'hidden',
+    flex: 1,
+    maxWidth: 580,
   },
   adHeader: {
     flexDirection: 'row',
@@ -289,8 +423,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  profileCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.gray[200],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   adHeaderInfo: {
-    marginLeft: 12,
+    marginLeft: 10,
     flex: 1,
   },
   adUserName: {
@@ -354,27 +496,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  pageIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.gray[300],
-    marginHorizontal: 3,
-  },
-  dotActive: {
-    backgroundColor: colors.primary,
-  },
   interactionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
   interactionItem: {
     flexDirection: 'row',
@@ -394,7 +520,7 @@ const styles = StyleSheet.create({
   },
   descriptionContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
   },
   descriptionText: {
     fontSize: 14,
