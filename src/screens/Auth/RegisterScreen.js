@@ -18,6 +18,7 @@ import {
   PrimaryButton,
   SuccessModal,
 } from '../../components';
+import PraboardLogo from '../../components/PraboardLogo';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 
@@ -156,9 +157,7 @@ export default function RegisterScreen({ navigation }) {
       <View style={styles.splitContainer}>
         <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.brandPanel}>
           <View style={styles.brandContent}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>P</Text>
-            </View>
+            <PraboardLogo size={110} variant="onGradient" />
             <Text style={styles.brandName}>Praboard</Text>
             <Text style={styles.brandTagline}>Yeşil Reklamcılık Platformu</Text>
 
@@ -203,9 +202,7 @@ export default function RegisterScreen({ navigation }) {
       >
         <ScrollView showsVerticalScrollIndicator={false}>
           <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.header}>
-            <View style={styles.mobileLogoContainer}>
-              <Text style={styles.mobileLogo}>P</Text>
-            </View>
+            <PraboardLogo size={88} variant="onGradient" />
           </LinearGradient>
 
           <View style={styles.content}>
@@ -238,25 +235,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     maxWidth: 400,
   },
-  logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoText: {
-    fontSize: 56,
-    fontWeight: '900',
-    color: '#fff',
-  },
   brandName: {
     fontSize: 36,
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 1,
+    marginTop: 20,
   },
   brandTagline: {
     fontSize: 16,
@@ -315,19 +299,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-  },
-  mobileLogoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mobileLogo: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: colors.primary,
   },
   content: {
     padding: 24,

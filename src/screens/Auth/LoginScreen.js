@@ -4,15 +4,17 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { TextInput, PrimaryButton } from '../../components';
+import PraboardLogo from '../../components/PraboardLogo';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 
@@ -109,9 +111,7 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.splitContainer}>
         <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.brandPanel}>
           <View style={styles.brandContent}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>P</Text>
-            </View>
+            <PraboardLogo size={110} variant="onGradient" />
             <Text style={styles.brandName}>Praboard</Text>
             <Text style={styles.brandTagline}>Yeşil Reklamcılık Platformu</Text>
 
@@ -149,21 +149,25 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.header}>
-          <Text style={styles.headerTitle}>Giriş Yap</Text>
-        </LinearGradient>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.header}>
+            <PraboardLogo size={88} variant="onGradient" />
+            <Text style={styles.headerTitle}>Giriş Yap</Text>
+          </LinearGradient>
 
-        <View style={styles.content}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Hoş geldin!</Text>
+          <View style={styles.content}>
+            <Text style={styles.title}>Hoş geldin!</Text>
             <Text style={styles.subtitle}>
               Giriş yapmak için lütfen bilgilerini gir.
             </Text>
             {loginForm}
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -184,25 +188,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     maxWidth: 400,
   },
-  logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoText: {
-    fontSize: 56,
-    fontWeight: '900',
-    color: '#fff',
-  },
   brandName: {
     fontSize: 36,
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 1,
+    marginTop: 20,
   },
   brandTagline: {
     fontSize: 16,
@@ -252,42 +243,38 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
   header: {
-    height: 160,
+    height: 220,
     justifyContent: 'center',
     alignItems: 'center',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    gap: 12,
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '600',
     color: colors.white,
+    letterSpacing: 0.5,
   },
   content: {
     padding: 24,
-    marginTop: -40,
   },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  cardTitle: {
-    fontSize: 24,
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
     color: colors.textPrimary,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 15,
     color: colors.textSecondary,
-    marginBottom: 24,
+    textAlign: 'center',
+    marginBottom: 32,
     lineHeight: 22,
   },
   // Shared
@@ -316,12 +303,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submitButton: {
-    marginBottom: 12,
+    marginTop: 8,
+    marginBottom: 16,
   },
   loadingIndicator: {
     position: 'absolute',
     alignSelf: 'center',
-    bottom: 58,
+    bottom: 52,
   },
   linkText: {
     fontSize: 14,

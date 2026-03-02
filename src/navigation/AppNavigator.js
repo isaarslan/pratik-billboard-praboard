@@ -11,6 +11,7 @@ import LoginScreen from '../screens/Auth/LoginScreen';
 import UsernameSelectScreen from '../screens/Auth/UsernameSelectScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
+import EmailVerifiedScreen from '../screens/Auth/EmailVerifiedScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import LocationSelectScreen from '../screens/Location/LocationSelectScreen';
 import FilterScreen from '../screens/Filter/FilterScreen';
@@ -30,7 +31,7 @@ const AUTH_SCREENS = ['Onboarding', 'Login', 'Register', 'UsernameSelect', 'Forg
 export default function AppNavigator({ navigation }) {
   const [activeTab, setActiveTab] = useState('HomeTab');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const currentRoute = navigation.currentRoute.name;
+  const currentRoute = navigation.currentRoute?.name;
 
   const isMainScreen = MAIN_TABS.includes(currentRoute);
   const isAuthScreen = AUTH_SCREENS.includes(currentRoute);
@@ -69,6 +70,7 @@ export default function AppNavigator({ navigation }) {
       case 'UsernameSelect': return <UsernameSelectScreen navigation={navigation} />;
       case 'ForgotPassword': return <ForgotPasswordScreen navigation={navigation} />;
       case 'ResetPassword': return <ResetPasswordScreen navigation={navigation} />;
+      case 'EmailVerified': return <EmailVerifiedScreen navigation={navigation} />;
       case 'LocationSelect': return <LocationSelectScreen navigation={navigation} />;
       case 'Filter': return <FilterScreen navigation={navigation} />;
       case 'AdUpload': return <AdUploadScreen navigation={navigation} />;
@@ -119,9 +121,5 @@ const styles = StyleSheet.create({
   },
   screenContainer: {
     flex: 1,
-  },
-  emptyScreen: {
-    flex: 1,
-    backgroundColor: colors.background,
   },
 });

@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../theme';
+import PraboardLogo from '../../components/PraboardLogo';
 
 const features = [
   {
@@ -40,9 +41,7 @@ const OnboardingScreen = ({ navigation }) => {
   const brandPanel = (
     <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.brandPanel}>
       <View style={styles.brandContent}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoText}>P</Text>
-        </View>
+        <PraboardLogo size={110} variant="onGradient" />
         <Text style={styles.brandName}>Praboard</Text>
         <Text style={styles.brandTagline}>Yeşil Reklamcılık Platformu</Text>
 
@@ -113,9 +112,7 @@ const OnboardingScreen = ({ navigation }) => {
     <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.mobileContainer}>
       <ScrollView contentContainerStyle={styles.mobileContent} showsVerticalScrollIndicator={false}>
         <View style={styles.mobileLogoSection}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>P</Text>
-          </View>
+          <PraboardLogo size={100} variant="onGradient" />
           <Text style={styles.brandName}>Praboard</Text>
           <Text style={styles.brandTagline}>Yeşil Reklamcılık Platformu</Text>
         </View>
@@ -170,25 +167,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     maxWidth: 400,
   },
-  logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoText: {
-    fontSize: 56,
-    fontWeight: '900',
-    color: '#fff',
-  },
   brandName: {
     fontSize: 36,
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 1,
+    marginTop: 20,
   },
   brandTagline: {
     fontSize: 16,
