@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
   splitRight: {
     flex: 1,
     backgroundColor: '#fff',
+    minWidth: 0,
   },
   brandPanel: {
     flex: 1,
@@ -199,12 +200,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mainContent: {
-    padding: 48,
+    paddingHorizontal: 40,
+    paddingVertical: 48,
     justifyContent: 'center',
     flexGrow: 1,
-    maxWidth: 520,
-    alignSelf: 'center',
-    width: '100%',
   },
   welcomeTitle: {
     fontSize: 32,

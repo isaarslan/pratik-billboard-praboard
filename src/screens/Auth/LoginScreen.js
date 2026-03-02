@@ -217,14 +217,13 @@ const styles = StyleSheet.create({
   splitRight: {
     flex: 1,
     backgroundColor: '#fff',
+    minWidth: 0,
   },
   formContent: {
-    padding: 48,
+    paddingHorizontal: 40,
+    paddingVertical: 48,
     justifyContent: 'center',
     flexGrow: 1,
-    maxWidth: 480,
-    alignSelf: 'center',
-    width: '100%',
   },
   formTitle: {
     fontSize: 32,
