@@ -1,54 +1,37 @@
 import React from 'react';
-import Svg, { Path, Line } from 'react-native-svg';
-import { colors } from '../theme/colors';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 /**
- * PraboardLogo — Profesyonel SVG logo
+ * PraboardLogo — Coral dairesel P logosu
  *
- * Kalın geometrik "P" harfi + yaprak motifi (yeşil reklamcılık kimliği)
- *
- * variant="onGradient"  → beyaz (yeşil gradient zemin için)
- * variant="standalone"  → yeşil (beyaz/açık zemin için)
- *
- * Gereksinim: expo install react-native-svg
+ * variant="onGradient"  → beyaz daire + coral P (yeşil gradient zemin için)
+ * variant="standalone"  → coral daire + beyaz P (beyaz/açık zemin için, varsayılan)
+ * variant="dark"        → koyu daire + beyaz P (koyu zemin için)
  */
-export default function PraboardLogo({ size = 80, variant = 'onGradient' }) {
-  const color = variant === 'onGradient' ? '#FFFFFF' : colors.primary;
-  const leafColor = variant === 'onGradient' ? 'rgba(255,255,255,0.65)' : colors.primaryLight;
+export default function PraboardLogo({ size = 80, variant = 'standalone' }) {
+  const bgColor =
+    variant === 'onGradient'
+      ? 'rgba(255,255,255,0.95)'
+      : variant === 'dark'
+        ? '#2D2D2D'
+        : '#F2714D';
+  const letterColor =
+    variant === 'onGradient' ? '#F2714D' : '#FFFFFF';
 
   return (
     <Svg viewBox="0 0 100 100" width={size} height={size}>
-      {/* P harfi — filled, evenodd ile iç boşluk */}
+      <Circle cx="50" cy="50" r="50" fill={bgColor} />
       <Path
         d={[
-          // Dış sınır (P şekli)
-          'M 16 92 V 8 H 54',
-          'C 82 8, 82 56, 54 56',
-          'H 32 V 92 Z',
-          // İç boşluk (bowl counter)
-          'M 32 22 H 50',
-          'C 66 22, 66 42, 50 42',
-          'H 32 Z',
+          'M 30 78 V 22 H 55',
+          'C 78 22, 78 54, 55 54',
+          'H 44 V 78 Z',
+          'M 44 33 H 53',
+          'C 65 33, 65 43, 53 43',
+          'H 44 Z',
         ].join(' ')}
-        fill={color}
+        fill={letterColor}
         fillRule="evenodd"
-      />
-
-      {/* Yaprak — P'nin sağ üstünden çıkar */}
-      <Path
-        d="M 70 10 C 78 -4, 96 0, 92 16 C 88 30, 74 24, 70 10 Z"
-        fill={leafColor}
-      />
-
-      {/* Yaprak damarı */}
-      <Line
-        x1="73"
-        y1="11"
-        x2="89"
-        y2="10"
-        strokeWidth={1.5}
-        stroke={color}
-        opacity={0.35}
       />
     </Svg>
   );

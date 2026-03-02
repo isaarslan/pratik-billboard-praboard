@@ -109,24 +109,24 @@ export default function LoginScreen({ navigation }) {
   if (isWide) {
     return (
       <View style={styles.splitContainer}>
-        <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.brandPanel}>
+        <LinearGradient colors={['#065F46', '#059669', '#10B981']} style={styles.brandPanel}>
           <View style={styles.brandContent}>
-            <PraboardLogo size={110} variant="onGradient" />
+            <PraboardLogo size={100} variant="onGradient" />
             <Text style={styles.brandName}>Praboard</Text>
-            <Text style={styles.brandTagline}>Yeşil Reklamcılık Platformu</Text>
+            <Text style={styles.brandTagline}>Dijital Açık Hava Reklamcılığı</Text>
 
             <View style={styles.brandFeatures}>
               <View style={styles.brandFeatureRow}>
                 <Ionicons name="checkmark-circle" size={20} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.brandFeatureText}>Dijital panolarla açık hava reklamcılığı</Text>
+                <Text style={styles.brandFeatureText}>Reklamını dijital panolarda yayınla</Text>
               </View>
               <View style={styles.brandFeatureRow}>
                 <Ionicons name="checkmark-circle" size={20} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.brandFeatureText}>Çevre dostu, kağıtsız reklam çözümleri</Text>
+                <Text style={styles.brandFeatureText}>Şeffaf fiyatlandırma, kanıtlı yayın</Text>
               </View>
               <View style={styles.brandFeatureRow}>
                 <Ionicons name="checkmark-circle" size={20} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.brandFeatureText}>Yerel kampanya yönetimi ve takibi</Text>
+                <Text style={styles.brandFeatureText}>Her yerden kampanya yönetimi</Text>
               </View>
             </View>
           </View>
@@ -154,7 +154,7 @@ export default function LoginScreen({ navigation }) {
         style={styles.keyboardView}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
-          <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.header}>
+          <LinearGradient colors={['#065F46', '#059669']} style={styles.header}>
             <PraboardLogo size={88} variant="onGradient" />
             <Text style={styles.headerTitle}>Giriş Yap</Text>
           </LinearGradient>
