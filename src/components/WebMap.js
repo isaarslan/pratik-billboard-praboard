@@ -65,11 +65,11 @@ export default function WebMap({ markers = [], center = { lat: 39.925, lng: 32.8
     var icon = L.divIcon({
       className: '',
       html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
-            '<div style="width:38px;height:38px;border-radius:50%;background:' + (m.color || '#FF4B4B') +
+            '<div style="width:38px;height:38px;border-radius:50%;background:' + (m.color || '#22C55E') +
             ';display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,0.3);border:3px solid #fff;">' +
             '<span style="color:#fff;font-weight:800;font-size:15px;">P</span></div>' +
             '<div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:10px solid ' +
-            (m.color || '#FF4B4B') + ';margin-top:-2px;"></div></div>',
+            (m.color || '#22C55E') + ';margin-top:-2px;"></div></div>',
       iconSize: [38, 48],
       iconAnchor: [19, 48]
     });

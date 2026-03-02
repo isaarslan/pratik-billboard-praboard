@@ -1,234 +1,348 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
-  FlatList,
+  Platform,
+  useWindowDimensions,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../theme';
 import PraboardLogo from '../../components/PraboardLogo';
 
-const { width, height } = Dimensions.get('window');
-
-const onboardingData = [
+const features = [
   {
-    id: '1',
-    title: "Praboard'a hoş geldin!",
-    subtitle:
-      'Praboard ile yerel etkinlikleri ve reklamları dijital panolar üzerinden keşfedin! Bölgenizdeki güncel fırsatlara kolayca ulaş, işletmenin sesini duyur ve reklamlarını geniş kitlelere ulaştır.',
-    icon: 'P',
+    icon: 'megaphone-outline',
+    title: 'Dijital Pano Reklamcılığı',
+    desc: 'Reklamlarını şehrindeki dijital panolarda yayınla, geniş kitlelere ulaş.',
   },
   {
-    id: '2',
-    title: 'Şehrinle konuş',
-    subtitle:
-      'Praboard ile şehrinin nabzını tut! Etkinlikleri ve fırsatları keşfet, işletmeni dijital panolarla herkese duyur.',
-    icon: 'list',
+    icon: 'leaf-outline',
+    title: 'Çevre Dostu Yaklaşım',
+    desc: 'Kağıtsız, dijital açık hava reklamcılığı ile çevreye katkı sağla.',
   },
   {
-    id: '3',
-    title: 'Yerel kampanya yönetimi',
-    subtitle:
-      'Praboard ile bölgene özel kampanyalar düzenle, etkileşimleri anında gör!',
-    icon: 'cloud-upload',
+    icon: 'bar-chart-outline',
+    title: 'Kampanya Yönetimi',
+    desc: 'Bölgene özel kampanyalar oluştur, performansını takip et.',
   },
 ];
 
 const OnboardingScreen = ({ navigation }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef(null);
+  const { width } = useWindowDimensions();
+  const isWide = Platform.OS === 'web' && width > 768;
 
-  const handleScroll = (event) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / width);
-    setCurrentIndex(index);
-  };
+  const handleLogin = () => navigation.replace('Login');
+  const handleRegister = () => navigation.replace('Register');
 
-  const handleSkip = () => {
-    navigation.replace('Login');
-  };
+  const brandPanel = (
+    <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.brandPanel}>
+      <View style={styles.brandContent}>
+        <PraboardLogo size={110} variant="onGradient" />
+        <Text style={styles.brandName}>Praboard</Text>
+        <Text style={styles.brandTagline}>Yeşil Reklamcılık Platformu</Text>
 
-  const handleCTA = () => {
-    navigation.replace('Register');
-  };
-
-  const renderIcon = (icon) => {
-    if (icon === 'P') {
-      return (
-        <View style={styles.logoContainer}>
-          <PraboardLogo size={110} variant="onGradient" />
+        <View style={styles.brandFeatures}>
+          <View style={styles.brandFeatureRow}>
+            <Ionicons name="checkmark-circle" size={20} color="rgba(255,255,255,0.9)" />
+            <Text style={styles.brandFeatureText}>Dijital panolarla açık hava reklamcılığı</Text>
+          </View>
+          <View style={styles.brandFeatureRow}>
+            <Ionicons name="checkmark-circle" size={20} color="rgba(255,255,255,0.9)" />
+            <Text style={styles.brandFeatureText}>Çevre dostu, kağıtsız reklam çözümleri</Text>
+          </View>
+          <View style={styles.brandFeatureRow}>
+            <Ionicons name="checkmark-circle" size={20} color="rgba(255,255,255,0.9)" />
+            <Text style={styles.brandFeatureText}>Yerel kampanya yönetimi ve takibi</Text>
+          </View>
         </View>
-      );
-    } else if (icon === 'list') {
-      return (
-        <View style={styles.iconContainer}>
-          <Ionicons name="list" size={80} color={colors.white} />
-        </View>
-      );
-    } else if (icon === 'cloud-upload') {
-      return (
-        <View style={styles.iconContainer}>
-          <Ionicons name="cloud-upload" size={80} color={colors.white} />
-        </View>
-      );
-    }
-  };
-
-  const renderItem = ({ item }) => (
-    <View style={styles.page}>
-      <View style={styles.contentContainer}>
-        {renderIcon(item.icon)}
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
       </View>
-    </View>
+    </LinearGradient>
   );
 
+  const mainContent = (
+    <ScrollView
+      style={styles.mainPanel}
+      contentContainerStyle={styles.mainContent}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.welcomeTitle}>Praboard'a Hoş Geldin!</Text>
+      <Text style={styles.welcomeSubtitle}>
+        Dijital panolar üzerinden reklamını yayınla, şehrinin nabzını tut.
+      </Text>
+
+      <View style={styles.featureCards}>
+        {features.map((f, i) => (
+          <View key={i} style={styles.featureCard}>
+            <View style={styles.featureIconCircle}>
+              <Ionicons name={f.icon} size={24} color={colors.primary} />
+            </View>
+            <View style={styles.featureInfo}>
+              <Text style={styles.featureTitle}>{f.title}</Text>
+              <Text style={styles.featureDesc}>{f.desc}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.ctaSection}>
+        <TouchableOpacity onPress={handleRegister} style={styles.ctaPrimary}>
+          <Text style={styles.ctaPrimaryText}>Hemen Kayıt Ol</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleLogin} style={styles.ctaSecondary}>
+          <Text style={styles.ctaSecondaryText}>Zaten hesabım var, Giriş Yap</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+
+  if (isWide) {
+    return (
+      <View style={styles.splitContainer}>
+        <View style={styles.splitLeft}>{brandPanel}</View>
+        <View style={styles.splitRight}>{mainContent}</View>
+      </View>
+    );
+  }
+
   return (
-    <LinearGradient colors={['#FF4B4B', '#FF4B4B']} style={styles.container}>
-      {/* Header with dots and skip button */}
-      <View style={styles.header}>
-        <View style={styles.dotsContainer}>
-          {onboardingData.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                currentIndex === index && styles.activeDot,
-              ]}
-            />
+    <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.mobileContainer}>
+      <ScrollView contentContainerStyle={styles.mobileContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.mobileLogoSection}>
+          <PraboardLogo size={100} variant="onGradient" />
+          <Text style={styles.brandName}>Praboard</Text>
+          <Text style={styles.brandTagline}>Yeşil Reklamcılık Platformu</Text>
+        </View>
+
+        <View style={styles.mobileFeatures}>
+          {features.map((f, i) => (
+            <View key={i} style={styles.mobileFeatureRow}>
+              <View style={styles.mobileFeatureIcon}>
+                <Ionicons name={f.icon} size={22} color="#fff" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.mobileFeatureTitle}>{f.title}</Text>
+                <Text style={styles.mobileFeatureDesc}>{f.desc}</Text>
+              </View>
+            </View>
           ))}
         </View>
-        <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-          <Text style={styles.skipText}>Tanıtımı Atla &gt;</Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* Carousel */}
-      <FlatList
-        ref={flatListRef}
-        data={onboardingData}
-        renderItem={renderItem}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        keyExtractor={(item) => item.id}
-        style={styles.carousel}
-      />
-
-      {/* CTA Button */}
-      <View style={styles.ctaContainer}>
-        <TouchableOpacity onPress={handleCTA} style={styles.ctaButton}>
-          <Text style={styles.ctaText}>Şimdi katıl, reklamını yayınla!</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.mobileCta}>
+          <TouchableOpacity onPress={handleRegister} style={styles.mobileCtaPrimary}>
+            <Text style={styles.mobileCtaPrimaryText}>Hemen Kayıt Ol</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogin} style={styles.mobileCtaSecondary}>
+            <Text style={styles.mobileCtaSecondaryText}>Zaten hesabım var, Giriş Yap</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  // Web split layout
+  splitContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  splitLeft: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  splitRight: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  brandPanel: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    padding: 48,
   },
-  dotsContainer: {
+  brandContent: {
+    alignItems: 'center',
+    maxWidth: 400,
+  },
+  brandName: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: 1,
+    marginTop: 20,
+  },
+  brandTagline: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 8,
+    letterSpacing: 0.5,
+  },
+  brandFeatures: {
+    marginTop: 40,
+    gap: 16,
+  },
+  brandFeatureRow: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    gap: 12,
   },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  brandFeatureText: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.9)',
+    lineHeight: 22,
   },
-  activeDot: {
-    backgroundColor: colors.white,
+  // Right panel content
+  mainPanel: {
+    flex: 1,
   },
-  skipButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+  mainContent: {
+    padding: 48,
+    justifyContent: 'center',
+    flexGrow: 1,
+    maxWidth: 520,
+    alignSelf: 'center',
+    width: '100%',
   },
-  skipText: {
-    color: colors.white,
+  welcomeTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginBottom: 12,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 24,
+    marginBottom: 36,
+  },
+  featureCards: {
+    gap: 16,
+    marginBottom: 40,
+  },
+  featureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: 16,
+    padding: 20,
+    gap: 16,
+  },
+  featureIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#DCFCE7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  featureInfo: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  featureDesc: {
     fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  ctaSection: {
+    gap: 12,
+  },
+  ctaPrimary: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  ctaPrimaryText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  ctaSecondary: {
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  ctaSecondaryText: {
+    color: colors.primary,
+    fontSize: 15,
     fontWeight: '600',
   },
-  carousel: {
+  // Mobile layout
+  mobileContainer: {
     flex: 1,
   },
-  page: {
-    width: width,
+  mobileContent: {
+    flexGrow: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 30,
+    padding: 30,
   },
-  contentContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoContainer: {
-    marginBottom: 40,
-  },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
+  mobileLogoSection: {
     alignItems: 'center',
     marginBottom: 40,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.white,
-    textAlign: 'center',
-    marginBottom: 20,
+  mobileFeatures: {
+    gap: 20,
+    marginBottom: 40,
   },
-  subtitle: {
+  mobileFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  mobileFeatureIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mobileFeatureTitle: {
     fontSize: 16,
-    color: colors.white,
-    textAlign: 'center',
-    lineHeight: 24,
-    opacity: 0.9,
+    fontWeight: '700',
+    color: '#fff',
   },
-  ctaContainer: {
-    paddingHorizontal: 30,
-    paddingBottom: 50,
+  mobileFeatureDesc: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.85)',
+    lineHeight: 18,
   },
-  ctaButton: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
+  mobileCta: {
+    gap: 12,
+  },
+  mobileCtaPrimary: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
     paddingVertical: 16,
-    paddingHorizontal: 24,
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
-  ctaText: {
+  mobileCtaPrimaryText: {
     color: colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  mobileCtaSecondary: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  mobileCtaSecondaryText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
 
