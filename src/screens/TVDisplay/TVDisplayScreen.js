@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   waitingLogo: {
-    color: '#FF4B4B',
+    color: '#22C55E',
     fontSize: 64,
     fontWeight: '900',
     letterSpacing: 8,
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#FF4B4B',
+    backgroundColor: '#22C55E',
     opacity: 0.6,
   },
   bottomBar: {
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.4)',
   },
   slideIndicatorDotActive: {
-    backgroundColor: '#FF4B4B',
+    backgroundColor: '#22C55E',
     width: 28,
     borderRadius: 5,
   },
@@ -544,6 +544,6 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FF4B4B',
+    backgroundColor: '#22C55E',
   },
 });

@@ -88,7 +88,7 @@ export default function BillboardDetailModal({ visible, panel, onClose, onRent }
             <View style={styles.descSection}>
               <Text style={styles.descTitle}>Açıklama</Text>
               <Text style={styles.descText}>
-                Bu billboard, {panel.location || 'Gölbaşı, Ankara'} bölgesinde yoğun trafik alan bir noktada konumlanmıştır. Günlük ortalama 15.000+ kişi tarafından görülmektedir. Reklam vermek için ideal bir lokasyondur.
+                Bu billboard, {panel.location || 'Gölbaşı, Ankara'} bölgesinde yoğun trafik alan bir noktada konumlanmıştır. Reklam vermek için ideal bir lokasyondur.
               </Text>
             </View>
 

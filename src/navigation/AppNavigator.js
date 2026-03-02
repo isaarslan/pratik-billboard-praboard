@@ -25,6 +25,7 @@ import AdminScreen from '../screens/Admin/AdminScreen';
 
 // Screens that show the bottom tab bar
 const MAIN_TABS = ['HomeTab', 'Panels', 'Notifications', 'ProfileTab'];
+const AUTH_SCREENS = ['Onboarding', 'Login', 'Register', 'UsernameSelect', 'ForgotPassword', 'ResetPassword'];
 
 export default function AppNavigator({ navigation }) {
   const [activeTab, setActiveTab] = useState('HomeTab');
@@ -32,6 +33,7 @@ export default function AppNavigator({ navigation }) {
   const currentRoute = navigation.currentRoute.name;
 
   const isMainScreen = MAIN_TABS.includes(currentRoute);
+  const isAuthScreen = AUTH_SCREENS.includes(currentRoute);
 
   const handleTabPress = (tabName) => {
     if (tabName === 'AddAd') {
@@ -80,7 +82,7 @@ export default function AppNavigator({ navigation }) {
 
   return (
     <View style={styles.outerContainer}>
-      <View style={styles.container}>
+      <View style={[styles.container, Platform.OS === 'web' && !isAuthScreen && { maxWidth: 480 }]}>
         <View style={styles.screenContainer}>
           {renderScreen()}
         </View>
@@ -114,7 +116,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     width: '100%',
-    ...(Platform.OS === 'web' ? { maxWidth: 480 } : {}),
   },
   screenContainer: {
     flex: 1,

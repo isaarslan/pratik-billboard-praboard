@@ -81,11 +81,6 @@ export default function AdDetailScreen({ navigation }) {
               <Text style={styles.infoLabel}>Sektör</Text>
               <Text style={styles.infoValue}>Teknoloji</Text>
             </View>
-            <View style={styles.infoDivider} />
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Görüntülenme Sayısı</Text>
-              <Text style={styles.infoValue}>12.456</Text>
-            </View>
           </View>
 
           {/* Description */}
