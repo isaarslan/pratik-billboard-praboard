@@ -92,10 +92,8 @@ export default function AppNavigator({ navigation }) {
   if (isAuthScreen) {
     return (
       <View style={styles.outerContainer}>
-        <View style={[styles.container, { maxWidth: undefined }]}>
-          <View style={styles.screenContainer}>
-            {renderScreen()}
-          </View>
+        <View style={styles.screenContainer}>
+          {renderScreen()}
         </View>
       </View>
     );
