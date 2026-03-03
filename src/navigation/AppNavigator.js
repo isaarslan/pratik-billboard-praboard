@@ -113,18 +113,14 @@ export default function AppNavigator({ navigation }) {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-    alignItems: 'center',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
     backgroundColor: colors.background,
     width: '100%',
-    ...(Platform.OS === 'web' ? { maxWidth: 480 } : {}),
   },
-  containerFull: {
-    ...(Platform.OS === 'web' ? { maxWidth: '100%' } : {}),
-  },
+  containerFull: {},
   screenContainer: {
     flex: 1,
   },
