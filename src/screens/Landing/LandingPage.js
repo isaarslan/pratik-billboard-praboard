@@ -357,6 +357,196 @@ function Connector() {
   );
 }
 
+/* ── Harita Görsel Mockup'u ── */
+function MapMockup() {
+  const cities = [
+    { name: 'İstanbul', panels: 42, x: '14%', y: '20%', active: true, big: true },
+    { name: 'Ankara',   panels: 28, x: '50%', y: '26%', active: true, big: true },
+    { name: 'İzmir',    panels: 19, x: '12%', y: '52%', active: true, big: true },
+    { name: 'Bursa',    panels: 12, x: '28%', y: '18%', active: true, big: false },
+    { name: 'Antalya',  panels: 15, x: '40%', y: '74%', active: true, big: false },
+    { name: 'Adana',    panels: 8,  x: '60%', y: '68%', active: false, big: false },
+    { name: 'Konya',    panels: 10, x: '46%', y: '54%', active: true,  big: false },
+    { name: 'Gaziantep',panels: 7,  x: '70%', y: '72%', active: false, big: false },
+    { name: 'Kayseri',  panels: 6,  x: '60%', y: '36%', active: false, big: false },
+    { name: 'Trabzon',  panels: 5,  x: '76%', y: '12%', active: false, big: false },
+    { name: 'Eskişehir',panels: 9,  x: '36%', y: '30%', active: true,  big: false },
+    { name: 'Samsun',   panels: 7,  x: '60%', y: '14%', active: false, big: false },
+  ];
+
+  return (
+    <View
+      style={{
+        borderRadius: 16,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: 0.4,
+        shadowRadius: 32,
+        elevation: 16,
+      }}
+    >
+      {/* Başlık çubuğu */}
+      <View
+        style={{
+          backgroundColor: '#1E293B',
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="map" size={14} color={colors.eco.leaf} />
+          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>
+            Türkiye Panel Haritası
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', gap: 14 }}>
+          {[
+            { color: '#22C55E', label: 'Aktif' },
+            { color: ACCENT,    label: 'Yakında' },
+          ].map((l, i) => (
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: l.color }} />
+              <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10 }}>{l.label}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Harita alanı */}
+      <View style={{ height: 280, backgroundColor: '#0D1B2A', position: 'relative' }}>
+        {/* Izgara çizgileri */}
+        {[0.25, 0.5, 0.75].map((v, i) => (
+          <View
+            key={`h${i}`}
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: `${v * 100}%`,
+              height: 1,
+              backgroundColor: 'rgba(255,255,255,0.04)',
+            }}
+          />
+        ))}
+        {[0.2, 0.4, 0.6, 0.8].map((v, i) => (
+          <View
+            key={`v${i}`}
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: `${v * 100}%`,
+              width: 1,
+              backgroundColor: 'rgba(255,255,255,0.04)',
+            }}
+          />
+        ))}
+
+        {/* Şehir pin'leri */}
+        {cities.map((city, i) => (
+          <View
+            key={i}
+            style={{ position: 'absolute', left: city.x, top: city.y, alignItems: 'center' }}
+          >
+            {/* Büyük şehirlerde nabız halkası */}
+            {city.big && (
+              <View
+                style={{
+                  position: 'absolute',
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: city.active
+                    ? 'rgba(34,197,94,0.12)'
+                    : 'rgba(52,211,153,0.12)',
+                  top: -7,
+                  left: -7,
+                }}
+              />
+            )}
+            <View
+              style={{
+                width: city.big ? 16 : 9,
+                height: city.big ? 16 : 9,
+                borderRadius: city.big ? 8 : 5,
+                backgroundColor: city.active ? '#22C55E' : ACCENT,
+                borderWidth: city.big ? 2 : 1,
+                borderColor: city.active
+                  ? 'rgba(34,197,94,0.5)'
+                  : 'rgba(52,211,153,0.5)',
+              }}
+            />
+            {city.big && (
+              <View
+                style={{
+                  backgroundColor: 'rgba(15,23,42,0.9)',
+                  paddingHorizontal: 6,
+                  paddingVertical: 3,
+                  borderRadius: 5,
+                  marginTop: 4,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.08)',
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 9, fontWeight: '700' }}>{city.name}</Text>
+                <Text
+                  style={{
+                    color: city.active ? '#22C55E' : ACCENT,
+                    fontSize: 8,
+                    marginTop: 1,
+                  }}
+                >
+                  {city.panels} panel
+                </Text>
+              </View>
+            )}
+          </View>
+        ))}
+      </View>
+
+      {/* Alt istatistik çubuğu */}
+      <View
+        style={{
+          flexDirection: 'row',
+          backgroundColor: '#1E293B',
+          borderTopWidth: 1,
+          borderColor: 'rgba(255,255,255,0.06)',
+        }}
+      >
+        {[
+          { label: 'Toplam Şehir', value: '15+', color: colors.eco.leaf },
+          { label: 'Aktif Panel',  value: '150+', color: '#22C55E' },
+          { label: 'Ort. Günlük Görüntülenme', value: '50K+', color: ACCENT },
+        ].map((s, i) => (
+          <View
+            key={i}
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              alignItems: 'center',
+              borderRightWidth: i < 2 ? 1 : 0,
+              borderColor: 'rgba(255,255,255,0.06)',
+            }}
+          >
+            <Text style={{ color: s.color, fontSize: 14, fontWeight: '800' }}>{s.value}</Text>
+            <Text
+              style={{ color: 'rgba(255,255,255,0.35)', fontSize: 9, marginTop: 2, textAlign: 'center' }}
+            >
+              {s.label}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 /* ─────────────────────────── MAIN ─────────────────────────── */
 
 export default function LandingPage({ navigation }) {
@@ -811,6 +1001,129 @@ export default function LandingPage({ navigation }) {
             }}
           >
             <DashboardMockup scale={isWide ? 1 : 0.82} />
+          </View>
+        </View>
+      </View>
+
+      {/* ═══════════════════════ PANEL HARİTASI ═══════════════════════ */}
+      <View style={{ backgroundColor: '#F8FAFA', paddingVertical: isWide ? 96 : 60 }}>
+        <View
+          style={{
+            maxWidth: maxW,
+            alignSelf: 'center',
+            width: '100%',
+            paddingHorizontal: px,
+            flexDirection: isWide ? 'row' : 'column',
+            alignItems: isWide ? 'center' : undefined,
+            gap: isWide ? 64 : 40,
+          }}
+        >
+          {/* Sol: Harita mockup */}
+          <View style={{ flex: isWide ? 1 : undefined, width: isWide ? undefined : '100%' }}>
+            <MapMockup />
+          </View>
+
+          {/* Sağ: Açıklama */}
+          <View style={{ flex: isWide ? 1 : undefined, maxWidth: isWide ? 420 : undefined }}>
+            <View
+              style={{
+                alignSelf: 'flex-start',
+                backgroundColor: colors.eco.mint,
+                paddingHorizontal: 14,
+                paddingVertical: 5,
+                borderRadius: 100,
+                marginBottom: 20,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.eco.emerald,
+                  fontSize: 12,
+                  fontWeight: '700',
+                  letterSpacing: 0.5,
+                }}
+              >
+                PANEL AĞIMIZ
+              </Text>
+            </View>
+
+            <Text
+              style={{
+                fontSize: isWide ? 38 : 28,
+                fontWeight: '800',
+                color: '#111827',
+                letterSpacing: -1,
+                lineHeight: isWide ? 48 : 36,
+              }}
+            >
+              Türkiye'nin{' '}
+              <Text style={{ color: colors.eco.emerald }}>Her Noktasında</Text>
+              {'\n'}Görünün
+            </Text>
+
+            <Text
+              style={{
+                fontSize: 15,
+                color: '#6B7280',
+                marginTop: 16,
+                lineHeight: 24,
+                maxWidth: 380,
+              }}
+            >
+              İnteraktif haritamız üzerinden 15+ şehirdeki 150'den fazla dijital
+              billboard panelini keşfedin. Trafik yoğunluğu, günlük görüntülenme
+              sayısı ve doluluk oranlarını anlık olarak görüntüleyin.
+            </Text>
+
+            {[
+              {
+                icon: 'location-outline',
+                title: 'Konum Bazlı Filtreleme',
+                desc: 'Şehir, ilçe veya koordinat ile yakındaki panelleri listeleyin',
+              },
+              {
+                icon: 'people-outline',
+                title: 'Trafik Yoğunluğu',
+                desc: 'Sabah/akşam saatlerinde ortalama geçiş trafiğini inceleyin',
+              },
+              {
+                icon: 'bar-chart-outline',
+                title: 'Doluluk Takvimi',
+                desc: 'Panelin müsait tarihlerini gerçek zamanlı olarak görün',
+              },
+            ].map((item, i) => (
+              <View
+                key={i}
+                style={{
+                  flexDirection: 'row',
+                  gap: 14,
+                  marginTop: 20,
+                  alignItems: 'flex-start',
+                }}
+              >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: colors.eco.mint,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Ionicons name={item.icon} size={17} color={colors.eco.emerald} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#111827' }}>
+                    {item.title}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: '#6B7280', marginTop: 3, lineHeight: 20 }}>
+                    {item.desc}
+                  </Text>
+                </View>
+              </View>
+            ))}
           </View>
         </View>
       </View>
