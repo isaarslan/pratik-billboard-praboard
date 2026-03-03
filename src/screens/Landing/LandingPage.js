@@ -19,8 +19,8 @@ const BLUR = Platform.select({
   default: {},
 });
 
-// Parlak yaprak yeşili — eco temasıyla uyumlu CTA rengi
-const ACCENT = '#22C55E';
+// Ferah emerald — koyu yeşil temayla kontrast, aydınlık his
+const ACCENT = '#34D399';
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 
@@ -298,48 +298,44 @@ function StepItem({ number, title, description, icon, isWide }) {
     <View style={{ flex: isWide ? 1 : undefined, alignItems: 'center', paddingHorizontal: 16 }}>
       <View
         style={{
-          width: 62,
-          height: 62,
-          borderRadius: 31,
-          backgroundColor: ACCENT,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          backgroundColor: colors.eco.leaf,
           justifyContent: 'center',
           alignItems: 'center',
-          marginBottom: 16,
-          shadowColor: ACCENT,
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.4,
-          shadowRadius: 16,
+          marginBottom: 20,
+          shadowColor: colors.eco.leaf,
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.35,
+          shadowRadius: 12,
         }}
       >
         <Ionicons name={icon} size={26} color="#fff" />
       </View>
-      <View
+      <Text
         style={{
-          width: 26,
-          height: 26,
-          borderRadius: 13,
-          backgroundColor: 'rgba(255,255,255,0.08)',
-          borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.15)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: 12,
+          fontSize: 13,
+          fontWeight: '700',
+          color: colors.eco.leaf,
+          marginBottom: 6,
+          letterSpacing: 1,
         }}
       >
-        <Text style={{ color: ACCENT, fontSize: 11, fontWeight: '800' }}>{number}</Text>
-      </View>
+        ADIM {number}
+      </Text>
       <Text
-        style={{ fontSize: 17, fontWeight: '700', color: '#fff', marginBottom: 8, textAlign: 'center' }}
+        style={{ fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 8, textAlign: 'center' }}
       >
         {title}
       </Text>
       <Text
         style={{
-          fontSize: 14,
-          color: 'rgba(255,255,255,0.6)',
+          fontSize: 15,
+          color: 'rgba(255,255,255,0.65)',
           lineHeight: 22,
           textAlign: 'center',
-          maxWidth: 240,
+          maxWidth: 260,
         }}
       >
         {description}
@@ -352,10 +348,10 @@ function Connector() {
   return (
     <View
       style={{
-        width: 56,
-        height: 1,
-        backgroundColor: 'rgba(255,255,255,0.12)',
-        marginTop: 28,
+        width: 48,
+        height: 2,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        marginTop: 30,
       }}
     />
   );
@@ -378,7 +374,7 @@ export default function LandingPage({ navigation }) {
     >
       {/* ═══════════════════════ HERO ═══════════════════════ */}
       <LinearGradient
-        colors={['#071E14', '#0B3122', '#0F4A2E']}
+        colors={['#071E14', '#0B3D2E', '#14693E']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ width: '100%', overflow: 'hidden', position: 'relative' }}
@@ -403,7 +399,7 @@ export default function LandingPage({ navigation }) {
             width: 320,
             height: 320,
             borderRadius: 160,
-            backgroundColor: 'rgba(34,197,94,0.04)',
+            backgroundColor: 'rgba(52,211,153,0.04)',
           }}
         />
 
@@ -482,18 +478,19 @@ export default function LandingPage({ navigation }) {
                 alignSelf: 'flex-start',
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: 'rgba(34,197,94,0.1)',
+                backgroundColor: colors.glass.light,
                 borderWidth: 1,
-                borderColor: 'rgba(34,197,94,0.22)',
+                borderColor: colors.glass.border,
                 borderRadius: 100,
-                paddingHorizontal: 16,
-                paddingVertical: 7,
-                gap: 7,
+                paddingHorizontal: 18,
+                paddingVertical: 8,
+                gap: 8,
                 marginBottom: 28,
+                ...BLUR,
               }}
             >
-              <Ionicons name="leaf" size={13} color={ACCENT} />
-              <Text style={{ color: ACCENT, fontSize: 13, fontWeight: '600' }}>
+              <Ionicons name="leaf" size={15} color={colors.eco.leaf} />
+              <Text style={{ color: colors.eco.sage, fontSize: 14, fontWeight: '600' }}>
                 Çevreci · Pratik · Etkili
               </Text>
             </View>
@@ -716,9 +713,9 @@ export default function LandingPage({ navigation }) {
             <View
               style={{
                 alignSelf: 'flex-start',
-                backgroundColor: 'rgba(34,197,94,0.1)',
+                backgroundColor: 'rgba(52,211,153,0.1)',
                 borderWidth: 1,
-                borderColor: 'rgba(34,197,94,0.2)',
+                borderColor: 'rgba(52,211,153,0.2)',
                 paddingHorizontal: 14,
                 paddingVertical: 5,
                 borderRadius: 100,
