@@ -19,8 +19,8 @@ const BLUR = Platform.select({
   default: {},
 });
 
-// Amber: yeşil ile premium kontrast, reklam/medya sektörü enerjisi
-const AMBER = '#F59E0B';
+// Parlak yaprak yeşili — eco temasıyla uyumlu CTA rengi
+const ACCENT = '#22C55E';
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 
@@ -99,7 +99,7 @@ function DashboardMockup({ scale = 1 }) {
           {[
             { label: 'Aktif Reklam', value: '24', color: '#22C55E', icon: 'megaphone-outline' },
             { label: 'Görüntülenme', value: '12.4K', color: '#3B82F6', icon: 'eye-outline' },
-            { label: 'Bu Ay Gelir', value: '₺8.2K', color: AMBER, icon: 'wallet-outline' },
+            { label: 'Bu Ay Gelir', value: '₺8.2K', color: ACCENT, icon: 'wallet-outline' },
           ].map((stat, i) => (
             <View
               key={i}
@@ -141,7 +141,7 @@ function DashboardMockup({ scale = 1 }) {
         {/* Reklam satırları */}
         {[
           { name: 'İstanbul – Kadıköy', status: 'Aktif', color: '#22C55E', days: '12 gün' },
-          { name: 'Ankara – Kızılay', status: 'Onay', color: AMBER, days: '5 gün' },
+          { name: 'Ankara – Kızılay', status: 'Onay', color: ACCENT, days: '5 gün' },
           { name: 'İzmir – Alsancak', status: 'Aktif', color: '#22C55E', days: '8 gün' },
         ].map((ad, i) => (
           <View
@@ -301,11 +301,11 @@ function StepItem({ number, title, description, icon, isWide }) {
           width: 62,
           height: 62,
           borderRadius: 31,
-          backgroundColor: AMBER,
+          backgroundColor: ACCENT,
           justifyContent: 'center',
           alignItems: 'center',
           marginBottom: 16,
-          shadowColor: AMBER,
+          shadowColor: ACCENT,
           shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.4,
           shadowRadius: 16,
@@ -326,7 +326,7 @@ function StepItem({ number, title, description, icon, isWide }) {
           marginBottom: 12,
         }}
       >
-        <Text style={{ color: AMBER, fontSize: 11, fontWeight: '800' }}>{number}</Text>
+        <Text style={{ color: ACCENT, fontSize: 11, fontWeight: '800' }}>{number}</Text>
       </View>
       <Text
         style={{ fontSize: 17, fontWeight: '700', color: '#fff', marginBottom: 8, textAlign: 'center' }}
@@ -403,7 +403,7 @@ export default function LandingPage({ navigation }) {
             width: 320,
             height: 320,
             borderRadius: 160,
-            backgroundColor: 'rgba(245,158,11,0.04)',
+            backgroundColor: 'rgba(34,197,94,0.04)',
           }}
         />
 
@@ -448,8 +448,8 @@ export default function LandingPage({ navigation }) {
                 paddingHorizontal: 18,
                 paddingVertical: 9,
                 borderRadius: 10,
-                backgroundColor: AMBER,
-                shadowColor: AMBER,
+                backgroundColor: ACCENT,
+                shadowColor: ACCENT,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.4,
                 shadowRadius: 8,
@@ -482,9 +482,9 @@ export default function LandingPage({ navigation }) {
                 alignSelf: 'flex-start',
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: 'rgba(245,158,11,0.1)',
+                backgroundColor: 'rgba(34,197,94,0.1)',
                 borderWidth: 1,
-                borderColor: 'rgba(245,158,11,0.22)',
+                borderColor: 'rgba(34,197,94,0.22)',
                 borderRadius: 100,
                 paddingHorizontal: 16,
                 paddingVertical: 7,
@@ -492,8 +492,8 @@ export default function LandingPage({ navigation }) {
                 marginBottom: 28,
               }}
             >
-              <Ionicons name="leaf" size={13} color={AMBER} />
-              <Text style={{ color: AMBER, fontSize: 13, fontWeight: '600' }}>
+              <Ionicons name="leaf" size={13} color={ACCENT} />
+              <Text style={{ color: ACCENT, fontSize: 13, fontWeight: '600' }}>
                 Çevreci · Pratik · Etkili
               </Text>
             </View>
@@ -533,12 +533,12 @@ export default function LandingPage({ navigation }) {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: AMBER,
+                  backgroundColor: ACCENT,
                   paddingHorizontal: 24,
                   paddingVertical: 14,
                   borderRadius: 12,
                   gap: 8,
-                  shadowColor: AMBER,
+                  shadowColor: ACCENT,
                   shadowOffset: { width: 0, height: 8 },
                   shadowOpacity: 0.4,
                   shadowRadius: 16,
@@ -716,16 +716,16 @@ export default function LandingPage({ navigation }) {
             <View
               style={{
                 alignSelf: 'flex-start',
-                backgroundColor: 'rgba(245,158,11,0.1)',
+                backgroundColor: 'rgba(34,197,94,0.1)',
                 borderWidth: 1,
-                borderColor: 'rgba(245,158,11,0.2)',
+                borderColor: 'rgba(34,197,94,0.2)',
                 paddingHorizontal: 14,
                 paddingVertical: 5,
                 borderRadius: 100,
                 marginBottom: 20,
               }}
             >
-              <Text style={{ color: AMBER, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 }}>
+              <Text style={{ color: ACCENT, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 }}>
                 WEB PLATFORM
               </Text>
             </View>
@@ -784,14 +784,14 @@ export default function LandingPage({ navigation }) {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: AMBER,
+                backgroundColor: ACCENT,
                 paddingHorizontal: 22,
                 paddingVertical: 13,
                 borderRadius: 11,
                 gap: 8,
                 marginTop: 32,
                 alignSelf: 'flex-start',
-                shadowColor: AMBER,
+                shadowColor: ACCENT,
                 shadowOffset: { width: 0, height: 8 },
                 shadowOpacity: 0.35,
                 shadowRadius: 16,
@@ -882,15 +882,15 @@ export default function LandingPage({ navigation }) {
               number="1"
               icon="cloud-upload-outline"
               title="Reklamınızı Yükleyin"
-              description="Görsel veya video içeriğinizi kampanya detaylarıyla birlikte yükleyin"
+              description="Görsel veya video içeriğinizi yükleyin; kampanya bütçesi, tarih aralığı ve hedef kitleyi belirleyin"
               isWide={isWide}
             />
             {isWide && <Connector />}
             <StepItem
               number="2"
               icon="map-outline"
-              title="Panel Seçin"
-              description="Harita üzerinden lokasyonunuza en uygun dijital paneli seçin"
+              title="Haritadan Panel Seçin"
+              description="İnteraktif harita üzerinden şehir, semt veya trafik yoğunluğuna göre size en uygun dijital paneli seçin"
               isWide={isWide}
             />
             {isWide && <Connector />}
@@ -898,7 +898,7 @@ export default function LandingPage({ navigation }) {
               number="3"
               icon="play-circle-outline"
               title="Yayına Alın"
-              description="Onay sonrası reklamınız seçtiğiniz panelde anında yayınlanır"
+              description="Ekibimiz içeriğinizi onayladıktan sonra reklamınız seçtiğiniz panelde anında yayına girer; performansı canlı takip edin"
               isWide={isWide}
             />
           </View>
@@ -928,7 +928,7 @@ export default function LandingPage({ navigation }) {
           {[
             { icon: 'shield-checkmark-outline', text: 'SSL Güvenlik Sertifikası', color: '#10B981' },
             { icon: 'time-outline', text: '7/24 Teknik Destek', color: '#3B82F6' },
-            { icon: 'card-outline', text: 'Güvenli Ödeme Altyapısı', color: AMBER },
+            { icon: 'card-outline', text: 'Güvenli Ödeme Altyapısı', color: ACCENT },
             { icon: 'trending-up-outline', text: 'Canlı Performans Takibi', color: '#8B5CF6' },
           ].map((item, i) => (
             <View
@@ -1012,13 +1012,13 @@ export default function LandingPage({ navigation }) {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: AMBER,
+              backgroundColor: ACCENT,
               paddingHorizontal: 28,
               paddingVertical: 15,
               borderRadius: 13,
               gap: 8,
               marginTop: 32,
-              shadowColor: AMBER,
+              shadowColor: ACCENT,
               shadowOffset: { width: 0, height: 8 },
               shadowOpacity: 0.35,
               shadowRadius: 16,
