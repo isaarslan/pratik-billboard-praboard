@@ -533,37 +533,89 @@ const OnboardingScreen = ({ navigation }) => {
         Yüklediğiniz reklam, seçtiğiniz dijital panoda gerçek zamanlı olarak yayınlanır.
       </Text>
 
-      {/* Billboard mockup */}
+      {/* Wide billboard mockup */}
       <View style={[s.bbContainer, isWeb && s.bbContainerWeb]}>
-        {/* Street context */}
-        <View style={s.bbScene}>
-          {/* Sky */}
-          <LinearGradient colors={['#93C5FD', '#DBEAFE']} style={s.bbSky} />
+        <View style={[s.bbScene, isWeb && s.bbSceneWeb]}>
+          {/* Sky gradient */}
+          <LinearGradient colors={['#1E3A5F', '#3B6FA0', '#7EB4D8', '#C5DFF0']} style={s.bbSky} />
+          {/* Clouds */}
+          <View style={[s.bbCloud, { top: 20, left: '12%', width: 80, height: 28 }]} />
+          <View style={[s.bbCloud, { top: 35, right: '15%', width: 60, height: 22 }]} />
+          <View style={[s.bbCloud, { top: 12, right: '35%', width: 50, height: 18 }]} />
+
           {/* Billboard structure */}
           <View style={s.bbStructure}>
-            <View style={s.bbFrame}>
-              <View style={s.bbScreenGrad}>
-                <LinearGradient colors={['#059669', '#10B981']} style={s.bbAdContent}>
-                  <PraboardLogo size={32} variant="onGradient" />
-                  <Text style={s.bbAdTitle}>Yeni Ürün Lansmanı</Text>
-                  <Text style={s.bbAdSub}>Harika fırsatlar sizi bekliyor!</Text>
+            {/* Support beams */}
+            <View style={s.bbBeamLeft} />
+            <View style={s.bbBeamRight} />
+            {/* Main panel frame */}
+            <View style={[s.bbFrame, isWeb && s.bbFrameWeb]}>
+              {/* Outer frame border */}
+              <View style={s.bbFrameInner}>
+                {/* Ad content */}
+                <LinearGradient
+                  colors={['#047857', '#059669', '#10B981']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={s.bbAdContent}
+                >
+                  {/* Decorative circles */}
+                  <View style={s.bbDecCircle1} />
+                  <View style={s.bbDecCircle2} />
+                  {/* Content */}
+                  <View style={s.bbAdLeft}>
+                    <PraboardLogo size={isWeb ? 36 : 28} variant="onGradient" />
+                    <Text style={[s.bbAdTitle, isWeb && s.bbAdTitleWeb]}>Yeni Ürün Lansmanı</Text>
+                    <Text style={s.bbAdSub}>Harika fırsatlar sizi bekliyor!</Text>
+                  </View>
+                  <View style={s.bbAdRight}>
+                    <View style={s.bbAdCTA}>
+                      <Text style={s.bbAdCTAText}>Hemen Keşfet</Text>
+                      <Ionicons name="arrow-forward" size={14} color="#059669" />
+                    </View>
+                  </View>
+                  {/* Badge */}
                   <View style={s.bbAdBadge}>
+                    <View style={s.bbAdBadgeDot} />
                     <Text style={s.bbAdBadgeText}>REKLAMINIZ</Text>
                   </View>
                 </LinearGradient>
               </View>
-              {/* Panel info */}
+              {/* Bottom info strip */}
               <View style={s.bbInfoStrip}>
-                <Ionicons name="tv-outline" size={10} color="#6B7280" />
-                <Text style={s.bbInfoText}>Kızılay Meydanı · 3m x 6m · Canlı</Text>
-                <View style={s.bbLiveDot} />
+                <View style={s.bbInfoStripLeft}>
+                  <Ionicons name="tv-outline" size={11} color="#9CA3AF" />
+                  <Text style={s.bbInfoText}>Kızılay Meydanı · 3m x 6m</Text>
+                </View>
+                <View style={s.bbInfoStripRight}>
+                  <View style={s.bbLiveDot} />
+                  <Text style={s.bbLiveText}>Canlı</Text>
+                </View>
               </View>
             </View>
             {/* Pole */}
             <View style={s.bbPole} />
           </View>
+
+          {/* Cityscape silhouette */}
+          <View style={s.bbCityscape}>
+            <View style={[s.bbBuilding, { left: '2%', width: 30, height: 40 }]} />
+            <View style={[s.bbBuilding, { left: '10%', width: 22, height: 55 }]} />
+            <View style={[s.bbBuilding, { left: '17%', width: 28, height: 35 }]} />
+            <View style={[s.bbBuilding, { left: '25%', width: 20, height: 65 }]} />
+            <View style={[s.bbBuilding, { left: '32%', width: 35, height: 30 }]} />
+            <View style={[s.bbBuilding, { right: '30%', width: 25, height: 50 }]} />
+            <View style={[s.bbBuilding, { right: '20%', width: 30, height: 38 }]} />
+            <View style={[s.bbBuilding, { right: '12%', width: 22, height: 60 }]} />
+            <View style={[s.bbBuilding, { right: '3%', width: 28, height: 42 }]} />
+          </View>
+
           {/* Ground */}
-          <View style={s.bbGround} />
+          <View style={s.bbGround}>
+            {/* Road */}
+            <View style={s.bbRoad} />
+            <View style={s.bbSidewalk} />
+          </View>
         </View>
 
         {/* Info cards */}
@@ -861,23 +913,51 @@ const s = StyleSheet.create({
   /* Billboard mockup */
   bbContainer: {},
   bbContainerWeb: { flexDirection: 'row', gap: 40, alignItems: 'center' },
-  bbScene: { alignItems: 'center', borderRadius: 16, overflow: 'hidden', position: 'relative' },
-  bbSky: { position: 'absolute', top: 0, left: 0, right: 0, height: '70%' },
-  bbStructure: { alignItems: 'center', paddingTop: 40, paddingBottom: 0, zIndex: 2 },
-  bbFrame: { borderRadius: 8, overflow: 'hidden', ...(Platform.OS === 'web' ? { boxShadow: '0 8px 24px rgba(0,0,0,0.2)' } : { elevation: 10 }) },
-  bbScreenGrad: { width: 280, height: 140 },
-  bbAdContent: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 },
-  bbAdTitle: { fontSize: 15, fontWeight: '800', color: '#fff', marginTop: 6 },
-  bbAdSub: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
-  bbAdBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(255,255,255,0.25)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  bbAdBadgeText: { fontSize: 8, fontWeight: '700', color: '#fff', letterSpacing: 1 },
-  bbInfoStrip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1F2937', paddingHorizontal: 10, paddingVertical: 5, gap: 4 },
-  bbInfoText: { fontSize: 9, color: '#9CA3AF', flex: 1 },
-  bbLiveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E' },
-  bbPole: { width: 8, height: 50, backgroundColor: '#6B7280', borderBottomLeftRadius: 4, borderBottomRightRadius: 4 },
-  bbGround: { height: 40, backgroundColor: '#D1D5DB', width: '100%' },
+  bbScene: { alignItems: 'center', borderRadius: 20, overflow: 'hidden', position: 'relative', minHeight: 320 },
+  bbSceneWeb: { minHeight: 400, flex: 1.2 },
+  bbSky: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  bbCloud: { position: 'absolute', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: 20, zIndex: 1 },
+  bbStructure: { alignItems: 'center', paddingTop: 30, zIndex: 3 },
+  bbBeamLeft: { position: 'absolute', bottom: -8, left: '35%', width: 6, height: 70, backgroundColor: '#4B5563', transform: [{ rotate: '-5deg' }], zIndex: 0 },
+  bbBeamRight: { position: 'absolute', bottom: -8, right: '35%', width: 6, height: 70, backgroundColor: '#4B5563', transform: [{ rotate: '5deg' }], zIndex: 0 },
+  bbFrame: {
+    borderRadius: 6,
+    overflow: 'hidden',
+    borderWidth: 4,
+    borderColor: '#374151',
+    width: 320,
+    zIndex: 2,
+    ...(Platform.OS === 'web' ? { boxShadow: '0 12px 40px rgba(0,0,0,0.35)' } : { elevation: 14 }),
+  },
+  bbFrameWeb: { width: 480 },
+  bbFrameInner: { overflow: 'hidden' },
+  bbAdContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, minHeight: 140, position: 'relative', overflow: 'hidden' },
+  bbDecCircle1: { position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.08)' },
+  bbDecCircle2: { position: 'absolute', bottom: -20, left: -20, width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.06)' },
+  bbAdLeft: { flex: 1, gap: 6, zIndex: 1 },
+  bbAdRight: { zIndex: 1, marginLeft: 12 },
+  bbAdTitle: { fontSize: 16, fontWeight: '800', color: '#fff' },
+  bbAdTitleWeb: { fontSize: 20 },
+  bbAdSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)' },
+  bbAdCTA: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  bbAdCTAText: { fontSize: 12, fontWeight: '700', color: '#059669' },
+  bbAdBadge: { position: 'absolute', top: 10, right: 10, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, ...(Platform.OS === 'web' ? { backdropFilter: 'blur(4px)' } : {}) },
+  bbAdBadgeDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' },
+  bbAdBadgeText: { fontSize: 8, fontWeight: '700', color: '#fff', letterSpacing: 1.2 },
+  bbInfoStrip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#111827', paddingHorizontal: 12, paddingVertical: 6 },
+  bbInfoStripLeft: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  bbInfoStripRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  bbInfoText: { fontSize: 10, color: '#9CA3AF' },
+  bbLiveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#22C55E' },
+  bbLiveText: { fontSize: 10, fontWeight: '600', color: '#22C55E' },
+  bbPole: { width: 10, height: 60, backgroundColor: '#4B5563', borderBottomLeftRadius: 4, borderBottomRightRadius: 4, zIndex: 2 },
+  bbCityscape: { position: 'absolute', bottom: 50, left: 0, right: 0, height: 70, zIndex: 1 },
+  bbBuilding: { position: 'absolute', bottom: 0, backgroundColor: '#1E293B', borderTopLeftRadius: 2, borderTopRightRadius: 2, opacity: 0.3 },
+  bbGround: { height: 50, width: '100%', backgroundColor: '#374151', zIndex: 2, position: 'relative' },
+  bbRoad: { position: 'absolute', top: 10, left: 0, right: 0, height: 30, backgroundColor: '#1F2937' },
+  bbSidewalk: { position: 'absolute', top: 0, left: 0, right: 0, height: 10, backgroundColor: '#6B7280' },
   bbInfo: { marginTop: 24, gap: 16 },
-  bbInfoWeb: { flex: 1, marginTop: 0 },
+  bbInfoWeb: { flex: 0.8, marginTop: 0 },
   bbInfoCard: { flexDirection: 'row', gap: 14, padding: 16, backgroundColor: '#F9FAFB', borderRadius: 12, borderWidth: 1, borderColor: '#F3F4F6' },
   bbInfoIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: '#ECFDF5', justifyContent: 'center', alignItems: 'center' },
   bbInfoTitle: { fontSize: 14, fontWeight: '700', color: '#1F2937', marginBottom: 4 },
