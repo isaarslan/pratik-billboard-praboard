@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../theme';
 import PraboardLogo from '../../components/PraboardLogo';
+import WebMap from '../../components/WebMap';
 
 /* ───── Data ───── */
 
@@ -76,11 +77,21 @@ const features = [
 ];
 
 const panelData = [
-  { name: 'Kızılay Meydanı', loc: 'Kızılay, Ankara', size: '3m x 6m', price: '1.166', badge: 'Popüler', status: 'Müsait' },
-  { name: 'Tunalı Hilmi Cad.', loc: 'Çankaya, Ankara', size: '4m x 8m', price: '2.350', badge: 'Premium', status: 'Müsait' },
-  { name: 'Ulus Meydanı', loc: 'Altındağ, Ankara', size: '2.5m x 5m', price: '890', badge: null, status: 'Dolu' },
-  { name: 'Bahçelievler AVM', loc: 'Çankaya, Ankara', size: '3m x 4m', price: '1.500', badge: null, status: 'Müsait' },
+  { id: 1, name: 'Kızılay Meydanı', loc: 'Kızılay, Ankara', size: '3m x 6m', price: '1.166', badge: 'Popüler', status: 'Müsait', lat: 39.9208, lng: 32.8541 },
+  { id: 2, name: 'Tunalı Hilmi Cad.', loc: 'Çankaya, Ankara', size: '4m x 8m', price: '2.350', badge: 'Premium', status: 'Müsait', lat: 39.9075, lng: 32.8597 },
+  { id: 3, name: 'Ulus Meydanı', loc: 'Altındağ, Ankara', size: '2.5m x 5m', price: '890', badge: null, status: 'Dolu', lat: 39.9414, lng: 32.8543 },
+  { id: 4, name: 'Bahçelievler AVM', loc: 'Çankaya, Ankara', size: '3m x 4m', price: '1.500', badge: null, status: 'Müsait', lat: 39.9220, lng: 32.8280 },
+  { id: 5, name: 'Batıkent Metro', loc: 'Yenimahalle, Ankara', size: '2m x 4m', price: '750', badge: null, status: 'Müsait', lat: 39.9700, lng: 32.7300 },
+  { id: 6, name: 'Gölbaşı Sahil', loc: 'Gölbaşı, Ankara', size: '3m x 6m', price: '1.050', badge: null, status: 'Dolu', lat: 39.7850, lng: 32.8040 },
 ];
+
+const mapMarkers = panelData.map((p) => ({
+  id: p.id,
+  lat: p.lat,
+  lng: p.lng,
+  label: 'P',
+  color: p.status === 'Müsait' ? '#22C55E' : '#737373',
+}));
 
 const stats = [
   { value: '6+', label: 'Dijital Pano' },
@@ -220,14 +231,13 @@ const OnboardingScreen = ({ navigation }) => {
         {isWeb && (
           <View style={s.heroVisual}>
             <PhoneFrame title="Panolar" width={270} height={460}>
-              {/* Mini map with pins */}
-              <MapBg style={{ flex: 1 }}>
-                <MapPin x="20%" y="18%" label="P" />
-                <MapPin x="55%" y="30%" label="P" />
-                <MapPin x="35%" y="55%" label="P" color="#737373" />
-                <MapPin x="70%" y="65%" label="P" />
-                <MapPin x="15%" y="72%" label="P" />
-                <MapPin x="60%" y="12%" label="P" color="#737373" />
+              {/* Real Leaflet map inside phone mockup */}
+              <View style={{ flex: 1, position: 'relative' }}>
+                <WebMap
+                  markers={mapMarkers}
+                  center={{ lat: 39.925, lng: 32.836 }}
+                  zoom={12}
+                />
                 {/* Selected panel card overlay */}
                 <View style={s.heroMapCard}>
                   <View style={s.heroMapCardDot} />
@@ -237,7 +247,7 @@ const OnboardingScreen = ({ navigation }) => {
                   </View>
                   <Text style={s.heroMapCardPrice}>1.166₺</Text>
                 </View>
-              </MapBg>
+              </View>
               {/* Bottom tab bar */}
               <View style={s.mockTabBar}>
                 <Ionicons name="home-outline" size={16} color="#aaa" />
@@ -255,14 +265,20 @@ const OnboardingScreen = ({ navigation }) => {
           </View>
         )}
 
-        {/* Mobile: mini map preview */}
+        {/* Mobile: map preview */}
         {!isWeb && (
-          <MapBg style={{ height: 160, marginTop: 24, borderRadius: 16 }}>
-            <MapPin x="15%" y="20%" label="P" size={26} />
-            <MapPin x="50%" y="35%" label="P" size={26} />
-            <MapPin x="30%" y="65%" label="P" size={26} color="#737373" />
-            <MapPin x="70%" y="50%" label="P" size={26} />
-            <MapPin x="60%" y="15%" label="P" size={26} />
+          <View style={{ height: 180, marginTop: 24, borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
+            {Platform.OS === 'web' ? (
+              <WebMap markers={mapMarkers} center={{ lat: 39.925, lng: 32.836 }} zoom={11} />
+            ) : (
+              <MapBg style={{ flex: 1 }}>
+                <MapPin x="15%" y="20%" label="P" size={26} />
+                <MapPin x="50%" y="35%" label="P" size={26} />
+                <MapPin x="30%" y="65%" label="P" size={26} color="#737373" />
+                <MapPin x="70%" y="50%" label="P" size={26} />
+                <MapPin x="60%" y="15%" label="P" size={26} />
+              </MapBg>
+            )}
             <View style={[s.heroMapCard, { bottom: 8, left: 8, right: 8 }]}>
               <View style={s.heroMapCardDot} />
               <View style={{ flex: 1 }}>
@@ -271,7 +287,7 @@ const OnboardingScreen = ({ navigation }) => {
               </View>
               <Text style={s.heroMapCardPrice}>1.166₺</Text>
             </View>
-          </MapBg>
+          </View>
         )}
       </View>
     </LinearGradient>
@@ -317,29 +333,27 @@ const OnboardingScreen = ({ navigation }) => {
         Interaktif harita üzerinden dijital panoları keşfet. Lokasyon, boyut ve fiyat bilgilerini anında görüntüle.
       </Text>
 
-      {/* Split mockup: Map + Panel List */}
+      {/* Split: Real Map + Panel List */}
       <View style={[s.mapDiscovery, isWeb && s.mapDiscoveryWeb]}>
-        {/* Map side */}
-        <MapBg style={[s.mapSide, isWeb && s.mapSideWeb]}>
-          <MapPin x="18%" y="15%" label="P" size={isWeb ? 34 : 28} />
-          <MapPin x="52%" y="28%" label="P" size={isWeb ? 34 : 28} />
-          <MapPin x="35%" y="50%" label="P" size={isWeb ? 34 : 28} color="#737373" />
-          <MapPin x="72%" y="42%" label="P" size={isWeb ? 34 : 28} />
-          <MapPin x="25%" y="72%" label="P" size={isWeb ? 34 : 28} />
-          <MapPin x="62%" y="68%" label="P" size={isWeb ? 34 : 28} color="#737373" />
-          {/* Zoom controls */}
-          <View style={s.mapZoom}>
-            <View style={s.mapZoomBtn}><Text style={s.mapZoomText}>+</Text></View>
-            <View style={[s.mapZoomBtn, { borderTopWidth: 1, borderTopColor: '#E5E7EB' }]}>
-              <Text style={s.mapZoomText}>−</Text>
-            </View>
-          </View>
-          {/* Location label */}
-          <View style={s.mapLocBadge}>
-            <Ionicons name="location" size={12} color="#059669" />
-            <Text style={s.mapLocText}>Ankara, Türkiye</Text>
-          </View>
-        </MapBg>
+        {/* Real Leaflet map */}
+        <View style={[s.mapSide, isWeb && s.mapSideWeb]}>
+          {Platform.OS === 'web' ? (
+            <WebMap
+              markers={mapMarkers}
+              center={{ lat: 39.925, lng: 32.836 }}
+              zoom={12}
+            />
+          ) : (
+            <MapBg style={{ flex: 1 }}>
+              <MapPin x="18%" y="15%" label="P" size={28} />
+              <MapPin x="52%" y="28%" label="P" size={28} />
+              <MapPin x="35%" y="50%" label="P" size={28} color="#737373" />
+              <MapPin x="72%" y="42%" label="P" size={28} />
+              <MapPin x="25%" y="72%" label="P" size={28} />
+              <MapPin x="62%" y="68%" label="P" size={28} color="#737373" />
+            </MapBg>
+          )}
+        </View>
 
         {/* Panel list side (web only) */}
         {isWeb && (
@@ -780,13 +794,8 @@ const s = StyleSheet.create({
   /* Map Discovery */
   mapDiscovery: { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB' },
   mapDiscoveryWeb: { flexDirection: 'row', height: 380 },
-  mapSide: { height: 240, borderRadius: 0 },
+  mapSide: { height: 280, borderRadius: 0 },
   mapSideWeb: { flex: 1, height: 'auto' },
-  mapZoom: { position: 'absolute', right: 12, bottom: 12, backgroundColor: '#fff', borderRadius: 8, ...(Platform.OS === 'web' ? { boxShadow: '0 2px 8px rgba(0,0,0,0.15)' } : { elevation: 4 }) },
-  mapZoomBtn: { width: 32, height: 32, justifyContent: 'center', alignItems: 'center' },
-  mapZoomText: { fontSize: 18, fontWeight: '700', color: '#374151' },
-  mapLocBadge: { position: 'absolute', top: 12, left: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, gap: 4, ...(Platform.OS === 'web' ? { boxShadow: '0 2px 6px rgba(0,0,0,0.1)' } : { elevation: 3 }) },
-  mapLocText: { fontSize: 11, fontWeight: '600', color: '#374151' },
   mapListSide: { width: 320, backgroundColor: '#fff', padding: 20, borderLeftWidth: 1, borderLeftColor: '#F3F4F6' },
   mapListTitle: { fontSize: 16, fontWeight: '700', color: '#1F2937', marginBottom: 16 },
   mapListCard: { flexDirection: 'row', alignItems: 'center', padding: 14, backgroundColor: '#F9FAFB', borderRadius: 12, marginBottom: 10, gap: 12 },
