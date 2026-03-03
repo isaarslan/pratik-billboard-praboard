@@ -64,7 +64,288 @@ function LogoMark({ size = 36, dark }) {
   );
 }
 
-/* ── Web Dashboard Önizlemesi (mobil ekran yerine) ── */
+/* ── Gerçek App Telefon Önizlemesi ── */
+function PhoneMockup({ scale = 1 }) {
+  const s = (v) => Math.round(v * scale);
+  return (
+    <View style={{ alignItems: 'center', position: 'relative' }}>
+      {/* Telefon gövdesi */}
+      <View
+        style={{
+          width: s(240),
+          height: s(500),
+          borderRadius: s(42),
+          backgroundColor: '#1C1C1E',
+          borderWidth: s(9),
+          borderColor: '#2C2C2E',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: s(28) },
+          shadowOpacity: 0.55,
+          shadowRadius: s(44),
+          elevation: 24,
+          overflow: 'hidden',
+        }}
+      >
+        {/* Notch */}
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            alignSelf: 'center',
+            width: s(90),
+            height: s(24),
+            backgroundColor: '#1C1C1E',
+            borderBottomLeftRadius: s(18),
+            borderBottomRightRadius: s(18),
+            zIndex: 10,
+          }}
+        />
+
+        {/* Status bar */}
+        <View
+          style={{
+            height: s(34),
+            backgroundColor: colors.eco.emerald,
+            paddingHorizontal: s(16),
+            paddingTop: s(12),
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+          }}
+        >
+          <Text style={{ color: '#fff', fontSize: s(9), fontWeight: '700' }}>9:41</Text>
+          <Ionicons name="wifi" size={s(10)} color="#fff" />
+        </View>
+
+        {/* App header */}
+        <View
+          style={{
+            backgroundColor: colors.eco.emerald,
+            paddingHorizontal: s(14),
+            paddingBottom: s(14),
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <View>
+            <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: s(9) }}>Merhaba 👋</Text>
+            <Text style={{ color: '#fff', fontSize: s(14), fontWeight: '800', marginTop: s(2) }}>
+              Panel Ağı
+            </Text>
+          </View>
+          <View
+            style={{
+              width: s(30),
+              height: s(30),
+              borderRadius: s(15),
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Ionicons name="person-outline" size={s(15)} color="#fff" />
+          </View>
+        </View>
+
+        {/* Screen body */}
+        <View style={{ flex: 1, backgroundColor: '#F4F7F5', padding: s(10) }}>
+          {/* Harita kartı */}
+          <View
+            style={{
+              height: s(100),
+              backgroundColor: '#C8E6C9',
+              borderRadius: s(12),
+              marginBottom: s(10),
+              overflow: 'hidden',
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'relative',
+            }}
+          >
+            {/* Sahte harita ızgara */}
+            {[0.33, 0.66].map((v, i) => (
+              <View
+                key={`h${i}`}
+                style={{
+                  position: 'absolute',
+                  left: 0, right: 0, top: `${v * 100}%`,
+                  height: 1, backgroundColor: 'rgba(0,0,0,0.06)',
+                }}
+              />
+            ))}
+            {[0.25, 0.5, 0.75].map((v, i) => (
+              <View
+                key={`v${i}`}
+                style={{
+                  position: 'absolute',
+                  top: 0, bottom: 0, left: `${v * 100}%`,
+                  width: 1, backgroundColor: 'rgba(0,0,0,0.06)',
+                }}
+              />
+            ))}
+            {/* Pin'ler */}
+            {[
+              { t: '30%', l: '20%', c: '#1B8A4A' },
+              { t: '50%', l: '55%', c: '#1B8A4A' },
+              { t: '65%', l: '35%', c: '#999' },
+            ].map((p, i) => (
+              <View
+                key={i}
+                style={{
+                  position: 'absolute', top: p.t, left: p.l,
+                  width: s(10), height: s(10), borderRadius: s(5),
+                  backgroundColor: p.c, borderWidth: 1.5, borderColor: '#fff',
+                }}
+              />
+            ))}
+            <Ionicons name="map-outline" size={s(28)} color={colors.eco.emerald} style={{ opacity: 0.3 }} />
+          </View>
+
+          {/* Panel kartları */}
+          {[
+            { name: 'İstanbul – Kadıköy', days: '12 gün', active: true },
+            { name: 'Ankara – Kızılay',   days: '5 gün',  active: true },
+            { name: 'İzmir – Alsancak',   days: 'Dolu',   active: false },
+          ].map((p, i) => (
+            <View
+              key={i}
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: s(9),
+                padding: s(8),
+                marginBottom: s(6),
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: s(8),
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 4,
+              }}
+            >
+              <View
+                style={{
+                  width: s(30),
+                  height: s(30),
+                  borderRadius: s(7),
+                  backgroundColor: p.active ? colors.eco.mint : '#F3F4F6',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons
+                  name="tv-outline"
+                  size={s(14)}
+                  color={p.active ? colors.eco.emerald : '#9CA3AF'}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: s(9), fontWeight: '700', color: '#111' }}>{p.name}</Text>
+                <Text style={{ fontSize: s(7), color: p.active ? '#6B7280' : '#9CA3AF', marginTop: s(1) }}>
+                  {p.active ? `Aktif · ${p.days} kaldı` : 'Dolu'}
+                </Text>
+              </View>
+              <View
+                style={{
+                  width: s(7),
+                  height: s(7),
+                  borderRadius: s(4),
+                  backgroundColor: p.active ? '#22C55E' : '#D1D5DB',
+                }}
+              />
+            </View>
+          ))}
+        </View>
+
+        {/* Bottom tab bar */}
+        <View
+          style={{
+            backgroundColor: '#fff',
+            flexDirection: 'row',
+            paddingVertical: s(10),
+            borderTopWidth: 0.5,
+            borderColor: 'rgba(0,0,0,0.08)',
+          }}
+        >
+          {[
+            { icon: 'home-outline',          active: true },
+            { icon: 'map-outline',            active: false },
+            { icon: 'add-circle-outline',     active: false },
+            { icon: 'notifications-outline',  active: false },
+            { icon: 'person-outline',         active: false },
+          ].map((t, i) => (
+            <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+              <Ionicons
+                name={t.icon}
+                size={s(18)}
+                color={t.active ? colors.eco.emerald : '#C4C4C4'}
+              />
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Floating badge — sağ üst */}
+      <View
+        style={{
+          position: 'absolute',
+          right: -s(24),
+          top: s(72),
+          backgroundColor: '#fff',
+          borderRadius: s(14),
+          paddingHorizontal: s(12),
+          paddingVertical: s(10),
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.12,
+          shadowRadius: 12,
+          elevation: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: s(6),
+        }}
+      >
+        <View style={{ width: s(24), height: s(24), borderRadius: s(12), backgroundColor: '#DCFCE7', justifyContent: 'center', alignItems: 'center' }}>
+          <Ionicons name="trending-up" size={s(12)} color="#22C55E" />
+        </View>
+        <View>
+          <Text style={{ fontSize: s(11), fontWeight: '800', color: '#111' }}>+42%</Text>
+          <Text style={{ fontSize: s(8), color: '#6B7280' }}>Görüntülenme</Text>
+        </View>
+      </View>
+
+      {/* Floating badge — sol alt */}
+      <View
+        style={{
+          position: 'absolute',
+          left: -s(28),
+          bottom: s(90),
+          backgroundColor: colors.eco.emerald,
+          borderRadius: s(14),
+          paddingHorizontal: s(12),
+          paddingVertical: s(10),
+          shadowColor: colors.eco.emerald,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.35,
+          shadowRadius: 12,
+          elevation: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: s(6),
+        }}
+      >
+        <Ionicons name="map-outline" size={s(14)} color="#fff" />
+        <View>
+          <Text style={{ fontSize: s(11), fontWeight: '800', color: '#fff' }}>150+</Text>
+          <Text style={{ fontSize: s(8), color: 'rgba(255,255,255,0.7)' }}>Panel</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/* ── Web Dashboard Önizlemesi ── */
 function DashboardMockup({ scale = 1 }) {
   const s = (v) => Math.round(v * scale);
   return (
@@ -510,7 +791,7 @@ export default function LandingPage({ navigation }) {
     >
       {/* ═══════════════════════ HERO ═══════════════════════ */}
       <LinearGradient
-        colors={['#071E14', '#0B3D2E', '#14693E']}
+        colors={['#0A3D22', '#0F5C32', '#1A7A42']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ width: '100%', overflow: 'hidden', position: 'relative' }}
@@ -725,10 +1006,10 @@ export default function LandingPage({ navigation }) {
             </View>
           </View>
 
-          {/* Sağ: Dashboard mockup (sadece desktop) */}
+          {/* Sağ: Telefon mockup */}
           {isWide && (
-            <View style={{ flex: 1, maxWidth: 420 }}>
-              <DashboardMockup scale={0.95} />
+            <View style={{ flex: 1, alignItems: 'center', paddingRight: 24 }}>
+              <PhoneMockup scale={1} />
             </View>
           )}
         </View>
