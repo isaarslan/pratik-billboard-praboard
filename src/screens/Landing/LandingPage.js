@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -378,7 +378,7 @@ function Connector() {
 }
 
 /* ── Gerçek Leaflet haritası — tarayıcı çerçevesiyle ── */
-function MapPreview({ isWide }) {
+function MapPreview({ isWide, theme = 'dark' }) {
   return (
     <View
       style={{
@@ -441,6 +441,7 @@ function MapPreview({ isWide }) {
           markers={LANDING_MARKERS}
           center={{ lat: 39.0, lng: 35.0 }}
           zoom={6}
+          theme={theme}
         />
       </View>
 
@@ -494,10 +495,16 @@ export default function LandingPage({ navigation }) {
   const maxW = 1100;
   const px = isWide ? 60 : 24;
 
+  const scrollRef = useRef(null);
+  const stepsOffsetY = useRef(0);
+
   const goTo = (screen) => navigation?.navigate(screen);
+  const scrollToSteps = () =>
+    scrollRef.current?.scrollTo({ y: stepsOffsetY.current, animated: true });
 
   return (
     <ScrollView
+      ref={scrollRef}
       style={{ flex: 1, backgroundColor: '#F8FAFA' }}
       showsVerticalScrollIndicator={false}
     >
@@ -674,6 +681,7 @@ export default function LandingPage({ navigation }) {
                 <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>Hemen Başla</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                onPress={scrollToSteps}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -688,7 +696,7 @@ export default function LandingPage({ navigation }) {
                 }}
               >
                 <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>Nasıl Çalışır?</Text>
-                <Ionicons name="arrow-forward" size={15} color="#fff" />
+                <Ionicons name="chevron-down" size={15} color="#fff" />
               </TouchableOpacity>
             </View>
 
@@ -1072,6 +1080,7 @@ export default function LandingPage({ navigation }) {
         colors={['#0D4F2B', '#1B8A4A']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
+        onLayout={(e) => { stepsOffsetY.current = e.nativeEvent.layout.y; }}
         style={{ paddingVertical: isWide ? 96 : 60 }}
       >
         <View
@@ -1282,26 +1291,151 @@ export default function LandingPage({ navigation }) {
       </View>
 
       {/* ═══════════════════════ FOOTER ═══════════════════════ */}
-      <View style={{ backgroundColor: '#0A1628', paddingVertical: 36 }}>
-        <View
-          style={{
-            maxWidth: maxW,
-            alignSelf: 'center',
-            width: '100%',
-            paddingHorizontal: px,
-            flexDirection: isWide ? 'row' : 'column',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 12,
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <LogoMark size={26} dark />
-            <Text style={{ color: '#fff', fontSize: 17, fontWeight: '700' }}>Praboard</Text>
+      <View style={{ backgroundColor: '#0A1628', paddingTop: isWide ? 60 : 48, paddingBottom: 32 }}>
+        <View style={{ maxWidth: maxW, alignSelf: 'center', width: '100%', paddingHorizontal: px }}>
+
+          {/* Ana footer kolonları */}
+          <View
+            style={{
+              flexDirection: isWide ? 'row' : 'column',
+              gap: isWide ? 0 : 36,
+              paddingBottom: 40,
+              borderBottomWidth: 1,
+              borderColor: 'rgba(255,255,255,0.07)',
+            }}
+          >
+            {/* Kolon 1: Marka */}
+            <View style={{ flex: isWide ? 1.6 : undefined, paddingRight: isWide ? 40 : 0 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <LogoMark size={32} dark />
+                <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>Praboard</Text>
+              </View>
+              <Text
+                style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, lineHeight: 22, maxWidth: 260 }}
+              >
+                Türkiye'nin çevreci dijital billboard ağı. Düşük maliyetle, yüksek görünürlük.
+              </Text>
+              {/* Sosyal medya ikonları */}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
+                {[
+                  { icon: 'logo-twitter',   color: '#1DA1F2' },
+                  { icon: 'logo-instagram', color: '#E1306C' },
+                  { icon: 'logo-linkedin',  color: '#0A66C2' },
+                ].map((s, i) => (
+                  <View
+                    key={i}
+                    style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      backgroundColor: 'rgba(255,255,255,0.06)',
+                      borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+                      justifyContent: 'center', alignItems: 'center',
+                    }}
+                  >
+                    <Ionicons name={s.icon} size={16} color={s.color} />
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Kolon 2: Platform */}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700',
+                  letterSpacing: 1, marginBottom: 18,
+                }}
+              >
+                PLATFORM
+              </Text>
+              {[
+                { label: 'Özellikler' },
+                { label: 'Panel Haritası' },
+                { label: 'Nasıl Çalışır?', onPress: scrollToSteps },
+                { label: 'Fiyatlandırma' },
+                { label: 'SSS' },
+              ].map((link, i) => (
+                <TouchableOpacity key={i} onPress={link.onPress} style={{ marginBottom: 11 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 20 }}>
+                    {link.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Kolon 3: Hesap */}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700',
+                  letterSpacing: 1, marginBottom: 18,
+                }}
+              >
+                HESAP
+              </Text>
+              {[
+                { label: 'Giriş Yap',   screen: 'Login' },
+                { label: 'Kayıt Ol',    screen: 'Register' },
+                { label: 'Şifremi Unuttum', screen: 'ForgotPassword' },
+                { label: 'Profilim' },
+                { label: 'Destek' },
+              ].map((link, i) => (
+                <TouchableOpacity
+                  key={i}
+                  onPress={() => link.screen && goTo(link.screen)}
+                  style={{ marginBottom: 11 }}
+                >
+                  <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 20 }}>
+                    {link.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Kolon 4: Yasal */}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700',
+                  letterSpacing: 1, marginBottom: 18,
+                }}
+              >
+                YASAL
+              </Text>
+              {[
+                'Gizlilik Politikası',
+                'Kullanım Koşulları',
+                'Çerez Politikası',
+                'KVKK',
+              ].map((link, i) => (
+                <TouchableOpacity key={i} style={{ marginBottom: 11 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 20 }}>
+                    {link}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
-            © 2026 Praboard. Tüm hakları saklıdır.
-          </Text>
+
+          {/* Alt çubuk */}
+          <View
+            style={{
+              paddingTop: 24,
+              flexDirection: isWide ? 'row' : 'column',
+              justifyContent: 'space-between',
+              alignItems: isWide ? 'center' : 'flex-start',
+              gap: 10,
+            }}
+          >
+            <Text style={{ color: 'rgba(255,255,255,0.22)', fontSize: 13 }}>
+              © 2026 Praboard. Tüm hakları saklıdır.
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="leaf" size={12} color={colors.eco.leaf} />
+              <Text style={{ color: 'rgba(255,255,255,0.22)', fontSize: 12 }}>
+                Çevreci teknoloji ile güçlendirilmiştir
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     </ScrollView>
