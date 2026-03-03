@@ -726,44 +726,6 @@ function MapPreview({ isWide, theme = 'dark' }) {
         />
       </View>
 
-      {/* Alt istatistik çubuğu */}
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: '#1E293B',
-          borderTopWidth: 1,
-          borderColor: 'rgba(255,255,255,0.06)',
-        }}
-      >
-        {[
-          { label: 'Toplam Şehir', value: '15+',   color: colors.eco.leaf },
-          { label: 'Aktif Panel',  value: '150+',  color: '#22C55E' },
-          { label: 'Gün. Görüntülenme', value: '50K+', color: ACCENT },
-        ].map((s, i) => (
-          <View
-            key={i}
-            style={{
-              flex: 1,
-              paddingVertical: 12,
-              alignItems: 'center',
-              borderRightWidth: i < 2 ? 1 : 0,
-              borderColor: 'rgba(255,255,255,0.06)',
-            }}
-          >
-            <Text style={{ color: s.color, fontSize: 14, fontWeight: '800' }}>{s.value}</Text>
-            <Text
-              style={{
-                color: 'rgba(255,255,255,0.35)',
-                fontSize: 9,
-                marginTop: 2,
-                textAlign: 'center',
-              }}
-            >
-              {s.label}
-            </Text>
-          </View>
-        ))}
-      </View>
     </View>
   );
 }
