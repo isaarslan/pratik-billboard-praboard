@@ -16,7 +16,7 @@ import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import VideoPreview from '../../components/VideoPreview';
-import PraboardLogo from '../../components/PraboardLogo';
+
 
 const DEMO_ADS = [
   {
@@ -174,7 +174,7 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.adHeader}>
         <View style={styles.adHeaderLeft}>
           <View style={styles.profileCircle}>
-            <Ionicons name="person" size={20} color={colors.gray[400]} />
+            <Ionicons name="person" size={24} color={colors.gray[400]} />
           </View>
           <View style={styles.adHeaderInfo}>
             <Text style={styles.adUserName}>{item.user}</Text>
@@ -214,19 +214,26 @@ const HomeScreen = ({ navigation }) => {
         )}
       </View>
 
+      {/* Page Indicator Dots */}
+      <View style={styles.pageIndicator}>
+        <View style={[styles.dot, styles.dotActive]} />
+        <View style={styles.dot} />
+        <View style={styles.dot} />
+      </View>
+
       {/* Interaction Row */}
       <View style={styles.interactionRow}>
         <View style={styles.interactionItem}>
-          <Ionicons name="heart-outline" size={22} color={colors.gray[700]} />
+          <Ionicons name="heart-outline" size={24} color={colors.gray[700]} />
           <Text style={styles.interactionText}>{item.likes}</Text>
         </View>
         <View style={styles.interactionItem}>
-          <Ionicons name="share-outline" size={22} color={colors.gray[700]} />
+          <Ionicons name="share-outline" size={24} color={colors.gray[700]} />
           <Text style={styles.interactionText}>{item.shares}</Text>
         </View>
         {item.campaignDetails ? (
           <View style={styles.interactionItem}>
-            <Ionicons name="megaphone-outline" size={20} color={colors.primary} />
+            <Ionicons name="megaphone-outline" size={22} color={colors.primary} />
             <Text style={styles.campaignBadgeText}>Detay</Text>
           </View>
         ) : null}
@@ -287,7 +294,9 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
         <View style={styles.topRight}>
-          <PraboardLogo size={32} variant="standalone" />
+          <View style={styles.praboardPlusIcon}>
+            <Text style={styles.praboardPlusText}>P+</Text>
+          </View>
         </View>
       </View>
 
@@ -453,12 +462,12 @@ const styles = StyleSheet.create({
   webLocationPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.08)',
+    backgroundColor: 'rgba(255, 75, 75, 0.08)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.2)',
+    borderColor: 'rgba(255, 75, 75, 0.2)',
   },
   webLocationText: {
     fontSize: 14,
@@ -521,12 +530,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.gray[200],
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  praboardPlusIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  praboardPlusText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.white,
   },
   adHeaderInfo: {
     marginLeft: 10,
@@ -593,11 +615,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
+  pageIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.gray[300],
+    marginHorizontal: 3,
+  },
+  dotActive: {
+    backgroundColor: colors.primary,
+  },
   interactionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   interactionItem: {
     flexDirection: 'row',

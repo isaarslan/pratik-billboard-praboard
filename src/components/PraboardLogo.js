@@ -1,27 +1,26 @@
 import React from 'react';
 import { Image } from 'react-native';
 
-const logoSource = require('../../assets/logo.png');
+const logoImage = require('../../assets/praboard_p_logo_transparent.png');
 
 /**
- * PraboardLogo — Coral bold "P" harfi (PNG, transparent arka plan)
+ * PraboardLogo — Gerçek logo görseli
  *
- * variant="standalone"  → coral P (beyaz/açık zemin için, varsayılan)
- * variant="onGradient"  → beyaz P (yeşil gradient zemin için)
- * variant="dark"        → beyaz P (koyu zemin için)
+ * variant="onGradient"  → beyaz tint (kırmızı/gradient zemin için)
+ * variant="standalone"  → normal (beyaz zemin için)
  */
-export default function PraboardLogo({ size = 80, variant = 'standalone' }) {
-  const tint = variant === 'standalone' ? undefined : '#FFFFFF';
+export default function PraboardLogo({ size = 80, variant = 'onGradient' }) {
+  const isOnGradient = variant === 'onGradient';
 
   return (
     <Image
-      source={logoSource}
+      source={logoImage}
       style={{
-        width: size * 0.8,
+        width: size,
         height: size,
-        ...(tint ? { tintColor: tint } : {}),
+        resizeMode: 'contain',
+        tintColor: isOnGradient ? '#FFFFFF' : undefined,
       }}
-      resizeMode="contain"
     />
   );
 }

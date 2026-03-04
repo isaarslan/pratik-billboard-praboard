@@ -1,18 +1,18 @@
 export const colors = {
-  primary: '#22C55E',
-  primaryLight: '#4ADE80',
-  primaryDark: '#16A34A',
-  success: '#22C55E',
+  primary: '#FF4B4B',
+  primaryLight: '#FF6B6B',
+  primaryDark: '#E04343',
+  success: '#2ECC71',
   successLight: '#F0FFF0',
-  error: '#EF4444',
-  errorLight: '#FEF2F2',
+  error: '#FF4B4B',
+  errorLight: '#FFF0F0',
   background: '#F5F5F5',
   surface: '#FFFFFF',
   textPrimary: '#1A1A1A',
   textSecondary: '#999999',
   border: '#E0E0E0',
   borderFocused: '#1A1A1A',
-  disabled: 'rgba(34, 197, 94, 0.3)',
+  disabled: 'rgba(255, 75, 75, 0.3)',
   overlay: 'rgba(0, 0, 0, 0.5)',
   gold: '#FFD700',
   white: '#FFFFFF',
@@ -27,5 +27,24 @@ export const colors = {
     700: '#404040',
     800: '#262626',
     900: '#171717',
+  },
+
+  // Çevreci tema
+  eco: {
+    forest: '#0B3D2E',
+    emerald: '#1B8A4A',
+    leaf: '#27AE60',
+    mint: '#E8F5E9',
+    sage: '#A8D5BA',
+    darkGreen: '#0A2E1C',
+  },
+
+  // Glassmorphism
+  glass: {
+    light: 'rgba(255, 255, 255, 0.08)',
+    border: 'rgba(255, 255, 255, 0.15)',
+    medium: 'rgba(255, 255, 255, 0.12)',
+    strong: 'rgba(255, 255, 255, 0.20)',
+    surface: 'rgba(255, 255, 255, 0.85)',
   },
 };

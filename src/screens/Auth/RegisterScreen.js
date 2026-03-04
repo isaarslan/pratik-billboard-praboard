@@ -155,7 +155,7 @@ export default function RegisterScreen({ navigation }) {
   if (isWide) {
     return (
       <View style={styles.splitContainer}>
-        <LinearGradient colors={['#065F46', '#059669', '#10B981']} style={styles.brandPanel}>
+        <LinearGradient colors={['#C53030', '#E04343', '#FF4B4B']} style={styles.brandPanel}>
           <View style={styles.brandContent}>
             <PraboardLogo size={100} variant="onGradient" />
             <Text style={styles.brandName}>Praboard</Text>
@@ -201,7 +201,7 @@ export default function RegisterScreen({ navigation }) {
         style={styles.keyboardView}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
-          <LinearGradient colors={['#065F46', '#059669']} style={styles.header}>
+          <LinearGradient colors={['#C53030', '#E04343']} style={styles.header}>
             <PraboardLogo size={88} variant="onGradient" />
           </LinearGradient>
 

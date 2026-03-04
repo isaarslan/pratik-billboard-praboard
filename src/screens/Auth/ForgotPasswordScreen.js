@@ -54,7 +54,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={['#16A34A', '#22C55E']} style={styles.header}>
+        <LinearGradient colors={['#E04343', '#FF4B4B']} style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}

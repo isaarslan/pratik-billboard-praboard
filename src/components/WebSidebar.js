@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   navItemActive: {
-    backgroundColor: 'rgba(34, 197, 94, 0.08)',
+    backgroundColor: 'rgba(255, 75, 75, 0.08)',
   },
   navLabel: {
     fontSize: 15,

@@ -90,7 +90,7 @@ const mapMarkers = panelData.map((p) => ({
   lat: p.lat,
   lng: p.lng,
   label: 'P',
-  color: p.status === 'Müsait' ? '#22C55E' : '#737373',
+  color: p.status === 'Müsait' ? '#FF4B4B' : '#737373',
 }));
 
 const stats = [
@@ -101,7 +101,7 @@ const stats = [
 ];
 
 /* ───── Reusable: Map Pin ───── */
-const MapPin = ({ x, y, label, color = '#22C55E', size = 32 }) => (
+const MapPin = ({ x, y, label, color = '#FF4B4B', size = 32 }) => (
   <View style={[mp.pin, { left: x, top: y }]}>
     <View style={[mp.circle, { width: size, height: size, borderRadius: size / 2, backgroundColor: color }]}>
       <Text style={[mp.label, { fontSize: size * 0.4 }]}>{label || 'P'}</Text>
@@ -200,7 +200,7 @@ const OnboardingScreen = ({ navigation }) => {
 
   /* ── Hero ── */
   const heroSection = (
-    <LinearGradient colors={['#065F46', '#059669', '#10B981']} style={s.hero}>
+    <LinearGradient colors={['#C53030', '#E04343', '#FF4B4B']} style={s.hero}>
       <View style={[s.heroInner, isWeb && s.heroInnerWeb]}>
         <View style={[s.heroText, isWeb && s.heroTextWeb]}>
           <View style={s.heroBadge}>
@@ -209,7 +209,7 @@ const OnboardingScreen = ({ navigation }) => {
           </View>
           <Text style={[s.heroTitle, isWeb && s.heroTitleWeb]}>
             Reklamını Şehrinin{'\n'}
-            <Text style={{ color: '#A7F3D0' }}>Dijital Panolarında</Text>{'\n'}
+            <Text style={{ color: '#FECACA' }}>Dijital Panolarında</Text>{'\n'}
             Yayınla
           </Text>
           <Text style={s.heroSubtitle}>
@@ -219,7 +219,7 @@ const OnboardingScreen = ({ navigation }) => {
           <View style={s.heroCtas}>
             <TouchableOpacity onPress={go('Register')} style={s.heroBtn}>
               <Text style={s.heroBtnText}>Hemen Başla</Text>
-              <Ionicons name="arrow-forward" size={18} color="#065F46" />
+              <Ionicons name="arrow-forward" size={18} color="#C53030" />
             </TouchableOpacity>
             <TouchableOpacity onPress={go('Login')} style={s.heroSecBtn}>
               <Text style={s.heroSecBtnText}>Giriş Yap</Text>
@@ -252,7 +252,7 @@ const OnboardingScreen = ({ navigation }) => {
               <View style={s.mockTabBar}>
                 <Ionicons name="home-outline" size={16} color="#aaa" />
                 <View style={{ alignItems: 'center' }}>
-                  <Ionicons name="map" size={16} color="#059669" />
+                  <Ionicons name="map" size={16} color="#FF4B4B" />
                   <View style={s.mockTabDot} />
                 </View>
                 <View style={s.mockAddBtn}>
@@ -315,7 +315,7 @@ const OnboardingScreen = ({ navigation }) => {
         {steps.map((st, i) => (
           <View key={i} style={[s.stepCard, isWeb && s.stepCardWeb]}>
             <View style={s.stepNum}><Text style={s.stepNumText}>{st.num}</Text></View>
-            <View style={s.stepIconCircle}><Ionicons name={st.icon} size={28} color="#059669" /></View>
+            <View style={s.stepIconCircle}><Ionicons name={st.icon} size={28} color="#FF4B4B" /></View>
             <Text style={s.stepTitle}>{st.title}</Text>
             <Text style={s.stepDesc}>{st.desc}</Text>
           </View>
@@ -361,7 +361,7 @@ const OnboardingScreen = ({ navigation }) => {
             <Text style={s.mapListTitle}>Yakınındaki Panolar</Text>
             {panelData.slice(0, 3).map((p, i) => (
               <View key={i} style={s.mapListCard}>
-                <View style={[s.mapListIndicator, { backgroundColor: p.status === 'Müsait' ? '#22C55E' : '#D1D5DB' }]} />
+                <View style={[s.mapListIndicator, { backgroundColor: p.status === 'Müsait' ? '#FF4B4B' : '#D1D5DB' }]} />
                 <View style={{ flex: 1 }}>
                   <Text style={s.mapListName}>{p.name}</Text>
                   <Text style={s.mapListLoc}>{p.loc} · {p.size}</Text>
@@ -374,7 +374,7 @@ const OnboardingScreen = ({ navigation }) => {
             ))}
             <View style={s.mapListMore}>
               <Text style={s.mapListMoreText}>+3 pano daha</Text>
-              <Ionicons name="chevron-forward" size={14} color="#059669" />
+              <Ionicons name="chevron-forward" size={14} color="#FF4B4B" />
             </View>
           </View>
         )}
@@ -391,7 +391,7 @@ const OnboardingScreen = ({ navigation }) => {
       <View style={[s.featGrid, isWeb && s.featGridWeb]}>
         {features.map((f, i) => (
           <View key={i} style={[s.featCard, isWeb && s.featCardWeb]}>
-            <View style={s.featIcon}><Ionicons name={f.icon} size={24} color="#059669" /></View>
+            <View style={s.featIcon}><Ionicons name={f.icon} size={24} color="#FF4B4B" /></View>
             <Text style={s.featTitle}>{f.title}</Text>
             <Text style={s.featDesc}>{f.desc}</Text>
           </View>
@@ -428,7 +428,7 @@ const OnboardingScreen = ({ navigation }) => {
             </MapBg>
             <View style={s.ssTabBar}>
               <Ionicons name="home-outline" size={14} color="#aaa" />
-              <Ionicons name="map" size={14} color="#059669" />
+              <Ionicons name="map" size={14} color="#FF4B4B" />
               <View style={s.ssAddBtn}><Ionicons name="add" size={14} color="#fff" /></View>
               <Ionicons name="notifications-outline" size={14} color="#aaa" />
               <Ionicons name="person-outline" size={14} color="#aaa" />
@@ -456,7 +456,7 @@ const OnboardingScreen = ({ navigation }) => {
               {/* Upload area */}
               <View style={s.ssUploadArea}>
                 <View style={s.ssUploadIcon}>
-                  <Ionicons name="cloud-upload-outline" size={28} color="#059669" />
+                  <Ionicons name="cloud-upload-outline" size={28} color="#FF4B4B" />
                 </View>
                 <Text style={s.ssUploadHint}>Görsel veya Video</Text>
                 <Text style={s.ssUploadSub}>Max 60 sn video</Text>
@@ -464,13 +464,13 @@ const OnboardingScreen = ({ navigation }) => {
               {/* Preview placeholder */}
               <View style={s.ssPreview}>
                 <View style={[s.ssPreviewThumb, { backgroundColor: '#D1FAE5' }]}>
-                  <Ionicons name="image" size={16} color="#059669" />
+                  <Ionicons name="image" size={16} color="#FF4B4B" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={[s.ssLine, { width: '70%' }]} />
                   <View style={[s.ssLine, { width: '45%', opacity: 0.4 }]} />
                 </View>
-                <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
+                <Ionicons name="checkmark-circle" size={16} color="#FF4B4B" />
               </View>
             </View>
           </PhoneFrame>
@@ -485,7 +485,7 @@ const OnboardingScreen = ({ navigation }) => {
               <View style={s.ssOrderBillboard}>
                 <View style={s.ssOrderBbFrame}>
                   <View style={s.ssOrderBbScreen}>
-                    <Ionicons name="image" size={20} color="#059669" />
+                    <Ionicons name="image" size={20} color="#FF4B4B" />
                   </View>
                   <View style={s.ssOrderBbLeg} />
                 </View>
@@ -510,7 +510,7 @@ const OnboardingScreen = ({ navigation }) => {
                       </View>
                       {i < 3 && <View style={[s.ssTimelineLine, step.done && !step.active && s.ssTimelineLineDone]} />}
                     </View>
-                    <Text style={[s.ssTimelineLabel, step.active && { color: '#059669', fontWeight: '700' }]}>
+                    <Text style={[s.ssTimelineLabel, step.active && { color: '#FF4B4B', fontWeight: '700' }]}>
                       {step.label}
                     </Text>
                   </View>
@@ -554,7 +554,7 @@ const OnboardingScreen = ({ navigation }) => {
               <View style={s.bbFrameInner}>
                 {/* Ad content */}
                 <LinearGradient
-                  colors={['#047857', '#059669', '#10B981']}
+                  colors={['#E04343', '#FF4B4B', '#FF6B6B']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={s.bbAdContent}
@@ -571,7 +571,7 @@ const OnboardingScreen = ({ navigation }) => {
                   <View style={s.bbAdRight}>
                     <View style={s.bbAdCTA}>
                       <Text style={s.bbAdCTAText}>Hemen Keşfet</Text>
-                      <Ionicons name="arrow-forward" size={14} color="#059669" />
+                      <Ionicons name="arrow-forward" size={14} color="#FF4B4B" />
                     </View>
                   </View>
                   {/* Badge */}
@@ -627,7 +627,7 @@ const OnboardingScreen = ({ navigation }) => {
           ].map((item, i) => (
             <View key={i} style={s.bbInfoCard}>
               <View style={s.bbInfoIcon}>
-                <Ionicons name={item.icon} size={20} color="#059669" />
+                <Ionicons name={item.icon} size={20} color="#FF4B4B" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.bbInfoTitle}>{item.title}</Text>
@@ -657,13 +657,13 @@ const OnboardingScreen = ({ navigation }) => {
                   y="30%"
                   label="P"
                   size={24}
-                  color={p.status === 'Müsait' ? '#22C55E' : '#737373'}
+                  color={p.status === 'Müsait' ? '#FF4B4B' : '#737373'}
                 />
               </MapBg>
               {p.badge && (
                 <View style={s.panelBadge}><Text style={s.panelBadgeText}>{p.badge}</Text></View>
               )}
-              <View style={[s.panelStatusDot, { backgroundColor: p.status === 'Müsait' ? '#22C55E' : '#F59E0B' }]} />
+              <View style={[s.panelStatusDot, { backgroundColor: p.status === 'Müsait' ? '#FF4B4B' : '#F59E0B' }]} />
             </View>
             <Text style={s.panelName}>{p.name}</Text>
             <View style={s.panelLocRow}>
@@ -676,7 +676,7 @@ const OnboardingScreen = ({ navigation }) => {
               <Text style={s.panelPriceUnit}>/gün</Text>
             </View>
             <View style={[s.panelStatusBadge, { backgroundColor: p.status === 'Müsait' ? '#ECFDF5' : '#FEF3C7' }]}>
-              <Text style={[s.panelStatusText, { color: p.status === 'Müsait' ? '#059669' : '#D97706' }]}>{p.status}</Text>
+              <Text style={[s.panelStatusText, { color: p.status === 'Müsait' ? '#FF4B4B' : '#D97706' }]}>{p.status}</Text>
             </View>
           </View>
         ))}
@@ -693,7 +693,7 @@ const OnboardingScreen = ({ navigation }) => {
       </Text>
       <View style={[s.flowRow, isWeb && s.flowRowWeb]}>
         {[
-          { icon: 'person-outline', label: 'Reklam\nYükle', color: '#A7F3D0' },
+          { icon: 'person-outline', label: 'Reklam\nYükle', color: '#FECACA' },
           { icon: 'checkmark-circle-outline', label: 'Admin\nOnayı', color: '#FDE68A' },
           { icon: 'cloud-upload-outline', label: 'İçerik\nGönderimi', color: '#93C5FD' },
           { icon: 'tv-outline', label: 'Canlı\nYayın', color: '#FCA5A5' },
@@ -722,7 +722,7 @@ const OnboardingScreen = ({ navigation }) => {
 
   /* ── CTA ── */
   const ctaSection = (
-    <LinearGradient colors={['#059669', '#10B981']} style={[s.ctaSection, isWeb && s.ctaSectionWeb]}>
+    <LinearGradient colors={['#E04343', '#FF4B4B']} style={[s.ctaSection, isWeb && s.ctaSectionWeb]}>
       <PraboardLogo size={56} variant="onGradient" />
       <Text style={[s.ctaTitle, isWeb && s.ctaTitleWeb]}>Dijital Reklamcılığa Başla</Text>
       <Text style={s.ctaSubtitle}>Hemen ücretsiz hesap oluştur, ilk kampanyanı başlat.</Text>
@@ -781,7 +781,7 @@ const s = StyleSheet.create({
   navBrandText: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
   navActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   navLink: { fontSize: 14, fontWeight: '600', color: colors.textSecondary },
-  navCta: { backgroundColor: '#059669', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 },
+  navCta: { backgroundColor: '#FF4B4B', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 },
   navCtaText: { fontSize: 14, fontWeight: '700', color: '#fff' },
 
   /* Hero */
@@ -797,27 +797,27 @@ const s = StyleSheet.create({
   heroSubtitle: { fontSize: 16, color: 'rgba(255,255,255,0.85)', lineHeight: 26, marginBottom: 32, maxWidth: 500 },
   heroCtas: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
   heroBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12, gap: 8 },
-  heroBtnText: { fontSize: 16, fontWeight: '700', color: '#065F46' },
+  heroBtnText: { fontSize: 16, fontWeight: '700', color: '#C53030' },
   heroSecBtn: { borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12 },
   heroSecBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
 
   /* Hero visual */
   heroVisual: { flex: 0, width: 290, alignItems: 'center' },
   heroMapCard: { position: 'absolute', bottom: 12, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, padding: 10, gap: 10, ...(Platform.OS === 'web' ? { boxShadow: '0 4px 12px rgba(0,0,0,0.15)' } : { elevation: 6 }) },
-  heroMapCardDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#22C55E' },
+  heroMapCardDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#FF4B4B' },
   heroMapCardName: { fontSize: 12, fontWeight: '700', color: '#1F2937' },
   heroMapCardLoc: { fontSize: 10, color: '#6B7280', marginTop: 1 },
-  heroMapCardPrice: { fontSize: 14, fontWeight: '800', color: '#059669' },
+  heroMapCardPrice: { fontSize: 14, fontWeight: '800', color: '#FF4B4B' },
 
   mockTabBar: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 8, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F3F4F6' },
-  mockTabDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#059669', marginTop: 2 },
-  mockAddBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#059669', justifyContent: 'center', alignItems: 'center' },
+  mockTabDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#FF4B4B', marginTop: 2 },
+  mockAddBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#FF4B4B', justifyContent: 'center', alignItems: 'center' },
 
   /* Stats bar */
   statsBar: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 28, paddingHorizontal: 16, backgroundColor: '#F0FDF4', flexWrap: 'wrap', gap: 12 },
   statsBarWeb: { paddingVertical: 36, paddingHorizontal: 64, maxWidth: 1200, alignSelf: 'center', width: '100%' },
   statItem: { alignItems: 'center', minWidth: 70 },
-  statValue: { fontSize: 28, fontWeight: '900', color: '#065F46' },
+  statValue: { fontSize: 28, fontWeight: '900', color: '#C53030' },
   statValueWeb: { fontSize: 36 },
   statLabel: { fontSize: 13, color: '#6B7280', marginTop: 4, fontWeight: '500' },
 
@@ -827,7 +827,7 @@ const s = StyleSheet.create({
   sectionGray: { backgroundColor: '#F9FAFB' },
   sectionDark: { backgroundColor: '#0F172A' },
   sectionDark2: { backgroundColor: '#111827' },
-  sectionLabel: { fontSize: 13, fontWeight: '700', color: '#059669', letterSpacing: 2, textAlign: 'center', marginBottom: 12 },
+  sectionLabel: { fontSize: 13, fontWeight: '700', color: '#FF4B4B', letterSpacing: 2, textAlign: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', marginBottom: 12 },
   sectionTitleWeb: { fontSize: 34 },
   sectionSubtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', lineHeight: 24, marginBottom: 40, maxWidth: 560, alignSelf: 'center' },
@@ -837,7 +837,7 @@ const s = StyleSheet.create({
   stepsGridWeb: { flexDirection: 'row', justifyContent: 'center', gap: 24 },
   stepCard: { backgroundColor: '#fff', borderRadius: 16, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#F3F4F6' },
   stepCardWeb: { flex: 1, maxWidth: 260 },
-  stepNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#059669', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  stepNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#FF4B4B', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   stepNumText: { fontSize: 14, fontWeight: '800', color: '#fff' },
   stepIconCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#ECFDF5', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   stepTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 8, textAlign: 'center' },
@@ -854,10 +854,10 @@ const s = StyleSheet.create({
   mapListIndicator: { width: 8, height: 8, borderRadius: 4 },
   mapListName: { fontSize: 14, fontWeight: '600', color: '#1F2937' },
   mapListLoc: { fontSize: 11, color: '#6B7280', marginTop: 2 },
-  mapListPrice: { fontSize: 16, fontWeight: '800', color: '#059669' },
+  mapListPrice: { fontSize: 16, fontWeight: '800', color: '#FF4B4B' },
   mapListUnit: { fontSize: 10, color: '#9CA3AF' },
   mapListMore: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, gap: 4 },
-  mapListMoreText: { fontSize: 13, fontWeight: '600', color: '#059669' },
+  mapListMoreText: { fontSize: 13, fontWeight: '600', color: '#FF4B4B' },
 
   /* Features grid */
   featGrid: { gap: 16 },
@@ -874,15 +874,15 @@ const s = StyleSheet.create({
   screenshotItem: { alignItems: 'center' },
   screenshotLabel: { fontSize: 14, fontWeight: '600', color: '#D1D5DB', marginTop: 16 },
   ssTabBar: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 7, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F3F4F6' },
-  ssAddBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#059669', justifyContent: 'center', alignItems: 'center' },
+  ssAddBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#FF4B4B', justifyContent: 'center', alignItems: 'center' },
 
   /* SS: Upload */
   ssUpload: { flex: 1, padding: 12 },
   ssStepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   ssStepDot: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' },
-  ssStepDotActive: { backgroundColor: '#059669' },
+  ssStepDotActive: { backgroundColor: '#FF4B4B' },
   ssStepLine: { width: 14, height: 2, backgroundColor: '#E5E7EB' },
-  ssStepLineActive: { backgroundColor: '#059669' },
+  ssStepLineActive: { backgroundColor: '#FF4B4B' },
   ssStepNum: { fontSize: 9, fontWeight: '700', color: '#9CA3AF' },
   ssUploadTitle: { fontSize: 13, fontWeight: '700', color: '#1F2937', marginBottom: 10 },
   ssUploadArea: { borderWidth: 2, borderColor: '#D1FAE5', borderStyle: 'dashed', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12, backgroundColor: '#F0FDF4' },
@@ -904,10 +904,10 @@ const s = StyleSheet.create({
   ssTimelineItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   ssTimelineLeft: { alignItems: 'center', width: 18 },
   ssTimelineDot: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' },
-  ssTimelineDotDone: { backgroundColor: '#22C55E' },
-  ssTimelineDotActive: { backgroundColor: '#059669', borderWidth: 2, borderColor: '#A7F3D0' },
+  ssTimelineDotDone: { backgroundColor: '#FF4B4B' },
+  ssTimelineDotActive: { backgroundColor: '#FF4B4B', borderWidth: 2, borderColor: '#FECACA' },
   ssTimelineLine: { width: 2, height: 20, backgroundColor: '#E5E7EB' },
-  ssTimelineLineDone: { backgroundColor: '#22C55E' },
+  ssTimelineLineDone: { backgroundColor: '#FF4B4B' },
   ssTimelineLabel: { fontSize: 11, color: '#6B7280', paddingTop: 2, paddingBottom: 8 },
 
   /* Billboard mockup */
@@ -940,7 +940,7 @@ const s = StyleSheet.create({
   bbAdTitleWeb: { fontSize: 20 },
   bbAdSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)' },
   bbAdCTA: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-  bbAdCTAText: { fontSize: 12, fontWeight: '700', color: '#059669' },
+  bbAdCTAText: { fontSize: 12, fontWeight: '700', color: '#FF4B4B' },
   bbAdBadge: { position: 'absolute', top: 10, right: 10, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, ...(Platform.OS === 'web' ? { backdropFilter: 'blur(4px)' } : {}) },
   bbAdBadgeDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' },
   bbAdBadgeText: { fontSize: 8, fontWeight: '700', color: '#fff', letterSpacing: 1.2 },
@@ -948,8 +948,8 @@ const s = StyleSheet.create({
   bbInfoStripLeft: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   bbInfoStripRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   bbInfoText: { fontSize: 10, color: '#9CA3AF' },
-  bbLiveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#22C55E' },
-  bbLiveText: { fontSize: 10, fontWeight: '600', color: '#22C55E' },
+  bbLiveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#FF4B4B' },
+  bbLiveText: { fontSize: 10, fontWeight: '600', color: '#FF4B4B' },
   bbPole: { width: 10, height: 60, backgroundColor: '#4B5563', borderBottomLeftRadius: 4, borderBottomRightRadius: 4, zIndex: 2 },
   bbCityscape: { position: 'absolute', bottom: 50, left: 0, right: 0, height: 70, zIndex: 1 },
   bbBuilding: { position: 'absolute', bottom: 0, backgroundColor: '#1E293B', borderTopLeftRadius: 2, borderTopRightRadius: 2, opacity: 0.3 },
@@ -977,7 +977,7 @@ const s = StyleSheet.create({
   panelLoc: { fontSize: 12, color: '#9CA3AF' },
   panelSize: { fontSize: 12, color: '#9CA3AF', marginBottom: 8 },
   panelPriceRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 8 },
-  panelPrice: { fontSize: 22, fontWeight: '800', color: '#059669' },
+  panelPrice: { fontSize: 22, fontWeight: '800', color: '#FF4B4B' },
   panelPriceUnit: { fontSize: 13, color: '#9CA3AF', marginLeft: 2 },
   panelStatusBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   panelStatusText: { fontSize: 12, fontWeight: '600' },
@@ -999,7 +999,7 @@ const s = StyleSheet.create({
   ctaSubtitle: { fontSize: 16, color: 'rgba(255,255,255,0.85)', marginBottom: 32, textAlign: 'center' },
   ctaBtns: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
   ctaBtn: { backgroundColor: '#fff', paddingHorizontal: 32, paddingVertical: 16, borderRadius: 12 },
-  ctaBtnText: { fontSize: 16, fontWeight: '700', color: '#065F46' },
+  ctaBtnText: { fontSize: 16, fontWeight: '700', color: '#C53030' },
   ctaSecBtn: { borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)', paddingHorizontal: 32, paddingVertical: 16, borderRadius: 12 },
   ctaSecBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
 

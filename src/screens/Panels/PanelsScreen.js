@@ -107,7 +107,7 @@ export default function PanelsScreen({ navigation }) {
     lat: p.lat,
     lng: p.lng,
     label: p.name,
-    color: p.status === 'Dolu' ? '#737373' : '#22C55E',
+    color: p.status === 'Dolu' ? '#737373' : '#FF4B4B',
   }));
 
   const handleMarkerPress = useCallback((marker) => {
