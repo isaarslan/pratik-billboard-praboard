@@ -33,13 +33,9 @@ export default function WebMap({ markers = [], center = { lat: 39.925, lng: 32.8
 
   const markersJSON = JSON.stringify(markers);
 
-  // CARTO Dark Matter (ücretsiz, attribution gerekli) vs OpenStreetMap (açık)
-  const tileUrl = theme === 'dark'
-    ? 'https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-  const attribution = theme === 'dark'
-    ? '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>'
-    : '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+  // OpenStreetMap — açık lisans, attribution gerekli
+  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const attribution = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
   const html = `
 <!DOCTYPE html>

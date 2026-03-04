@@ -496,39 +496,21 @@ function DashboardMockup({ scale = 1 }) {
           </View>
         ))}
 
-        {/* Harita satırı */}
+        {/* Gerçek harita */}
         <View
           style={{
-            marginTop: s(2),
-            backgroundColor: '#1E293B',
+            marginTop: s(8),
             borderRadius: s(7),
-            padding: s(9),
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: s(10),
+            overflow: 'hidden',
+            height: s(110),
           }}
         >
-          <View
-            style={{
-              width: s(38),
-              height: s(38),
-              backgroundColor: '#0D3320',
-              borderRadius: s(5),
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Ionicons name="map-outline" size={s(16)} color={colors.eco.leaf} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: s(10), fontWeight: '600' }}>
-              Panel Haritası
-            </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: s(8), marginTop: s(1) }}>
-              15 şehir · 150+ panel
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={s(12)} color="rgba(255,255,255,0.25)" />
+          <WebMap
+            markers={LANDING_MARKERS.slice(0, 6)}
+            center={{ lat: 39.0, lng: 35.0 }}
+            zoom={5}
+            theme="light"
+          />
         </View>
       </View>
     </View>
