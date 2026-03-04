@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Platform,
   useWindowDimensions,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,8 @@ import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import VideoPreview from '../../components/VideoPreview';
+import { toggleLike, getUserLikedAdIds } from '../../services/likeService';
+import { shareAd } from '../../services/shareService';
 
 
 const DEMO_ADS = [
@@ -156,11 +159,61 @@ const HomeScreen = ({ navigation }) => {
 
   const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
   const [refreshing, setRefreshing] = useState(false);
+  const [likedAds, setLikedAds] = useState({});
+  const [likeCounts, setLikeCounts] = useState({});
+  const [shareToast, setShareToast] = useState(false);
+
+  // Kullanıcının beğenilerini yükle
+  useEffect(() => {
+    if (!profile?.id) return;
+    getUserLikedAdIds(profile.id).then((ids) => {
+      const map = {};
+      ids.forEach((id) => { map[id] = true; });
+      setLikedAds(map);
+    });
+  }, [profile?.id]);
+
+  const handleLike = useCallback(async (adId) => {
+    if (!profile?.id) return;
+
+    // Optimistic update
+    const wasLiked = likedAds[adId];
+    setLikedAds((prev) => ({ ...prev, [adId]: !wasLiked }));
+    setLikeCounts((prev) => ({
+      ...prev,
+      [adId]: (prev[adId] || 0) + (wasLiked ? -1 : 1),
+    }));
+
+    const { error } = await toggleLike(profile.id, adId);
+    if (error) {
+      // Hata olursa geri al
+      setLikedAds((prev) => ({ ...prev, [adId]: wasLiked }));
+      setLikeCounts((prev) => ({
+        ...prev,
+        [adId]: (prev[adId] || 0) + (wasLiked ? 1 : -1),
+      }));
+    }
+  }, [profile?.id, likedAds]);
+
+  const handleShare = useCallback(async (item) => {
+    const result = await shareAd(profile?.id, item);
+    if (result.shared) {
+      setShareToast(true);
+      setTimeout(() => setShareToast(false), 2000);
+    }
+  }, [profile?.id]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
+    if (profile?.id) {
+      getUserLikedAdIds(profile.id).then((ids) => {
+        const map = {};
+        ids.forEach((id) => { map[id] = true; });
+        setLikedAds(map);
+      });
+    }
     setTimeout(() => setRefreshing(false), 1200);
-  }, []);
+  }, [profile?.id]);
 
   const feedData = useMemo(() => {
     const approvedAds = orders
@@ -223,14 +276,28 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Interaction Row */}
       <View style={styles.interactionRow}>
-        <View style={styles.interactionItem}>
-          <Ionicons name="heart-outline" size={24} color={colors.gray[700]} />
-          <Text style={styles.interactionText}>{item.likes}</Text>
-        </View>
-        <View style={styles.interactionItem}>
+        <TouchableOpacity
+          style={styles.interactionItem}
+          onPress={() => handleLike(item.id)}
+          activeOpacity={0.6}
+        >
+          <Ionicons
+            name={likedAds[item.id] ? 'heart' : 'heart-outline'}
+            size={24}
+            color={likedAds[item.id] ? colors.primary : colors.gray[700]}
+          />
+          <Text style={[styles.interactionText, likedAds[item.id] && { color: colors.primary }]}>
+            {(parseInt(item.likes) || 0) + (likeCounts[item.id] || 0)}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.interactionItem}
+          onPress={() => handleShare(item)}
+          activeOpacity={0.6}
+        >
           <Ionicons name="share-outline" size={24} color={colors.gray[700]} />
           <Text style={styles.interactionText}>{item.shares}</Text>
-        </View>
+        </TouchableOpacity>
         {item.campaignDetails ? (
           <View style={styles.interactionItem}>
             <Ionicons name="megaphone-outline" size={22} color={colors.primary} />
@@ -335,6 +402,12 @@ const HomeScreen = ({ navigation }) => {
             columnWrapperStyle={width >= 1200 ? styles.webGridRow : undefined}
           />
         </View>
+        {shareToast && (
+          <View style={styles.shareToast}>
+            <Ionicons name="checkmark-circle" size={18} color={colors.white} />
+            <Text style={styles.shareToastText}>Link kopyalandı!</Text>
+          </View>
+        )}
       </View>
     );
   }
@@ -358,6 +431,13 @@ const HomeScreen = ({ navigation }) => {
           />
         }
       />
+      {/* Share Toast */}
+      {shareToast && (
+        <View style={styles.shareToast}>
+          <Ionicons name="checkmark-circle" size={18} color={colors.white} />
+          <Text style={styles.shareToastText}>Link kopyalandı!</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -657,6 +737,28 @@ const styles = StyleSheet.create({
   descriptionUsername: {
     fontWeight: 'bold',
     color: colors.gray[900],
+  },
+  shareToast: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.gray[900],
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 24,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  shareToastText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
