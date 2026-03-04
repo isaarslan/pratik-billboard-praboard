@@ -52,7 +52,7 @@ export default function BillboardDetailModal({ visible, panel, onClose, onRent }
               <View style={styles.infoItem}>
                 <Ionicons name="person-outline" size={18} color={colors.primary} />
                 <Text style={styles.infoLabel}>Billboard Sahibi</Text>
-                <Text style={styles.infoValue}>Praboard A.Ş.</Text>
+                <Text style={styles.infoValue}>{panel.owner || 'Praboard'}</Text>
               </View>
 
               <View style={styles.infoItem}>
@@ -64,7 +64,7 @@ export default function BillboardDetailModal({ visible, panel, onClose, onRent }
               <View style={styles.infoItem}>
                 <Ionicons name="star-outline" size={18} color={colors.primary} />
                 <Text style={styles.infoLabel}>Puanı</Text>
-                <Text style={styles.infoValue}>4.8 / 5.0</Text>
+                <Text style={styles.infoValue}>{panel.rating || '—'}</Text>
               </View>
 
               <View style={styles.infoItem}>

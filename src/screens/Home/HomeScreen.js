@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Image,
   Platform,
   useWindowDimensions,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -154,6 +155,12 @@ const HomeScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
 
   const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1200);
+  }, []);
 
   const feedData = useMemo(() => {
     const approvedAds = orders
@@ -212,13 +219,6 @@ const HomeScreen = ({ navigation }) => {
             resizeMode="cover"
           />
         )}
-      </View>
-
-      {/* Page Indicator Dots */}
-      <View style={styles.pageIndicator}>
-        <View style={[styles.dot, styles.dotActive]} />
-        <View style={styles.dot} />
-        <View style={styles.dot} />
       </View>
 
       {/* Interaction Row */}
@@ -349,6 +349,14 @@ const HomeScreen = ({ navigation }) => {
         style={{ flex: 1 }}
         contentContainerStyle={styles.feedContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
       />
     </SafeAreaView>
   );
@@ -614,22 +622,6 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 11,
     fontWeight: '600',
-  },
-  pageIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.gray[300],
-    marginHorizontal: 3,
-  },
-  dotActive: {
-    backgroundColor: colors.primary,
   },
   interactionRow: {
     flexDirection: 'row',

@@ -138,8 +138,13 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.tabContent}>
             {orders.length === 0 ? (
               <View style={styles.emptyOrderContainer}>
-                <Ionicons name="receipt-outline" size={48} color={colors.gray[300]} />
-                <Text style={styles.emptyOrderText}>Henüz sipariş yok</Text>
+                <View style={styles.emptyIconCircle}>
+                  <Ionicons name="receipt-outline" size={36} color={colors.primary} />
+                </View>
+                <Text style={styles.emptyOrderTitle}>Henüz sipariş yok</Text>
+                <Text style={styles.emptyOrderDesc}>
+                  Billboard panolarına reklam vererek ilk siparişinizi oluşturun.
+                </Text>
               </View>
             ) : (
               orders.map((order) => {
@@ -693,9 +698,31 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   // Orders
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#FFF0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   emptyOrderContainer: {
     alignItems: 'center',
     paddingVertical: 48,
+  },
+  emptyOrderTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.gray[900],
+    marginBottom: 6,
+  },
+  emptyOrderDesc: {
+    fontSize: 13,
+    color: colors.gray[500],
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 260,
   },
   emptyOrderText: {
     fontSize: 16,

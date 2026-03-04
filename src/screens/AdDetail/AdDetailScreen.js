@@ -41,13 +41,13 @@ export default function AdDetailScreen({ navigation }) {
   const detailContent = (
     <View style={[styles.content, isWebWide && styles.contentWeb]}>
       <Text style={[styles.adTitle, isWebWide && styles.adTitleWeb]}>
-        {ad.description || 'Red Bull yeni A serisi ile kanatlanmaya hazırlan!'}
+        {ad.description || 'Reklam detayı'}
       </Text>
 
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
           <Ionicons name="heart" size={16} color={colors.primary} />
-          <Text style={styles.statText}>{ad.likes || '345'} kişi beğendi</Text>
+          <Text style={styles.statText}>{ad.likes || '0'} kişi beğendi</Text>
         </View>
         <View style={styles.statItem}>
           <Ionicons name="location" size={16} color={colors.primary} />
@@ -55,7 +55,7 @@ export default function AdDetailScreen({ navigation }) {
         </View>
         <View style={styles.statItem}>
           <Ionicons name="share-social" size={16} color={colors.primary} />
-          <Text style={styles.statText}>{ad.shares || '12'} kişi paylaştı</Text>
+          <Text style={styles.statText}>{ad.shares || '0'} kişi paylaştı</Text>
         </View>
       </View>
 
@@ -77,15 +77,14 @@ export default function AdDetailScreen({ navigation }) {
         <View style={styles.infoDivider} />
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Sektör</Text>
-          <Text style={styles.infoValue}>Teknoloji</Text>
+          <Text style={styles.infoValue}>{ad.sector || 'Genel'}</Text>
         </View>
       </View>
 
       <View style={styles.descriptionCard}>
         <Text style={styles.descriptionTitle}>Açıklama</Text>
         <Text style={styles.descriptionText}>
-          {ad.description || 'Yeni sezon indirimlerimiz başladı! Tüm ürünlerde %50ye varan fırsatları kaçırmayın.'}{' '}
-          Bu reklam, billboard üzerinden geniş kitlelere ulaşmak için tasarlanmıştır. Detaylı bilgi için profili ziyaret edebilirsiniz.
+          {ad.description || 'Bu reklam hakkında detaylı bilgi bulunmuyor.'}
         </Text>
       </View>
 
@@ -99,7 +98,7 @@ export default function AdDetailScreen({ navigation }) {
           </View>
           <Text style={styles.campaignDetailsText}>{ad.campaignDetails}</Text>
           <View style={styles.campaignDetailsBadge}>
-            <Ionicons name="shield-checkmark" size={14} color="#2E7D32" />
+            <Ionicons name="shield-checkmark" size={14} color={colors.primary} />
             <Text style={styles.campaignDetailsBadgeText}>Reklam veren tarafından eklendi</Text>
           </View>
         </View>
@@ -126,8 +125,8 @@ export default function AdDetailScreen({ navigation }) {
                   <Ionicons name="person" size={20} color={colors.gray[400]} />
                 </View>
                 <View>
-                  <Text style={styles.bottomName}>{ad.user || 'Ahmet Yılmaz'}</Text>
-                  <Text style={styles.bottomUsername}>@{ad.username || 'ahmetyilmaz'}</Text>
+                  <Text style={styles.bottomName}>{ad.user || 'Kullanıcı'}</Text>
+                  <Text style={styles.bottomUsername}>@{ad.username || 'kullanici'}</Text>
                 </View>
               </View>
               <TouchableOpacity style={styles.followBtn} activeOpacity={0.7}>
@@ -154,8 +153,8 @@ export default function AdDetailScreen({ navigation }) {
             <Ionicons name="person" size={20} color={colors.gray[400]} />
           </View>
           <View>
-            <Text style={styles.bottomName}>{ad.user || 'Ahmet Yılmaz'}</Text>
-            <Text style={styles.bottomUsername}>@{ad.username || 'ahmetyilmaz'}</Text>
+            <Text style={styles.bottomName}>{ad.user || 'Kullanıcı'}</Text>
+            <Text style={styles.bottomUsername}>@{ad.username || 'kullanici'}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.followBtn} activeOpacity={0.7}>
@@ -306,12 +305,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   campaignDetailsCard: {
-    backgroundColor: '#F0FFF0',
+    backgroundColor: '#FFF5F5',
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#C8E6C9',
+    borderColor: '#FECACA',
   },
   campaignDetailsHeader: {
     flexDirection: 'row',
@@ -323,7 +322,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#C8E6C9',
+    backgroundColor: '#FECACA',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -342,7 +341,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#FFF0F0',
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -350,7 +349,7 @@ const styles = StyleSheet.create({
   },
   campaignDetailsBadgeText: {
     fontSize: 11,
-    color: '#2E7D32',
+    color: colors.primaryDark,
     fontWeight: '600',
   },
   // Web split layout

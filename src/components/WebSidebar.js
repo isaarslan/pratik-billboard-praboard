@@ -64,8 +64,8 @@ export default function WebSidebar({ activeTab, onTabPress }) {
       <View style={styles.footer}>
         <View style={styles.footerDivider} />
         <View style={styles.footerBrand}>
-          <Ionicons name="leaf" size={16} color={colors.primary} />
-          <Text style={styles.footerText}>Yeşil Reklamcılık</Text>
+          <Ionicons name="megaphone" size={16} color={colors.primary} />
+          <Text style={styles.footerText}>Dijital Reklamcılık</Text>
         </View>
       </View>
     </View>
