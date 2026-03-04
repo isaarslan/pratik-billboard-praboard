@@ -49,6 +49,7 @@ export function NavigationProvider({ children }) {
   }, []);
 
   const currentRoute = stack[stack.length - 1];
+  const canGoBack = stack.length > 1;
 
   const navigation = {
     navigate,
@@ -56,6 +57,7 @@ export function NavigationProvider({ children }) {
     goBack,
     reset,
     currentRoute,
+    canGoBack,
   };
 
   return (

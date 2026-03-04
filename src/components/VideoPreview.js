@@ -62,8 +62,8 @@ function VideoPreviewWeb({ uri, poster, style, shouldPlay = false, muted: mutedP
   const containerStyle = {
     width: flatStyle.width || '100%',
     height: flatStyle.height || undefined,
-    aspectRatio: flatStyle.height ? undefined : (flatStyle.aspectRatio || '16/9'),
-    borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 12),
+    aspectRatio: flatStyle.height ? undefined : (flatStyle.aspectRatio || '4/3'),
+    borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 0),
     backgroundColor: '#000',
     position: 'relative',
     overflow: 'hidden',
@@ -90,7 +90,9 @@ function VideoPreviewWeb({ uri, poster, style, shouldPlay = false, muted: mutedP
   }
 
   // Video oynatici
-  return React.createElement('video', {
+  return React.createElement('div', {
+    style: containerStyle,
+  }, React.createElement('video', {
     ref: videoRef,
     src: uri,
     controls: !shouldPlay,
@@ -100,14 +102,14 @@ function VideoPreviewWeb({ uri, poster, style, shouldPlay = false, muted: mutedP
     autoPlay: shouldPlay,
     preload: shouldPlay ? 'auto' : 'metadata',
     style: {
-      width: flatStyle.width || '100%',
-      height: flatStyle.height || '100%',
+      width: '100%',
+      height: '100%',
       objectFit: 'cover',
-      borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 12),
+      borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 0),
       backgroundColor: '#000',
       display: 'block',
     },
-  });
+  }));
 }
 
 const webStyles = StyleSheet.create({

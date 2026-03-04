@@ -18,6 +18,99 @@ import { useAuth } from '../../context/AuthContext';
 import VideoPreview from '../../components/VideoPreview';
 import PraboardLogo from '../../components/PraboardLogo';
 
+const DEMO_ADS = [
+  {
+    id: 'demo-1',
+    user: 'Praboard Reklam',
+    username: 'praboard',
+    time: '2 saat önce',
+    location: 'Kızılay, Ankara',
+    likes: '124',
+    shares: '18',
+    description: 'Ankara\'nın kalbinde dijital billboard ile markanızı milyonlara ulaştırın!',
+    image: 'https://picsum.photos/seed/billboard1/800/600',
+    sector: 'Reklam',
+    isOwn: false,
+    mediaType: 'image',
+    campaignDetails: 'Yeni müşterilere özel %30 indirim kampanyası devam ediyor.',
+  },
+  {
+    id: 'demo-2',
+    user: 'TechStore',
+    username: 'techstore_tr',
+    time: '5 saat önce',
+    location: 'Çankaya, Ankara',
+    likes: '89',
+    shares: '7',
+    description: 'Yeni sezon teknoloji ürünlerinde büyük indirimler başladı!',
+    image: 'https://picsum.photos/seed/tech2/800/600',
+    sector: 'Teknoloji',
+    isOwn: false,
+    mediaType: 'image',
+    campaignDetails: '',
+  },
+  {
+    id: 'demo-3',
+    user: 'Cafe Ankara',
+    username: 'cafeankaraofficial',
+    time: '1 gün önce',
+    location: 'Gölbaşı, Ankara',
+    likes: '256',
+    shares: '34',
+    description: 'Billboard reklamımız ile yeni şubemizi duyuruyoruz! Açılışa özel kampanyaları kaçırmayın.',
+    image: 'https://picsum.photos/seed/cafe3/800/600',
+    sector: 'Yeme-İçme',
+    isOwn: false,
+    mediaType: 'image',
+    campaignDetails: 'Açılış haftası tüm içeceklerde %50 indirim!',
+  },
+  {
+    id: 'demo-4',
+    user: 'SporsalTR',
+    username: 'sporsaltr',
+    time: '2 gün önce',
+    location: 'Eryaman, Ankara',
+    likes: '67',
+    shares: '5',
+    description: 'Spor salonu üyeliklerinde yılbaşı kampanyası! Billboard ile binlerce kişiye ulaştık.',
+    image: 'https://picsum.photos/seed/sport4/800/600',
+    sector: 'Spor',
+    isOwn: false,
+    mediaType: 'image',
+    campaignDetails: '',
+  },
+  {
+    id: 'demo-video-1',
+    user: 'Praboard Demo',
+    username: 'praboard_demo',
+    time: '3 saat önce',
+    location: 'Kızılay, Ankara',
+    likes: '312',
+    shares: '45',
+    description: 'Video reklam örneği - dijital billboard panolarımızda video reklamlar da yayınlayabilirsiniz!',
+    image: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    sector: 'Tanıtım',
+    isOwn: false,
+    mediaType: 'video',
+    campaignDetails: 'Video reklamlar artık Praboard\'da! Hemen deneyin.',
+  },
+  {
+    id: 'demo-5',
+    user: 'EmlakPlus',
+    username: 'emlakplus',
+    time: '3 gün önce',
+    location: 'Batıkent, Ankara',
+    likes: '45',
+    shares: '12',
+    description: 'Yeni konut projemizi billboard ile tanıttık. Satışlar rekor kırdı!',
+    image: 'https://picsum.photos/seed/emlak5/800/600',
+    sector: 'Emlak',
+    isOwn: false,
+    mediaType: 'image',
+    campaignDetails: 'Lansman dönemi özel fiyatlar ile ev sahibi olun.',
+  },
+];
+
 function getTimeAgo(dateStr) {
   if (!dateStr) return '';
   const now = new Date();
@@ -66,7 +159,9 @@ const HomeScreen = ({ navigation }) => {
     const approvedAds = orders
       .filter((o) => o.status === 'hazirlaniyor' || o.status === 'live')
       .map(orderToAd);
-    return [...approvedAds, ...allAds];
+    const userContent = [...approvedAds, ...allAds];
+    // Kullanıcı içeriği yoksa demo veriler göster
+    return userContent.length > 0 ? userContent : DEMO_ADS;
   }, [orders, allAds]);
 
   const renderAdCard = ({ item }) => (
@@ -223,6 +318,7 @@ const HomeScreen = ({ navigation }) => {
             data={feedData}
             renderItem={renderAdCard}
             keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
             contentContainerStyle={styles.webFeedContent}
             showsVerticalScrollIndicator={false}
             numColumns={width >= 1200 ? 2 : 1}
@@ -241,6 +337,7 @@ const HomeScreen = ({ navigation }) => {
         data={feedData}
         renderItem={renderAdCard}
         keyExtractor={(item) => item.id}
+        style={{ flex: 1 }}
         contentContainerStyle={styles.feedContainer}
         showsVerticalScrollIndicator={false}
       />

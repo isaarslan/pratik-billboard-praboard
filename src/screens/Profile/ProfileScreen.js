@@ -191,13 +191,16 @@ const ProfileScreen = ({ navigation }) => {
         <View style={[styles.coverPhotoContainer, isWebWide && styles.coverPhotoWeb]}>
           <View style={[styles.coverPhoto, isWebWide && styles.coverPhotoInnerWeb]} />
           <View style={[styles.coverOverlayIcons, isWebWide && styles.coverOverlayWeb]}>
-            {!isWebWide && (
+            {!isWebWide && navigation.canGoBack && (
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => navigation.goBack()}
               >
                 <Ionicons name="chevron-back" size={24} color={colors.white} />
               </TouchableOpacity>
+            )}
+            {!isWebWide && !navigation.canGoBack && (
+              <View style={{ width: 40 }} />
             )}
             <View style={styles.rightIcons}>
               {isAdmin && (
