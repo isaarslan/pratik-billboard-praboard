@@ -150,56 +150,21 @@ function PhoneMockup({ scale = 1 }) {
 
         {/* Screen body */}
         <View style={{ flex: 1, backgroundColor: '#F4F7F5', padding: s(10) }}>
-          {/* Harita kartı */}
+          {/* Gerçek Leaflet haritası */}
           <View
             style={{
-              height: s(100),
-              backgroundColor: '#C8E6C9',
+              height: s(130),
               borderRadius: s(12),
               marginBottom: s(10),
               overflow: 'hidden',
-              justifyContent: 'center',
-              alignItems: 'center',
-              position: 'relative',
             }}
           >
-            {/* Sahte harita ızgara */}
-            {[0.33, 0.66].map((v, i) => (
-              <View
-                key={`h${i}`}
-                style={{
-                  position: 'absolute',
-                  left: 0, right: 0, top: `${v * 100}%`,
-                  height: 1, backgroundColor: 'rgba(0,0,0,0.06)',
-                }}
-              />
-            ))}
-            {[0.25, 0.5, 0.75].map((v, i) => (
-              <View
-                key={`v${i}`}
-                style={{
-                  position: 'absolute',
-                  top: 0, bottom: 0, left: `${v * 100}%`,
-                  width: 1, backgroundColor: 'rgba(0,0,0,0.06)',
-                }}
-              />
-            ))}
-            {/* Pin'ler */}
-            {[
-              { t: '30%', l: '20%', c: '#1B8A4A' },
-              { t: '50%', l: '55%', c: '#1B8A4A' },
-              { t: '65%', l: '35%', c: '#999' },
-            ].map((p, i) => (
-              <View
-                key={i}
-                style={{
-                  position: 'absolute', top: p.t, left: p.l,
-                  width: s(10), height: s(10), borderRadius: s(5),
-                  backgroundColor: p.c, borderWidth: 1.5, borderColor: '#fff',
-                }}
-              />
-            ))}
-            <Ionicons name="map-outline" size={s(28)} color={colors.eco.emerald} style={{ opacity: 0.3 }} />
+            <WebMap
+              markers={LANDING_MARKERS.slice(0, 5)}
+              center={{ lat: 39.5, lng: 34.5 }}
+              zoom={5}
+              theme="light"
+            />
           </View>
 
           {/* Panel kartları */}
