@@ -10,6 +10,8 @@ const logoImage = require('../../assets/praboard_p_logo_transparent.png');
  * variant="standalone"  → normal (beyaz zemin için)
  */
 export default function PraboardLogo({ size = 80, variant = 'onGradient' }) {
+  const isOnGradient = variant === 'onGradient';
+
   return (
     <Image
       source={logoImage}
@@ -17,6 +19,7 @@ export default function PraboardLogo({ size = 80, variant = 'onGradient' }) {
         width: size,
         height: size,
         resizeMode: 'contain',
+        tintColor: isOnGradient ? '#FFFFFF' : undefined,
       }}
     />
   );
