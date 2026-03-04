@@ -75,7 +75,10 @@ export default function WebMap({ markers = [], center = { lat: 39.925, lng: 32.8
       html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
             '<div style="width:38px;height:38px;border-radius:50%;background:' + (m.color || '#FF4B4B') +
             ';display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,0.3);border:3px solid #fff;">' +
-            '<span style="color:#fff;font-weight:800;font-size:15px;">P</span></div>' +
+            '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+            '<rect x="0" y="0" width="4" height="20" rx="2" fill="#fff"/>' +
+            '<path d="M 2,2 L 14,2 A 6,6 0 0 1 14,14 L 2,14" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+            '</svg></div>' +
             '<div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:10px solid ' +
             (m.color || '#FF4B4B') + ';margin-top:-2px;"></div></div>',
       iconSize: [38, 48],
