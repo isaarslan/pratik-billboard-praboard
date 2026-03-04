@@ -236,10 +236,8 @@ const HomeScreen = ({ navigation }) => {
   }, [orders, allAds]);
 
   const renderAdCard = ({ item }) => (
-    <TouchableOpacity
+    <View
       style={[styles.adCard, isWebWide && styles.adCardWeb]}
-      onPress={() => navigation.navigate('AdDetail', item)}
-      activeOpacity={0.8}
     >
       {/* Header */}
       <View style={styles.adHeader}>
@@ -266,8 +264,12 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Image / Video */}
-      <View style={styles.adImageContainer}>
+      {/* Image / Video — tıklanınca detaya git */}
+      <TouchableOpacity
+        style={styles.adImageContainer}
+        onPress={() => navigation.navigate('AdDetail', item)}
+        activeOpacity={0.9}
+      >
         {item.mediaType === 'video' ? (
           <>
             <VideoPreview uri={item.image} style={styles.adImage} />
@@ -283,13 +285,13 @@ const HomeScreen = ({ navigation }) => {
             resizeMode="cover"
           />
         )}
-      </View>
+      </TouchableOpacity>
 
-      {/* Interaction Row */}
-      <View style={styles.interactionRow}>
+      {/* Interaction Row — event propagation engelle */}
+      <View style={styles.interactionRow} onStartShouldSetResponder={() => true}>
         <TouchableOpacity
           style={styles.interactionItem}
-          onPress={() => handleLike(item.id)}
+          onPress={(e) => { e.stopPropagation?.(); handleLike(item.id); }}
           activeOpacity={0.6}
         >
           <Ionicons
@@ -303,7 +305,7 @@ const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.interactionItem}
-          onPress={() => handleShare(item)}
+          onPress={(e) => { e.stopPropagation?.(); handleShare(item); }}
           activeOpacity={0.6}
         >
           <Ionicons name="share-outline" size={24} color={colors.gray[700]} />
@@ -317,14 +319,18 @@ const HomeScreen = ({ navigation }) => {
         ) : null}
       </View>
 
-      {/* Description */}
-      <View style={styles.descriptionContainer}>
+      {/* Description — tıklanınca detaya git */}
+      <TouchableOpacity
+        style={styles.descriptionContainer}
+        onPress={() => navigation.navigate('AdDetail', item)}
+        activeOpacity={0.8}
+      >
         <Text style={styles.descriptionText}>
           <Text style={styles.descriptionUsername}>{item.username}</Text>{' '}
           {item.description}
         </Text>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 
   // Web header for wide screens
