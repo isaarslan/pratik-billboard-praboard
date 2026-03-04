@@ -16,6 +16,19 @@ import { colors } from '../../theme/colors';
 import BackHeader from '../../components/BackHeader';
 import { useOrders } from '../../context/OrderContext';
 import { useTVContent } from '../../context/TVContentContext';
+import DashboardTab from './DashboardTab';
+import PanelManagementTab from './PanelManagementTab';
+import UserManagementTab from './UserManagementTab';
+import ContentModerationTab from './ContentModerationTab';
+
+const ADMIN_TABS = [
+  { key: 'dashboard', label: 'Dashboard', icon: 'grid-outline' },
+  { key: 'orders', label: 'Siparişler', icon: 'receipt-outline' },
+  { key: 'panels', label: 'Paneller', icon: 'map-outline' },
+  { key: 'moderation', label: 'Moderasyon', icon: 'shield-checkmark-outline' },
+  { key: 'users', label: 'Kullanıcılar', icon: 'people-outline' },
+  { key: 'tv', label: 'TV Yönetimi', icon: 'tv-outline' },
+];
 
 const ORDER_FILTERS = [
   { key: 'all', label: 'Tümü' },
@@ -30,7 +43,7 @@ export default function AdminScreen({ navigation }) {
   const { orders, updateOrderStatus, rejectOrder, STATUS_LABELS, STATUS_COLORS } = useOrders();
   const { tvContents, tvPanels, pushToTV, startPlaying, markComplete, remove, onlinePanels, playingCount, approvedCount, TV_STATUS_LABELS, TV_STATUS_COLORS } = useTVContent();
 
-  const [mainTab, setMainTab] = useState('orders'); // orders | tv
+  const [mainTab, setMainTab] = useState('dashboard');
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -469,42 +482,47 @@ export default function AdminScreen({ navigation }) {
     <SafeAreaView style={styles.container} edges={['top']}>
       <BackHeader title="Admin Paneli" onBack={() => navigation.goBack()} />
 
-      {/* Ana Sekme Bari */}
-      <View style={styles.mainTabBar}>
-        <TouchableOpacity
-          style={[styles.mainTab, mainTab === 'orders' && styles.mainTabActive]}
-          onPress={() => setMainTab('orders')}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="receipt-outline" size={18} color={mainTab === 'orders' ? colors.white : colors.textSecondary} />
-          <Text style={[styles.mainTabText, mainTab === 'orders' && styles.mainTabTextActive]}>
-            Siparişler
-          </Text>
-          {pendingCount > 0 && (
-            <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>{pendingCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.mainTab, mainTab === 'tv' && styles.mainTabActive]}
-          onPress={() => setMainTab('tv')}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="tv-outline" size={18} color={mainTab === 'tv' ? colors.white : colors.textSecondary} />
-          <Text style={[styles.mainTabText, mainTab === 'tv' && styles.mainTabTextActive]}>
-            TV Yönetimi
-          </Text>
-          {playingCount > 0 && (
-            <View style={[styles.tabBadge, { backgroundColor: '#2E7D32' }]}>
-              <Text style={styles.tabBadgeText}>{playingCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+      {/* Ana Sekme Bari - Yatay Kaydırılabilir */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.mainTabBar}
+        contentContainerStyle={styles.mainTabBarContent}
+      >
+        {ADMIN_TABS.map((tab) => {
+          const isActive = mainTab === tab.key;
+          const badge = tab.key === 'orders' ? pendingCount
+            : tab.key === 'tv' ? playingCount
+            : tab.key === 'moderation' ? pendingCount
+            : 0;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.mainTab, isActive && styles.mainTabActive]}
+              onPress={() => setMainTab(tab.key)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name={tab.icon} size={16} color={isActive ? colors.white : colors.textSecondary} />
+              <Text style={[styles.mainTabText, isActive && styles.mainTabTextActive]}>
+                {tab.label}
+              </Text>
+              {badge > 0 && (
+                <View style={[styles.tabBadge, isActive && { backgroundColor: 'rgba(255,255,255,0.3)' }]}>
+                  <Text style={styles.tabBadgeText}>{badge}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       {/* Sekme Icerigi */}
-      {mainTab === 'orders' ? renderOrdersTab() : renderTVTab()}
+      {mainTab === 'dashboard' && <DashboardTab />}
+      {mainTab === 'orders' && renderOrdersTab()}
+      {mainTab === 'panels' && <PanelManagementTab />}
+      {mainTab === 'moderation' && <ContentModerationTab />}
+      {mainTab === 'users' && <UserManagementTab />}
+      {mainTab === 'tv' && renderTVTab()}
 
       {/* Siparis Detay Modal */}
       {selectedOrder && renderOrderDetail()}
@@ -558,19 +576,23 @@ const styles = StyleSheet.create({
   },
   // Ana Sekme Bari
   mainTabBar: {
-    flexDirection: 'row',
+    maxHeight: 52,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  mainTabBarContent: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    gap: 10,
+    gap: 8,
   },
   mainTab: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
+    gap: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
@@ -580,7 +602,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   mainTabText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
   },

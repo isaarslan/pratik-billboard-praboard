@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
   RefreshControl,
   Animated,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +20,7 @@ import { useOrders } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import VideoPreview from '../../components/VideoPreview';
 import { toggleLike, getUserLikedAdIds } from '../../services/likeService';
-import { shareAd } from '../../services/shareService';
+import { shareAd, SHARE_PLATFORMS } from '../../services/shareService';
 
 
 const DEMO_ADS = [
@@ -162,6 +163,8 @@ const HomeScreen = ({ navigation }) => {
   const [likedAds, setLikedAds] = useState({});
   const [likeCounts, setLikeCounts] = useState({});
   const [shareToast, setShareToast] = useState(false);
+  const [shareToastText, setShareToastText] = useState('Link kopyalandı!');
+  const [sharePickerItem, setSharePickerItem] = useState(null);
 
   // Kullanıcının beğenilerini yükle
   useEffect(() => {
@@ -195,13 +198,21 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [profile?.id, likedAds]);
 
-  const handleShare = useCallback(async (item) => {
-    const result = await shareAd(profile?.id, item);
+  const handleShare = useCallback((item) => {
+    setSharePickerItem(item);
+  }, []);
+
+  const handleSharePlatform = useCallback(async (platformKey) => {
+    if (!sharePickerItem) return;
+    const result = await shareAd(profile?.id, sharePickerItem, platformKey);
+    setSharePickerItem(null);
     if (result.shared) {
+      const labels = { whatsapp: 'WhatsApp\'a gönderildi!', instagram: 'Instagram açıldı!', twitter: 'Twitter\'a gönderildi!', clipboard: 'Link kopyalandı!', copy: 'Link kopyalandı!' };
+      setShareToastText(labels[result.platform] || 'Paylaşıldı!');
       setShareToast(true);
       setTimeout(() => setShareToast(false), 2000);
     }
-  }, [profile?.id]);
+  }, [profile?.id, sharePickerItem]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -405,7 +416,7 @@ const HomeScreen = ({ navigation }) => {
         {shareToast && (
           <View style={styles.shareToast}>
             <Ionicons name="checkmark-circle" size={18} color={colors.white} />
-            <Text style={styles.shareToastText}>Link kopyalandı!</Text>
+            <Text style={styles.shareToastText}>{shareToastText}</Text>
           </View>
         )}
       </View>
@@ -435,8 +446,46 @@ const HomeScreen = ({ navigation }) => {
       {shareToast && (
         <View style={styles.shareToast}>
           <Ionicons name="checkmark-circle" size={18} color={colors.white} />
-          <Text style={styles.shareToastText}>Link kopyalandı!</Text>
+          <Text style={styles.shareToastText}>{shareToastText}</Text>
         </View>
+      )}
+
+      {/* Share Platform Picker Modal */}
+      {sharePickerItem && (
+        <Modal visible={true} transparent animationType="fade">
+          <TouchableOpacity
+            style={styles.shareModalOverlay}
+            activeOpacity={1}
+            onPress={() => setSharePickerItem(null)}
+          >
+            <View style={styles.shareModalContent}>
+              <View style={styles.shareModalHandle} />
+              <Text style={styles.shareModalTitle}>Paylaş</Text>
+              <View style={styles.shareModalGrid}>
+                {SHARE_PLATFORMS.map((p) => (
+                  <TouchableOpacity
+                    key={p.key}
+                    style={styles.shareModalItem}
+                    onPress={() => handleSharePlatform(p.key)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.shareModalIcon, { backgroundColor: p.color + '18' }]}>
+                      <Ionicons name={p.icon} size={24} color={p.color} />
+                    </View>
+                    <Text style={styles.shareModalLabel}>{p.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TouchableOpacity
+                style={styles.shareModalCancel}
+                onPress={() => setSharePickerItem(null)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.shareModalCancelText}>Vazgeç</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       )}
     </SafeAreaView>
   );
@@ -759,6 +808,72 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 14,
     fontWeight: '600',
+  },
+  // Share Platform Picker
+  shareModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  shareModalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 34,
+  },
+  shareModalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.gray[300],
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  shareModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  shareModalGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  shareModalItem: {
+    alignItems: 'center',
+    width: 72,
+  },
+  shareModalIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  shareModalLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  shareModalCancel: {
+    marginTop: 20,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  shareModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 });
 
