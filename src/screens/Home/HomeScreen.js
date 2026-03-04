@@ -425,6 +425,44 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.shareToastText}>{shareToastText}</Text>
           </View>
         )}
+
+        {/* Share Platform Picker Modal (Web) */}
+        {sharePickerItem && (
+          <Modal visible={true} transparent animationType="fade">
+            <TouchableOpacity
+              style={styles.shareModalOverlay}
+              activeOpacity={1}
+              onPress={() => setSharePickerItem(null)}
+            >
+              <View style={styles.shareModalContent} onStartShouldSetResponder={() => true}>
+                <View style={styles.shareModalHandle} />
+                <Text style={styles.shareModalTitle}>Paylaş</Text>
+                <View style={styles.shareModalGrid}>
+                  {SHARE_PLATFORMS.map((p) => (
+                    <TouchableOpacity
+                      key={p.key}
+                      style={styles.shareModalItem}
+                      onPress={() => handleSharePlatform(p.key)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.shareModalIcon, { backgroundColor: p.color + '18' }]}>
+                        <Ionicons name={p.icon} size={24} color={p.color} />
+                      </View>
+                      <Text style={styles.shareModalLabel}>{p.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TouchableOpacity
+                  style={styles.shareModalCancel}
+                  onPress={() => setSharePickerItem(null)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.shareModalCancelText}>Vazgeç</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        )}
       </View>
     );
   }
