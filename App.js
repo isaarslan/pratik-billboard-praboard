@@ -7,6 +7,7 @@ import { NavigationProvider } from './src/navigation/NavigationContext';
 import { AdProvider } from './src/context/AdContext';
 import { OrderProvider } from './src/context/OrderContext';
 import { TVContentProvider } from './src/context/TVContentContext';
+import { NotificationProvider } from './src/context/NotificationContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import TVDisplayScreen from './src/screens/TVDisplay/TVDisplayScreen';
 
@@ -44,12 +45,14 @@ export default function App() {
         <AdProvider>
           <OrderProvider>
             <TVContentProvider>
-              <View style={{ flex: 1 }}>
-                <StatusBar style="auto" />
-                <NavigationProvider>
-                  {(navigation) => <AppNavigator navigation={navigation} />}
-                </NavigationProvider>
-              </View>
+              <NotificationProvider>
+                <View style={{ flex: 1 }}>
+                  <StatusBar style="auto" />
+                  <NavigationProvider>
+                    {(navigation) => <AppNavigator navigation={navigation} />}
+                  </NavigationProvider>
+                </View>
+              </NotificationProvider>
             </TVContentProvider>
           </OrderProvider>
         </AdProvider>

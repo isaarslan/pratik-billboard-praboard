@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,154 +7,162 @@ import {
   TouchableOpacity,
   Platform,
   useWindowDimensions,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
+import { useNotifications } from '../../context/NotificationContext';
+import { NOTIFICATION_TYPES } from '../../services/notificationService';
 
 const WEB_BREAKPOINT = 768;
 
-const NOTIFICATIONS = [
-  {
-    id: '1',
-    type: 'like',
-    icon: 'heart',
-    iconColor: '#E74C3C',
-    iconBg: '#FDEDEE',
-    title: 'Reklamın beğenildi!',
-    body: 'Ahmet Yılmaz "Premium Billboard" reklamını beğendi.',
-    time: '2 dakika önce',
-    unread: true,
-  },
-  {
-    id: '2',
-    type: 'follow',
-    icon: 'person-add',
-    iconColor: colors.primary,
-    iconBg: '#EBF0FF',
-    title: 'Yeni takipçi',
-    body: 'Sıla Torun seni takip etmeye başladı.',
-    time: '15 dakika önce',
-    unread: true,
-  },
-  {
-    id: '3',
-    type: 'ad_live',
-    icon: 'megaphone',
-    iconColor: '#27AE60',
-    iconBg: '#E8F8EF',
-    title: 'Reklamın yayında!',
-    body: '"Kızılay Meydanı Billboard" reklamın şu anda yayında. Tebrikler!',
-    time: '1 saat önce',
-    unread: true,
-  },
-  {
-    id: '4',
-    type: 'payment',
-    icon: 'card',
-    iconColor: '#8E44AD',
-    iconBg: '#F4ECF7',
-    title: 'Ödeme onaylandı',
-    body: '3.498 TL tutarındaki ödemeniz başarıyla gerçekleştirildi.',
-    time: '3 saat önce',
-    unread: false,
-  },
-  {
-    id: '5',
-    type: 'share',
-    icon: 'share-social',
-    iconColor: '#2980B9',
-    iconBg: '#EBF5FB',
-    title: 'Reklamın paylaşıldı',
-    body: 'Mehmet Kaya "Tunalı Hilmi Billboard" reklamını paylaştı.',
-    time: '5 saat önce',
-    unread: false,
-  },
-  {
-    id: '6',
-    type: 'ad_end',
-    icon: 'time',
-    iconColor: '#E67E22',
-    iconBg: '#FEF5E7',
-    title: 'Reklam süresi bitiyor',
-    body: '"Ulus Meydanı Billboard" reklamının süresi 2 gün sonra doluyor.',
-    time: '8 saat önce',
-    unread: false,
-  },
-  {
-    id: '7',
-    type: 'like',
-    icon: 'heart',
-    iconColor: '#E74C3C',
-    iconBg: '#FDEDEE',
-    title: '45 yeni beğeni',
-    body: '"Kızılay Meydanı Billboard" reklamın bugün 45 yeni beğeni aldı.',
-    time: '12 saat önce',
-    unread: false,
-  },
-  {
-    id: '8',
-    type: 'system',
-    icon: 'information-circle',
-    iconColor: colors.primary,
-    iconBg: '#EBF0FF',
-    title: 'Praboard\'a hoş geldin!',
-    body: 'Profilini tamamla ve ilk reklamını oluşturmaya başla.',
-    time: '1 gün önce',
-    unread: false,
-  },
-];
+/**
+ * Zaman farkini insanca goster
+ */
+function timeAgo(dateString) {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now - date;
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 1) return 'Az önce';
+  if (diffMin < 60) return `${diffMin} dakika önce`;
+
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour} saat önce`;
+
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay < 7) return `${diffDay} gün önce`;
+
+  const diffWeek = Math.floor(diffDay / 7);
+  if (diffWeek < 4) return `${diffWeek} hafta önce`;
+
+  return `${Math.floor(diffDay / 30)} ay önce`;
+}
 
 const NotificationsScreen = () => {
   const { width } = useWindowDimensions();
   const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
+    refreshNotifications,
+  } = useNotifications();
 
-  const renderNotification = ({ item }) => (
-    <TouchableOpacity
-      style={[
-        styles.notifCard,
-        item.unread && styles.notifCardUnread,
-        isWebWide && styles.notifCardWeb,
-      ]}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.iconCircle, { backgroundColor: item.iconBg }]}>
-        <Ionicons name={item.icon} size={22} color={item.iconColor} />
-      </View>
-      <View style={styles.notifContent}>
-        <View style={styles.notifHeader}>
-          <Text style={[styles.notifTitle, item.unread && styles.notifTitleUnread]}>
-            {item.title}
-          </Text>
-          {item.unread && <View style={styles.unreadDot} />}
-        </View>
-        <Text style={styles.notifBody} numberOfLines={2}>{item.body}</Text>
-        <Text style={styles.notifTime}>{item.time}</Text>
-      </View>
-    </TouchableOpacity>
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refreshNotifications();
+    setRefreshing(false);
+  }, [refreshNotifications]);
+
+  const handleNotificationPress = useCallback(
+    (item) => {
+      if (!item.read) {
+        markAsRead(item.id);
+      }
+    },
+    [markAsRead]
   );
+
+  const renderNotification = ({ item }) => {
+    const typeConfig = NOTIFICATION_TYPES[item.type] || NOTIFICATION_TYPES.system;
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.notifCard,
+          !item.read && styles.notifCardUnread,
+          isWebWide && styles.notifCardWeb,
+        ]}
+        activeOpacity={0.7}
+        onPress={() => handleNotificationPress(item)}
+      >
+        <View style={[styles.iconCircle, { backgroundColor: typeConfig.iconBg }]}>
+          <Ionicons name={typeConfig.icon} size={22} color={typeConfig.iconColor} />
+        </View>
+        <View style={styles.notifContent}>
+          <View style={styles.notifHeader}>
+            <Text style={[styles.notifTitle, !item.read && styles.notifTitleUnread]}>
+              {item.title}
+            </Text>
+            {!item.read && <View style={styles.unreadDot} />}
+          </View>
+          <Text style={styles.notifBody} numberOfLines={2}>
+            {item.message}
+          </Text>
+          <Text style={styles.notifTime}>{timeAgo(item.created_at)}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderEmpty = () => {
+    if (loading) return null;
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="notifications-off-outline" size={64} color={colors.gray[300]} />
+        <Text style={styles.emptyTitle}>Henüz bildirim yok</Text>
+        <Text style={styles.emptySubtitle}>
+          Sipariş durumları ve güncellemeler burada görünecek.
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={[styles.header, isWebWide && styles.headerWeb]}>
         <View>
-          <Text style={[styles.headerTitle, isWebWide && styles.headerTitleWeb]}>Bildirimler</Text>
+          <Text style={[styles.headerTitle, isWebWide && styles.headerTitleWeb]}>
+            Bildirimler
+            {unreadCount > 0 && (
+              <Text style={styles.unreadBadgeText}> ({unreadCount})</Text>
+            )}
+          </Text>
           {isWebWide && (
             <Text style={styles.headerSubtitle}>Tüm bildirimlerini buradan takip et</Text>
           )}
         </View>
-        <TouchableOpacity style={styles.markAllBtn}>
-          <Text style={styles.markAllText}>Tümünü okundu işaretle</Text>
-        </TouchableOpacity>
+        {unreadCount > 0 && (
+          <TouchableOpacity style={styles.markAllBtn} onPress={markAllAsRead}>
+            <Text style={styles.markAllText}>Tümünü okundu işaretle</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      <FlatList
-        data={NOTIFICATIONS}
-        renderItem={renderNotification}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.listContent, isWebWide && styles.listContentWeb]}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading && notifications.length === 0 ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={notifications}
+          renderItem={renderNotification}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[
+            styles.listContent,
+            isWebWide && styles.listContentWeb,
+            notifications.length === 0 && styles.listContentEmpty,
+          ]}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -191,6 +199,11 @@ const styles = StyleSheet.create({
     color: colors.gray[500],
     marginTop: 4,
   },
+  unreadBadgeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+  },
   markAllBtn: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -209,6 +222,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
     maxWidth: 800,
+  },
+  listContentEmpty: {
+    flex: 1,
   },
   notifCard: {
     flexDirection: 'row',
@@ -275,6 +291,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.gray[400],
     marginTop: 6,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: 16,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: colors.gray[500],
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
   },
 });
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
+import { useNotifications } from '../context/NotificationContext';
 
 const tabs = [
   { name: 'HomeTab', label: 'Ana Sayfa', icon: 'home-outline', activeIcon: 'home' },
@@ -12,6 +13,8 @@ const tabs = [
 ];
 
 export default function BottomTabBar({ activeTab, onTabPress }) {
+  const { unreadCount } = useNotifications();
+
   return (
     <View style={styles.container}>
       {tabs.map((tab) => {
@@ -25,9 +28,21 @@ export default function BottomTabBar({ activeTab, onTabPress }) {
             </TouchableOpacity>
           );
         }
+
+        const showBadge = tab.name === 'Notifications' && unreadCount > 0;
+
         return (
           <TouchableOpacity key={tab.name} style={styles.tab} onPress={() => onTabPress(tab.name)} activeOpacity={0.7}>
-            <Ionicons name={isActive ? tab.activeIcon : tab.icon} size={24} color={isActive ? colors.primary : colors.textSecondary} />
+            <View>
+              <Ionicons name={isActive ? tab.activeIcon : tab.icon} size={24} color={isActive ? colors.primary : colors.textSecondary} />
+              {showBadge && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
             <Text style={[styles.label, isActive && styles.activeLabel]}>{tab.label}</Text>
           </TouchableOpacity>
         );
@@ -78,5 +93,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: '#E74C3C',
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: '800',
   },
 });

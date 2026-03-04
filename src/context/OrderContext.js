@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../config/supabase';
 import * as orderService from '../services/orderService';
+import { notifyOrderStatusChange } from '../services/notificationService';
 
 const OrderContext = createContext(null);
 
@@ -66,18 +67,24 @@ export function OrderProvider({ children }) {
   }, []);
 
   const updateOrderStatus = useCallback(async (orderId, newStatus) => {
+    const order = orders.find((o) => o.id === orderId);
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
     try {
       await orderService.updateOrderStatus(orderId, newStatus);
+      // Kullaniciya bildirim gonder
+      if (order) {
+        notifyOrderStatusChange(order, newStatus);
+      }
     } catch (error) {
       console.warn('Siparis durumu guncellenemedi:', error.message);
       loadOrders();
     }
-  }, [loadOrders]);
+  }, [loadOrders, orders]);
 
   const rejectOrder = useCallback(async (orderId, reason) => {
+    const order = orders.find((o) => o.id === orderId);
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId ? { ...o, status: 'rejected', rejectReason: reason || 'Reklam içeriği uygun bulunmadı.' } : o
@@ -85,11 +92,15 @@ export function OrderProvider({ children }) {
     );
     try {
       await orderService.rejectOrderInDB(orderId, reason);
+      // Kullaniciya red bildirimi gonder
+      if (order) {
+        notifyOrderStatusChange(order, 'rejected', reason);
+      }
     } catch (error) {
       console.warn('Siparis reddedilemedi:', error.message);
       loadOrders();
     }
-  }, [loadOrders]);
+  }, [loadOrders, orders]);
 
   return (
     <OrderContext.Provider value={{ orders, loading, addOrder, updateOrderStatus, rejectOrder, STATUS_LABELS, STATUS_COLORS, STATUS_STEPS }}>
