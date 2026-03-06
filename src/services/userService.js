@@ -55,11 +55,11 @@ export async function uploadAvatar(userId, fileUri) {
   const fileName = `${userId}/avatar_${Date.now()}.jpg`;
 
   const response = await fetch(fileUri);
-  const blob = await response.blob();
+  const arrayBuffer = await response.arrayBuffer();
 
   const { error: uploadError } = await supabase.storage
     .from('avatars')
-    .upload(fileName, blob, { contentType: 'image/jpeg', upsert: true });
+    .upload(fileName, arrayBuffer, { contentType: 'image/jpeg', upsert: true });
   if (uploadError) throw uploadError;
 
   const { data: { publicUrl } } = supabase.storage
