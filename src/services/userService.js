@@ -49,17 +49,55 @@ export async function setUsername(userId, username) {
 }
 
 /**
+ * blob: URI'sini base64'e çevir (web ortamı için)
+ */
+function blobUriToBase64(uri) {
+  return new Promise((resolve, reject) => {
+    fetch(uri)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      })
+      .catch(reject);
+  });
+}
+
+/**
+ * base64 data URL'den Uint8Array oluştur
+ */
+function base64ToUint8Array(dataUrl) {
+  const base64 = dataUrl.split(',')[1];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/**
  * Profil fotoğrafı yükle
  */
 export async function uploadAvatar(userId, fileUri) {
   const fileName = `${userId}/avatar_${Date.now()}.jpg`;
 
-  const response = await fetch(fileUri);
-  const arrayBuffer = await response.arrayBuffer();
+  let fileData;
+  if (fileUri.startsWith('blob:') || fileUri.startsWith('data:')) {
+    // Web: blob URI → base64 → Uint8Array
+    const dataUrl = fileUri.startsWith('data:') ? fileUri : await blobUriToBase64(fileUri);
+    fileData = base64ToUint8Array(dataUrl);
+  } else {
+    // Native: doğrudan fetch ile arrayBuffer
+    const response = await fetch(fileUri);
+    fileData = await response.arrayBuffer();
+  }
 
   const { error: uploadError } = await supabase.storage
     .from('avatars')
-    .upload(fileName, arrayBuffer, { contentType: 'image/jpeg', upsert: true });
+    .upload(fileName, fileData, { contentType: 'image/jpeg', upsert: true });
   if (uploadError) throw uploadError;
 
   const { data: { publicUrl } } = supabase.storage

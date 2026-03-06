@@ -45,10 +45,26 @@ const EditProfileScreen = ({ navigation }) => {
 
     if (!result.canceled && result.assets?.[0]) {
       const uri = result.assets[0].uri;
-      setAvatarUri(uri);
+      // Web'de blob: URI'leri Image'da gösterilemiyor, base64'e çevir
+      let previewUri = uri;
+      if (Platform.OS === 'web' && uri.startsWith('blob:')) {
+        try {
+          const res = await fetch(uri);
+          const blob = await res.blob();
+          previewUri = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          previewUri = uri;
+        }
+      }
+      setAvatarUri(previewUri);
       setUploading(true);
       try {
-        await uploadAvatar(uri);
+        await uploadAvatar(previewUri);
       } catch (err) {
         Alert.alert('Hata', 'Fotoğraf yüklenirken bir hata oluştu.');
         setAvatarUri(profile?.avatar_url || null);
