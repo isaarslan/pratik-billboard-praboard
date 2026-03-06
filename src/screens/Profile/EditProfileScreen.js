@@ -66,7 +66,8 @@ const EditProfileScreen = ({ navigation }) => {
       try {
         await uploadAvatar(previewUri);
       } catch (err) {
-        Alert.alert('Hata', 'Fotoğraf yüklenirken bir hata oluştu.');
+        console.error('Avatar upload error:', err);
+        Alert.alert('Hata', err?.message || 'Fotoğraf yüklenirken bir hata oluştu.');
         setAvatarUri(profile?.avatar_url || null);
       } finally {
         setUploading(false);
