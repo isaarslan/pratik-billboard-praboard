@@ -227,7 +227,11 @@ const ProfileScreen = ({ navigation }) => {
         <View style={[styles.profileCard, isWebWide && styles.profileCardWeb]}>
           <View style={styles.avatarContainer}>
             <View style={[styles.avatar, isWebWide && styles.avatarWeb]}>
-              <Ionicons name="person" size={isWebWide ? 48 : 40} color={colors.textSecondary} />
+              {profile?.avatar_url ? (
+                <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
+              ) : (
+                <Ionicons name="person" size={isWebWide ? 48 : 40} color={colors.textSecondary} />
+              )}
             </View>
           </View>
 
@@ -409,12 +413,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 4,
     borderColor: colors.white,
+    overflow: 'hidden',
   },
   avatarWeb: {
     width: 100,
     height: 100,
     borderRadius: 50,
     borderWidth: 5,
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   profileInfo: {
     paddingHorizontal: 20,

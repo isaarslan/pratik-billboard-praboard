@@ -103,6 +103,14 @@ export function AuthProvider({ children }) {
     return updated;
   }, [user]);
 
+  // Avatar yükle
+  const uploadAvatar = useCallback(async (fileUri) => {
+    if (!user) return;
+    const publicUrl = await userService.uploadAvatar(user.id, fileUri);
+    setProfile((prev) => ({ ...prev, avatar_url: publicUrl }));
+    return publicUrl;
+  }, [user]);
+
   // Username kaydet
   const setUsername = useCallback(async (username) => {
     if (!user) return;
@@ -146,6 +154,7 @@ export function AuthProvider({ children }) {
     resetPassword,
     updatePassword,
     updateProfile,
+    uploadAvatar,
     setUsername,
     refreshProfile,
     clearEmailVerified,

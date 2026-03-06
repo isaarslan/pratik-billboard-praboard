@@ -111,18 +111,21 @@ Mevcut 2 tab → 5 tab:
 
 ---
 
-## FAZE 4: Profil Fotoğrafı
+## FAZE 4: Profil Fotoğrafı ✅ TAMAMLANDI
 
-### 4.1 Fotoğraf Yükleme
-- ProfileScreen'de avatar'a tıklama → ImagePicker
-- Supabase Storage 'avatars' bucket'ına yükle
-- Profile tablosunda avatar_url güncelle
+### 4.1 Fotoğraf Yükleme ✅
+- ✅ EditProfileScreen'de avatar'a tıklama → expo-image-picker
+- ✅ Supabase Storage 'avatars' bucket'ına yükleme (userService.uploadAvatar)
+- ✅ Profile tablosunda avatar_url güncelleme
+- ✅ AuthContext'e uploadAvatar fonksiyonu eklendi
+- ✅ Yükleme sırasında loading göstergesi
 
-### 4.2 Avatar Gösterimi
-- ProfileScreen'de gerçek avatar
-- HomeScreen feed kartlarında avatar
-- Admin kullanıcı listesinde avatar
-- Placeholder: mevcut ikon (geri dönüş)
+### 4.2 Avatar Gösterimi ✅
+- ✅ ProfileScreen'de gerçek avatar gösterimi
+- ✅ EditProfileScreen'de mevcut avatar gösterimi
+- ✅ Placeholder: mevcut ikon (avatar yoksa geri dönüş)
+- HomeScreen feed kartlarında avatar (gelecek geliştirme)
+- Admin kullanıcı listesinde avatar (gelecek geliştirme)
 
 ---
 
