@@ -91,31 +91,22 @@ export default function WebSidebar({ activeTab, onTabPress }) {
           onPress={() => onTabPress('ProfileTab')}
           activeOpacity={0.7}
         >
-          {profile?.cover_url && (
-            <Image
-              source={{ uri: profile.cover_url }}
-              style={styles.userCardCover}
-              resizeMode="cover"
-            />
-          )}
-          <View style={styles.userCardContent}>
-            <View style={styles.userAvatar}>
-              {profile?.avatar_url ? (
-                <Image source={{ uri: profile.avatar_url }} style={styles.userAvatarImage} />
-              ) : (
-                <Ionicons name="person" size={18} color={colors.gray[400]} />
-              )}
-            </View>
-            <View style={styles.userInfo}>
-              <Text style={[styles.userName, profile?.cover_url && styles.userNameOnCover]} numberOfLines={1}>
-                {profile?.full_name || 'Kullanıcı'}
-              </Text>
-              <Text style={[styles.userRole, profile?.cover_url && styles.userRoleOnCover]}>
-                {profile?.username ? `@${profile.username}` : 'Ücretsiz Plan'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={profile?.cover_url ? 'rgba(255,255,255,0.8)' : colors.gray[400]} />
+          <View style={styles.userAvatar}>
+            {profile?.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={styles.userAvatarImage} />
+            ) : (
+              <Ionicons name="person" size={18} color={colors.gray[400]} />
+            )}
           </View>
+          <View style={styles.userInfo}>
+            <Text style={styles.userName} numberOfLines={1}>
+              {profile?.full_name || 'Kullanıcı'}
+            </Text>
+            <Text style={styles.userRole}>
+              {profile?.username ? `@${profile.username}` : 'Ücretsiz Plan'}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.gray[400]} />
         </TouchableOpacity>
       </View>
     </View>
@@ -273,22 +264,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   userCard: {
-    borderRadius: 12,
-    backgroundColor: colors.gray[100],
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  userCardCover: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-  userCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 14,
-    backgroundColor: 'transparent',
+    borderRadius: 12,
+    backgroundColor: colors.gray[100],
   },
   userAvatar: {
     width: 34,
@@ -299,24 +280,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: colors.white,
   },
   userAvatarImage: {
     width: '100%',
     height: '100%',
-  },
-  userNameOnCover: {
-    color: colors.white,
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  userRoleOnCover: {
-    color: 'rgba(255,255,255,0.85)',
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   userInfo: {
     flex: 1,
