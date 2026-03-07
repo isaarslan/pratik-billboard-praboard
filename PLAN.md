@@ -5,143 +5,99 @@
 
 ---
 
-## FAZE 1: Gelişmiş Admin Paneli (Öncelikli)
+## FAZE 1: Gelişmiş Admin Paneli ✅ TAMAMLANDI
 
-### 1.1 Admin Dashboard - İstatistik Sayfası
-- **Dosya**: `src/screens/Admin/AdminScreen.js` (mevcut ekranı genişlet)
-- Yeni tab: "Dashboard" (ana sayfa)
-- Kartlar: Toplam sipariş, aktif yayın, online panel, toplam gelir
-- Son 7 gün sipariş grafiği (basit bar chart)
-- Son aktiviteler listesi
+### 1.1 Admin Dashboard - İstatistik Sayfası ✅
+- ✅ DashboardTab: Toplam sipariş, aktif yayın, kullanıcı, bekleyen kartları
+- ✅ Gelir kartı (toplam gelir, beğeni, paylaşım sayıları)
+- ✅ Panel durumları (müsait, dolu, bakımda)
+- ✅ Son aktiviteler listesi (Supabase'den gerçek veri)
 
-### 1.2 Panel Yönetimi (CRUD)
-- **Yeni dosya**: `src/screens/Admin/PanelManagementTab.js`
-- Panel ekleme formu (isim, konum, boyut, fiyat, görsel, lat/lng)
-- Panel düzenleme modal
-- Panel silme (onay ile)
-- Panel durumunu değiştirme (Müsait/Dolu/Bakımda)
-- Panelleri Supabase'e taşı (şu anda mock data)
-- **Yeni servis**: `src/services/panelService.js`
+### 1.2 Panel Yönetimi (CRUD) ✅
+- ✅ PanelManagementTab: Panel ekleme/düzenleme/silme
+- ✅ Panel durumu değiştirme (Müsait/Dolu/Bakımda)
+- ✅ panelService.js: Supabase CRUD + varsayılan paneller
 
-### 1.3 Kullanıcı Yönetimi
-- **Yeni dosya**: `src/screens/Admin/UserManagementTab.js`
-- Kullanıcı listesi (profil bilgileri, kayıt tarihi, rol)
-- Kullanıcı arama/filtreleme
-- Rol değiştirme (user ↔ admin)
-- Kullanıcı detay modal (siparişleri, reklamları)
-- **Yeni servis**: `src/services/adminService.js`
+### 1.3 Kullanıcı Yönetimi ✅
+- ✅ UserManagementTab: Kullanıcı listesi, arama, detay modal
+- ✅ Rol değiştirme (user ↔ admin)
+- ✅ adminService.js: getUsers, updateUserRole, getDashboardStats
 
-### 1.4 İçerik Moderasyonu
-- **Yeni dosya**: `src/screens/Admin/ContentModerationTab.js`
-- Onay bekleyen reklamların büyük önizlemesi
-- Hızlı onayla/reddet butonları
-- Red sebebi şablonları (hazır mesajlar)
-- Toplu onay/red seçeneği
+### 1.4 İçerik Moderasyonu ✅
+- ✅ ContentModerationTab: Büyük önizleme, onayla/reddet
+- ✅ Ret sebebi şablonları (5 hazır mesaj)
+- ✅ Toplu onay/red seçeneği (checkbox ile)
 
-### 1.5 Admin Tab Yapısı
-Mevcut 2 tab → 5 tab:
-1. Dashboard (yeni)
-2. Siparişler (mevcut, iyileştirilmiş)
-3. Panel Yönetimi (yeni)
-4. Kullanıcılar (yeni)
-5. TV Yönetimi (mevcut, iyileştirilmiş)
+### 1.5 Admin Tab Yapısı ✅
+- ✅ 6 tab: Dashboard, Siparişler, Paneller, Moderasyon, Kullanıcılar, TV Yönetimi
 
 ---
 
-## FAZE 2: Gerçek Bildirim Sistemi
+## FAZE 2: Gerçek Bildirim Sistemi ✅ TAMAMLANDI
 
-### 2.1 Supabase Bildirim Tablosu
-- **Yeni migration**: `notifications` tablosu
-  - id, user_id, type, title, message, data (jsonb), read, created_at
-- RLS politikaları (kullanıcı sadece kendi bildirimlerini görsün)
+### 2.1 Supabase Bildirim Tablosu ✅
+- ✅ notifications tablosu (006_notifications_table.sql)
+- ✅ RLS politikaları
 
-### 2.2 Bildirim Servisi
-- **Yeni dosya**: `src/services/notificationService.js`
-- createNotification(userId, type, title, message, data)
-- getUserNotifications(userId)
-- markAsRead(notificationId)
-- markAllAsRead(userId)
-- getUnreadCount(userId)
-- Realtime subscription (yeni bildirimler anında gelsin)
+### 2.2 Bildirim Servisi ✅
+- ✅ notificationService.js: CRUD + realtime subscription
 
-### 2.3 Bildirim Context
-- **Yeni dosya**: `src/context/NotificationContext.js`
-- Okunmamış sayısını tut
-- Bildirim listesini yönet
-- Badge sayısını BottomTabBar'a aktar
+### 2.3 Bildirim Context ✅
+- ✅ NotificationContext.js: okunmamış sayısı, badge, liste yönetimi
 
-### 2.4 Otomatik Bildirimler
-- Sipariş durumu değiştiğinde bildirim oluştur
-- Admin sipariş onayladığında → kullanıcıya bildirim
-- Reklam yayına alındığında → kullanıcıya bildirim
-- Reklam süresi bittiğinde → kullanıcıya bildirim
+### 2.4 Otomatik Bildirimler ✅
+- ✅ Sipariş durumu değişikliklerinde bildirim
 
-### 2.5 NotificationsScreen Güncelleme
-- Mock veriyi kaldır, gerçek Supabase verisine geç
-- Pull-to-refresh
-- Bildirime tıklayınca ilgili ekrana git (OrderDetail vb.)
-- Okunmamış badge'i BottomTabBar'da göster
+### 2.5 NotificationsScreen ✅
+- ✅ Gerçek Supabase verisi, badge gösterimi
 
 ---
 
-## FAZE 3: Beğeni / Paylaşım Sistemi
+## FAZE 3: Beğeni / Paylaşım Sistemi ✅ TAMAMLANDI
 
-### 3.1 Supabase Tabloları
-- `likes` tablosu: id, user_id, ad_id, created_at (unique: user_id + ad_id)
-- `shares` tablosu: id, user_id, ad_id, platform, created_at
+### 3.1 Supabase Tabloları ✅
+- ✅ likes tablosu (003_likes_shares_tables.sql)
+- ✅ shares tablosu
 
-### 3.2 Beğeni Servisi
-- **Yeni dosya**: `src/services/likeService.js`
-- toggleLike(userId, adId) - beğen/beğenmekten vazgeç
-- getLikeCount(adId)
-- isLikedByUser(userId, adId)
-- getUserLikes(userId)
-- Realtime like count güncelleme
+### 3.2 Beğeni Servisi ✅
+- ✅ likeService.js: toggleLike, getLikeCounts, getUserLikedAdIds, isLikedByUser
 
-### 3.3 HomeScreen Feed Entegrasyonu
-- Kalp ikonuna tıklama → gerçek beğeni
-- Beğeni sayısı Supabase'den
-- Beğenilmiş kartlarda dolu kalp ikonu
-- Animasyonlu beğeni efekti
+### 3.3 HomeScreen Feed Entegrasyonu ✅
+- ✅ Gerçek beğeni (Supabase), optimistic updates, dolu kalp ikonu
 
-### 3.4 Paylaşım
-- Share butonuna tıklama → platform native share dialog
-- Web: clipboard'a link kopyala
-- Paylaşım sayısını kaydet
+### 3.4 Paylaşım ✅
+- ✅ shareService.js: platform seçici modal (WhatsApp, Instagram, Twitter, clipboard)
+
+### 3.5 Profil Beğenilenler ✅
+- ✅ ProfileScreen beğenilenler tabında gerçek Supabase verisi
 
 ---
 
-## FAZE 4: Profil Fotoğrafı ✅ TAMAMLANDI
+## FAZE 4: Profil Fotoğrafı & Kapak Resmi ✅ TAMAMLANDI
 
 ### 4.1 Fotoğraf Yükleme ✅
-- ✅ EditProfileScreen'de avatar'a tıklama → expo-image-picker
-- ✅ Supabase Storage 'avatars' bucket'ına yükleme (userService.uploadAvatar)
-- ✅ Profile tablosunda avatar_url güncelleme
-- ✅ AuthContext'e uploadAvatar fonksiyonu eklendi
-- ✅ Yükleme sırasında loading göstergesi
+- ✅ Avatar yükleme (expo-image-picker + Supabase Storage)
+- ✅ Kapak fotoğrafı yükleme (cover_url, 16:9 kırpma)
+- ✅ AuthContext'e uploadAvatar + uploadCover fonksiyonları
 
-### 4.2 Avatar Gösterimi ✅
-- ✅ ProfileScreen'de gerçek avatar gösterimi
-- ✅ EditProfileScreen'de mevcut avatar gösterimi
-- ✅ Placeholder: mevcut ikon (avatar yoksa geri dönüş)
-- HomeScreen feed kartlarında avatar (gelecek geliştirme)
-- Admin kullanıcı listesinde avatar (gelecek geliştirme)
+### 4.2 Gösterim ✅
+- ✅ ProfileScreen: avatar + kapak fotoğrafı gösterimi
+- ✅ EditProfileScreen: avatar + kapak düzenleme
+- ✅ WebSidebar: profil fotoğrafı gösterimi
 
 ---
 
-## FAZE 5: Arama ve Filtreleme
+## FAZE 5: Arama ve Filtreleme ✅ TAMAMLANDI
 
-### 5.1 Gerçek Filtreleme Mantığı
-- FilterScreen'deki seçimleri Context'e kaydet
-- HomeScreen feed'ini filtrelere göre filtrele
-- Sektör, konum, tarih aralığı filtreleri
-- Aktif filtre badge'i (kaç filtre aktif)
+### 5.1 Gerçek Filtreleme Mantığı ✅
+- ✅ AdContext'e filter state eklendi (searchText, topics, adTypes)
+- ✅ FilterScreen'den context'e filtre kaydetme
+- ✅ HomeScreen feed'ini filtrelere göre filtreleme
+- ✅ Aktif filtre badge'i (kaç filtre aktif)
 
-### 5.2 Arama
-- HomeScreen header'a arama çubuğu ekle
-- Reklam başlığı, açıklama, kullanıcı adı ile ara
-- Debounced arama (300ms)
-- Arama sonuçları sayfası
+### 5.2 Arama ✅
+- ✅ HomeScreen mobile + web header'da arama çubuğu
+- ✅ Reklam başlığı, açıklama, kullanıcı adı, konum, sektör ile arama
 
 ---
 

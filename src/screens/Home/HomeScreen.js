@@ -11,6 +11,7 @@ import {
   RefreshControl,
   Animated,
   Modal,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -153,7 +154,7 @@ function orderToAd(order) {
 const WEB_BREAKPOINT = 768;
 
 const HomeScreen = ({ navigation }) => {
-  const { allAds } = useAds();
+  const { allAds, filters, activeFilterCount } = useAds();
   const { orders } = useOrders();
   const { profile } = useAuth();
   const { width } = useWindowDimensions();
@@ -165,6 +166,7 @@ const HomeScreen = ({ navigation }) => {
   const [shareToast, setShareToast] = useState(false);
   const [shareToastText, setShareToastText] = useState('Link kopyalandı!');
   const [sharePickerItem, setSharePickerItem] = useState(null);
+  const [searchText, setSearchText] = useState('');
 
   // Kullanıcının beğenilerini yükle
   useEffect(() => {
@@ -231,9 +233,32 @@ const HomeScreen = ({ navigation }) => {
       .filter((o) => o.status === 'hazirlaniyor' || o.status === 'live')
       .map(orderToAd);
     const userContent = [...approvedAds, ...allAds];
-    // Kullanıcı içeriği yoksa demo veriler göster
-    return userContent.length > 0 ? userContent : DEMO_ADS;
-  }, [orders, allAds]);
+    let data = userContent.length > 0 ? userContent : DEMO_ADS;
+
+    // Arama filtresi (inline + FilterScreen)
+    const query = (searchText || filters.searchText || '').toLowerCase().trim();
+    if (query) {
+      data = data.filter((ad) =>
+        (ad.description || '').toLowerCase().includes(query) ||
+        (ad.user || '').toLowerCase().includes(query) ||
+        (ad.username || '').toLowerCase().includes(query) ||
+        (ad.location || '').toLowerCase().includes(query) ||
+        (ad.sector || '').toLowerCase().includes(query)
+      );
+    }
+
+    // Konu filtresi
+    if (filters.topics?.length > 0) {
+      data = data.filter((ad) =>
+        filters.topics.some((t) =>
+          (ad.sector || '').toLowerCase().includes(t.toLowerCase()) ||
+          (ad.description || '').toLowerCase().includes(t.toLowerCase())
+        )
+      );
+    }
+
+    return data;
+  }, [orders, allAds, filters, searchText]);
 
   const renderAdCard = ({ item }) => (
     <View
@@ -346,6 +371,22 @@ const HomeScreen = ({ navigation }) => {
           </Text>
         </View>
         <View style={styles.webHeaderActions}>
+          <View style={styles.webSearchBar}>
+            <Ionicons name="search" size={16} color={colors.gray[400]} />
+            <TextInput
+              style={styles.webSearchInput}
+              placeholder="Ara..."
+              placeholderTextColor={colors.gray[400]}
+              value={searchText}
+              onChangeText={setSearchText}
+              returnKeyType="search"
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchText('')}>
+                <Ionicons name="close-circle" size={16} color={colors.gray[400]} />
+              </TouchableOpacity>
+            )}
+          </View>
           <TouchableOpacity
             style={styles.webLocationPill}
             onPress={() => navigation.navigate('LocationSelect')}
@@ -354,10 +395,15 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.webLocationText}>Gölbaşı, Ankara</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.webFilterBtn}
+            style={[styles.webFilterBtn, activeFilterCount > 0 && { borderWidth: 1, borderColor: colors.primary }]}
             onPress={() => navigation.navigate('Filter')}
           >
-            <Ionicons name="options" size={20} color={colors.gray[600]} />
+            <Ionicons name="options" size={20} color={activeFilterCount > 0 ? colors.primary : colors.gray[600]} />
+            {activeFilterCount > 0 && (
+              <View style={styles.webFilterBadge}>
+                <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -384,6 +430,24 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
+      {/* Arama Çubuğu */}
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={18} color={colors.gray[400]} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Reklam, kullanıcı veya konum ara..."
+          placeholderTextColor={colors.gray[400]}
+          value={searchText}
+          onChangeText={setSearchText}
+          returnKeyType="search"
+        />
+        {searchText.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchText('')}>
+            <Ionicons name="close-circle" size={18} color={colors.gray[400]} />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <View style={styles.locationBar}>
         <TouchableOpacity
           style={styles.locationPill}
@@ -397,6 +461,11 @@ const HomeScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('Filter')}
         >
           <Ionicons name="options" size={24} color={colors.gray[700]} />
+          {activeFilterCount > 0 && (
+            <View style={styles.filterBadge}>
+              <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
     </>
@@ -578,6 +647,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.gray[100],
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.gray[900],
+  },
   locationBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -602,6 +688,24 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     padding: 8,
+    position: 'relative',
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  filterBadgeText: {
+    color: colors.white,
+    fontSize: 9,
+    fontWeight: '800',
   },
   feedContainer: {
     paddingBottom: 16,
@@ -656,6 +760,21 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontWeight: '500',
   },
+  webSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.gray[100],
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    gap: 8,
+    minWidth: 200,
+  },
+  webSearchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.gray[900],
+  },
   webFilterBtn: {
     width: 40,
     height: 40,
@@ -663,6 +782,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray[100],
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  webFilterBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
   },
   webFeedContainer: {
     flex: 1,

@@ -2,9 +2,16 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const AdContext = createContext(null);
 
+const EMPTY_FILTERS = {
+  searchText: '',
+  topics: [],
+  adTypes: [],
+};
+
 export function AdProvider({ children }) {
   const [ads, setAds] = useState([]);
   const [ownAds, setOwnAds] = useState([]);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
 
   const addAd = useCallback((newAd) => {
     const id = `own-${Date.now()}`;
@@ -36,11 +43,21 @@ export function AdProvider({ children }) {
     return ad;
   }, []);
 
+  const applyFilters = useCallback((newFilters) => {
+    setFilters(newFilters);
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilters(EMPTY_FILTERS);
+  }, []);
+
+  const activeFilterCount = (filters.topics?.length || 0) + (filters.adTypes?.length || 0) + (filters.searchText ? 1 : 0);
+
   const allAds = ads;
   const myAds = ownAds;
 
   return (
-    <AdContext.Provider value={{ allAds, myAds, addAd }}>
+    <AdContext.Provider value={{ allAds, myAds, addAd, filters, applyFilters, clearFilters, activeFilterCount }}>
       {children}
     </AdContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import PraboardLogo from '../../components/PraboardLogo';
+import { getUserLikedAdIds } from '../../services/likeService';
 
 const WEB_BREAKPOINT = 768;
 
@@ -28,12 +29,20 @@ const ProfileScreen = ({ navigation }) => {
   const { width } = useWindowDimensions();
 
   const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
+  const [likedAdIds, setLikedAdIds] = useState([]);
 
   const handleSignOut = async () => {
     await signOut();
   };
 
-  const likedAds = allAds.filter((a) => !a.isOwn).slice(0, 3);
+  // Kullanıcının beğendiği reklam ID'lerini yükle
+  useEffect(() => {
+    if (!profile?.id) return;
+    getUserLikedAdIds(profile.id).then(setLikedAdIds);
+  }, [profile?.id]);
+
+  // Beğenilen reklamları filtrele
+  const likedAds = allAds.filter((a) => likedAdIds.includes(a.id));
 
   const renderAdCard = ({ item }) => (
     <TouchableOpacity
@@ -121,7 +130,19 @@ const ProfileScreen = ({ navigation }) => {
           />
         );
       case 'begenilenler':
-        return (
+        return likedAds.length === 0 ? (
+          <View style={styles.tabContent}>
+            <View style={styles.emptyOrderContainer}>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="heart-outline" size={36} color={colors.primary} />
+              </View>
+              <Text style={styles.emptyOrderTitle}>Henüz beğeni yok</Text>
+              <Text style={styles.emptyOrderDesc}>
+                Ana sayfadaki reklamları beğenerek burada görüntüleyebilirsiniz.
+              </Text>
+            </View>
+          </View>
+        ) : (
           <FlatList
             data={likedAds}
             renderItem={renderAdCard}

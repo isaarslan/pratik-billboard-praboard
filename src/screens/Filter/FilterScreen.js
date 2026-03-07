@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import ChipSelector from '../../components/ChipSelector';
 import BackHeader from '../../components/BackHeader';
+import { useAds } from '../../context/AdContext';
 
 const TOPICS = [
   'Ekonomi',
@@ -36,9 +37,10 @@ const AD_TYPES = [
 ];
 
 const FilterScreen = ({ navigation }) => {
-  const [searchText, setSearchText] = useState('');
-  const [selectedTopics, setSelectedTopics] = useState([]);
-  const [selectedAdTypes, setSelectedAdTypes] = useState([]);
+  const { filters, applyFilters, clearFilters: clearContextFilters } = useAds();
+  const [searchText, setSearchText] = useState(filters.searchText || '');
+  const [selectedTopics, setSelectedTopics] = useState(filters.topics || []);
+  const [selectedAdTypes, setSelectedAdTypes] = useState(filters.adTypes || []);
 
   const toggleTopic = (topic) => {
     if (selectedTopics.includes(topic)) {
@@ -60,10 +62,15 @@ const FilterScreen = ({ navigation }) => {
     setSelectedTopics([]);
     setSelectedAdTypes([]);
     setSearchText('');
+    clearContextFilters();
   };
 
-  const applyFilters = () => {
-    // In real app, would pass filters back via navigation params or context
+  const handleApply = () => {
+    applyFilters({
+      searchText,
+      topics: selectedTopics,
+      adTypes: selectedAdTypes,
+    });
     navigation.goBack();
   };
 
@@ -126,7 +133,7 @@ const FilterScreen = ({ navigation }) => {
           <Text style={styles.clearButton}>Filtreleri Temizle</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.applyButton} onPress={applyFilters}>
+        <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
           <Text style={styles.applyButtonText}>Filtrele</Text>
         </TouchableOpacity>
       </View>
