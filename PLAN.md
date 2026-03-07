@@ -101,25 +101,24 @@
 
 ---
 
-## FAZE 6: Reklam Analitiği
+## FAZE 6: Reklam Analitiği ✅ TAMAMLANDI
 
-### 6.1 Gösterim Takibi
-- `ad_impressions` tablosu: id, ad_id, panel_id, viewed_at, duration_ms
-- TVDisplayScreen'de her reklam gösterildiğinde kayıt
-- Günlük/haftalık/aylık gösterim sayısı
+### 6.1 Gösterim Takibi ✅
+- ✅ ad_impressions tablosu (008_ad_impressions_table.sql)
+- ✅ TVDisplayScreen'de her slayt gösterildiğinde otomatik kayıt
+- ✅ analyticsService.js: recordImpression, getAdAnalytics, getUserAnalytics
 
-### 6.2 Analitik Dashboard (Kullanıcı)
-- **Yeni dosya**: `src/screens/Analytics/AnalyticsScreen.js`
-- Toplam gösterim, günlük ortalama
-- Panel bazlı gösterim dağılımı
-- Basit çizgi/bar grafikler
-- ProfileScreen'den erişim butonu
+### 6.2 Analitik Dashboard (Kullanıcı) ✅
+- ✅ AnalyticsScreen: Toplam gösterim, ort. süre, beğeni, paylaşım kartları
+- ✅ Son 7 gün bar grafiği
+- ✅ Panel dağılımı (yatay bar)
+- ✅ Sipariş bazlı performans listesi
+- ✅ ProfileScreen'de "Analitik" butonu
 
-### 6.3 Admin Analitiği
-- Admin Dashboard'da genel istatistikler
-- En çok gösterim alan reklamlar
-- Panel performans karşılaştırması
-- Gelir raporu (sipariş bazlı)
+### 6.3 Admin Analitiği ✅
+- ✅ DashboardTab'a en çok gösterim alan reklamlar eklendi
+- ✅ Panel performans karşılaştırması eklendi
+- ✅ getTopAds, getPanelPerformance servisleri
 
 ---
 

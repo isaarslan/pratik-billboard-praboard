@@ -23,6 +23,7 @@ import {
   fetchContentsDirectly,
   isSnapshotActive,
 } from '../../services/tvContentService';
+import { recordImpression } from '../../services/analyticsService';
 
 const HEARTBEAT_INTERVAL = 120000;
 const SLIDE_DURATION = 15000;
@@ -118,6 +119,14 @@ export default function TVDisplayScreen({ panelId }) {
   useEffect(() => {
     if (contents.length > 0 && contents[currentIndex]) {
       updatePanelCurrentContent(panelId, contents[currentIndex].id);
+      // Gösterim kaydı
+      const c = contents[currentIndex];
+      recordImpression({
+        adId: c.adId || c.id,
+        orderId: c.orderId || null,
+        panelId,
+        durationMs: (c.duration || 15) * 1000,
+      });
     }
   }, [currentIndex, contents, panelId]);
 

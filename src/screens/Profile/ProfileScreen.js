@@ -304,6 +304,13 @@ const ProfileScreen = ({ navigation }) => {
               >
                 <Text style={styles.editButtonText}>Profili düzenle</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.analyticsButton}
+                onPress={() => navigation.navigate('Analytics')}
+              >
+                <Ionicons name="analytics-outline" size={16} color={colors.primary} />
+                <Text style={styles.analyticsButtonText}>Analitik</Text>
+              </TouchableOpacity>
               {isAdmin && (
                 <TouchableOpacity
                   style={styles.adminButton}
@@ -548,6 +555,21 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   editButtonText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  analyticsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  analyticsButtonText: {
     color: colors.primary,
     fontSize: 14,
     fontWeight: '600',

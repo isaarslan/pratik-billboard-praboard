@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { getDashboardStats, getRecentActivities } from '../../services/adminService';
 import { getPanelStats } from '../../services/panelService';
+import { getTopAds, getPanelPerformance } from '../../services/analyticsService';
 
 const STATUS_LABELS = {
   onay_bekliyor: 'Onay Bekliyor',
@@ -40,18 +41,24 @@ export default function DashboardTab() {
   const [stats, setStats] = useState(null);
   const [panelStats, setPanelStats] = useState(null);
   const [activities, setActivities] = useState([]);
+  const [topAds, setTopAds] = useState([]);
+  const [panelPerf, setPanelPerf] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    const [s, ps, acts] = await Promise.all([
+    const [s, ps, acts, ta, pp] = await Promise.all([
       getDashboardStats(),
       getPanelStats(),
       getRecentActivities(8),
+      getTopAds(5),
+      getPanelPerformance(),
     ]);
     setStats(s);
     setPanelStats(ps);
     setActivities(acts);
+    setTopAds(ta);
+    setPanelPerf(pp);
     setLoading(false);
   }, []);
 
@@ -218,6 +225,43 @@ export default function DashboardTab() {
           ))
         )}
       </View>
+
+      {/* En Çok Gösterim Alan Reklamlar */}
+      {topAds.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>En Çok Gösterim</Text>
+          {topAds.map((ad, idx) => (
+            <View key={ad.id} style={styles.topAdRow}>
+              <View style={[styles.topAdRank, { backgroundColor: idx === 0 ? '#FFF0F0' : colors.gray[100] }]}>
+                <Text style={[styles.topAdRankText, { color: idx === 0 ? colors.primary : colors.textSecondary }]}>
+                  {idx + 1}
+                </Text>
+              </View>
+              <Text style={styles.topAdId} numberOfLines={1}>{ad.id}</Text>
+              <View style={styles.topAdViews}>
+                <Ionicons name="eye" size={14} color={colors.primary} />
+                <Text style={styles.topAdViewsText}>{ad.views}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Panel Performansı */}
+      {panelPerf.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Panel Performansı</Text>
+          {panelPerf.sort((a, b) => b.views - a.views).map((p) => (
+            <View key={p.panelId} style={styles.topAdRow}>
+              <Ionicons name="tv-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.topAdId, { marginLeft: 8 }]} numberOfLines={1}>{p.panelId}</Text>
+              <View style={styles.topAdViews}>
+                <Text style={styles.topAdViewsText}>{p.views} gösterim</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={{ height: 24 }} />
     </ScrollView>
@@ -415,5 +459,48 @@ const styles = StyleSheet.create({
     color: colors.gray[400],
     fontWeight: '500',
     marginLeft: 8,
+  },
+  // Top Ads & Panel Performance
+  topAdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  topAdRank: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  topAdRankText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  topAdId: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  topAdViews: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FFF0F0',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  topAdViewsText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primary,
   },
 });
