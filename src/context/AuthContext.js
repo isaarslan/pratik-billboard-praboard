@@ -57,7 +57,9 @@ export function AuthProvider({ children }) {
       }
       if (session?.user) {
         setUser(session.user);
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id).finally(() => {
+          if (mounted) setLoading(false);
+        });
       } else {
         setUser(null);
         setProfile(null);
