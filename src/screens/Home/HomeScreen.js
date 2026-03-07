@@ -20,7 +20,7 @@ import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import VideoPreview from '../../components/VideoPreview';
-import { toggleLike, getUserLikedAdIds } from '../../services/likeService';
+import { toggleLike, getUserLikedAdIds, getLikeCounts } from '../../services/likeService';
 import { shareAd, SHARE_PLATFORMS } from '../../services/shareService';
 
 
@@ -168,7 +168,7 @@ const HomeScreen = ({ navigation }) => {
   const [sharePickerItem, setSharePickerItem] = useState(null);
   const [searchText, setSearchText] = useState('');
 
-  // Kullanıcının beğenilerini yükle
+  // Kullanıcının beğenilerini ve gerçek beğeni sayılarını yükle
   useEffect(() => {
     if (!profile?.id) return;
     getUserLikedAdIds(profile.id).then((ids) => {
@@ -178,15 +178,25 @@ const HomeScreen = ({ navigation }) => {
     });
   }, [profile?.id]);
 
+  // Gerçek beğeni sayılarını veritabanından yükle
+  useEffect(() => {
+    const adIds = feedData.map((item) => item.id);
+    if (adIds.length === 0) return;
+    getLikeCounts(adIds).then((counts) => {
+      setLikeCounts(counts);
+    });
+  }, [feedData]);
+
   const handleLike = useCallback(async (adId) => {
     if (!profile?.id) return;
 
     // Optimistic update
     const wasLiked = likedAds[adId];
+    const currentCount = likeCounts[adId] || 0;
     setLikedAds((prev) => ({ ...prev, [adId]: !wasLiked }));
     setLikeCounts((prev) => ({
       ...prev,
-      [adId]: (prev[adId] || 0) + (wasLiked ? -1 : 1),
+      [adId]: currentCount + (wasLiked ? -1 : 1),
     }));
 
     const { error } = await toggleLike(profile.id, adId);
@@ -195,10 +205,10 @@ const HomeScreen = ({ navigation }) => {
       setLikedAds((prev) => ({ ...prev, [adId]: wasLiked }));
       setLikeCounts((prev) => ({
         ...prev,
-        [adId]: (prev[adId] || 0) + (wasLiked ? 1 : -1),
+        [adId]: currentCount,
       }));
     }
-  }, [profile?.id, likedAds]);
+  }, [profile?.id, likedAds, likeCounts]);
 
   const handleShare = useCallback((item) => {
     setSharePickerItem(item);
@@ -225,8 +235,14 @@ const HomeScreen = ({ navigation }) => {
         setLikedAds(map);
       });
     }
+    const adIds = feedData.map((item) => item.id);
+    if (adIds.length > 0) {
+      getLikeCounts(adIds).then((counts) => {
+        setLikeCounts(counts);
+      });
+    }
     setTimeout(() => setRefreshing(false), 1200);
-  }, [profile?.id]);
+  }, [profile?.id, feedData]);
 
   const feedData = useMemo(() => {
     const approvedAds = orders
@@ -325,7 +341,7 @@ const HomeScreen = ({ navigation }) => {
             color={likedAds[item.id] ? colors.primary : colors.gray[700]}
           />
           <Text style={[styles.interactionText, likedAds[item.id] && { color: colors.primary }]}>
-            {(parseInt(item.likes) || 0) + (likeCounts[item.id] || 0)}
+            {likeCounts[item.id] != null ? likeCounts[item.id] : (parseInt(item.likes) || 0)}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
