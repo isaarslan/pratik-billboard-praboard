@@ -161,7 +161,7 @@ const AdUploadScreen = ({ navigation }) => {
       </Text>
 
       {/* Secili Pano Bilgisi */}
-      {selectedPanel && (
+      {selectedPanel ? (
         <View style={styles.selectedPanelCard}>
           <Image source={{ uri: selectedPanel.image }} style={styles.selectedPanelImage} resizeMode="cover" />
           <View style={styles.selectedPanelInfo}>
@@ -171,6 +171,21 @@ const AdUploadScreen = ({ navigation }) => {
           </View>
           <Ionicons name="checkmark-circle" size={24} color="#2E7D32" />
         </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.selectPanelButton}
+          onPress={() => navigation.navigate('Panels')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.selectPanelIcon}>
+            <Ionicons name="map-outline" size={24} color={colors.primary} />
+          </View>
+          <View style={styles.selectPanelTextContainer}>
+            <Text style={styles.selectPanelTitle}>Haritadan Panel Seç</Text>
+            <Text style={styles.selectPanelSubtitle}>Billboard panolarını haritada görüntüle ve seç</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.gray[400]} />
+        </TouchableOpacity>
       )}
 
       <View style={styles.formContainer}>
@@ -969,6 +984,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.primary,
+    marginTop: 2,
+  },
+  selectPanelButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+  },
+  selectPanelIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#FFF0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectPanelTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  selectPanelTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  selectPanelSubtitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   montageSection: {

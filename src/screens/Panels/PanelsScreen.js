@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,83 +14,35 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import BillboardDetailModal from '../../components/BillboardDetailModal';
 import WebMap from '../../components/WebMap';
+import { getPanels } from '../../services/panelService';
 
 const WEB_BREAKPOINT = 768;
 
-const MOCK_PANELS = [
-  {
-    id: '1',
-    name: 'Kızılay Meydanı',
-    location: 'Kızılay, Ankara',
-    size: '3m x 6m',
-    price: '1.166 TL/gün',
-    status: 'Müsait',
-    image: 'https://picsum.photos/seed/panel1/400/250',
-    lat: 39.9208,
-    lng: 32.8541,
-  },
-  {
-    id: '2',
-    name: 'Tunalı Hilmi Caddesi',
-    location: 'Çankaya, Ankara',
-    size: '4m x 8m',
-    price: '2.350 TL/gün',
-    status: 'Müsait',
-    image: 'https://picsum.photos/seed/panel2/400/250',
-    lat: 39.9075,
-    lng: 32.8597,
-  },
-  {
-    id: '3',
-    name: 'Ulus Meydanı',
-    location: 'Altındağ, Ankara',
-    size: '2.5m x 5m',
-    price: '890 TL/gün',
-    status: 'Dolu',
-    image: 'https://picsum.photos/seed/panel3/400/250',
-    lat: 39.9414,
-    lng: 32.8543,
-  },
-  {
-    id: '4',
-    name: 'Bahçelievler AVM Girişi',
-    location: 'Çankaya, Ankara',
-    size: '3m x 4m',
-    price: '1.500 TL/gün',
-    status: 'Müsait',
-    image: 'https://picsum.photos/seed/panel4/400/250',
-    lat: 39.9220,
-    lng: 32.8280,
-  },
-  {
-    id: '5',
-    name: 'Batıkent Metro Çıkışı',
-    location: 'Yenimahalle, Ankara',
-    size: '2m x 4m',
-    price: '750 TL/gün',
-    status: 'Müsait',
-    image: 'https://picsum.photos/seed/panel5/400/250',
-    lat: 39.9700,
-    lng: 32.7300,
-  },
-  {
-    id: '6',
-    name: 'Gölbaşı Sahil Yolu',
-    location: 'Gölbaşı, Ankara',
-    size: '3m x 6m',
-    price: '1.050 TL/gün',
-    status: 'Dolu',
-    image: 'https://picsum.photos/seed/panel6/400/250',
-    lat: 39.7850,
-    lng: 32.8040,
-  },
-];
+const STATUS_MAP = {
+  available: 'Müsait',
+  full: 'Dolu',
+  maintenance: 'Bakımda',
+};
+
+function formatPanel(p) {
+  return {
+    ...p,
+    status: STATUS_MAP[p.status] || p.status || 'Müsait',
+    price: typeof p.price === 'number' ? `${p.price.toLocaleString('tr-TR')} TL/gün` : p.price,
+    image: p.image || `https://picsum.photos/seed/panel${p.id}/400/250`,
+  };
+}
 
 export default function PanelsScreen({ navigation }) {
   const [viewMode, setViewMode] = useState('map');
   const [selectedPanel, setSelectedPanel] = useState(null);
+  const [panels, setPanels] = useState([]);
   const { width } = useWindowDimensions();
   const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
+
+  useEffect(() => {
+    getPanels().then((data) => setPanels(data.map(formatPanel)));
+  }, []);
 
   const handlePanelPress = (panel) => {
     setSelectedPanel(panel);
@@ -102,18 +54,18 @@ export default function PanelsScreen({ navigation }) {
     navigation.navigate('AdUpload', { panel: panelData });
   };
 
-  const mapMarkers = MOCK_PANELS.map((p) => ({
+  const mapMarkers = panels.map((p) => ({
     id: p.id,
     lat: p.lat,
     lng: p.lng,
     label: p.name,
-    color: p.status === 'Dolu' ? '#737373' : '#FF4B4B',
+    color: p.status === 'Dolu' || p.status === 'Bakımda' ? '#737373' : '#FF4B4B',
   }));
 
   const handleMarkerPress = useCallback((marker) => {
-    const panel = MOCK_PANELS.find((p) => p.id === marker.id);
+    const panel = panels.find((p) => p.id === marker.id);
     if (panel) handlePanelPress(panel);
-  }, []);
+  }, [panels]);
 
   // --- MAP VIEW ---
   const renderMapView = () => (
@@ -130,6 +82,7 @@ export default function PanelsScreen({ navigation }) {
   // --- LIST VIEW ---
   const renderPanel = ({ item }) => {
     const isAvailable = item.status === 'Müsait';
+    const isMaintenance = item.status === 'Bakımda';
 
     return (
       <TouchableOpacity style={styles.card} onPress={() => handlePanelPress(item)} activeOpacity={0.7}>
@@ -137,8 +90,14 @@ export default function PanelsScreen({ navigation }) {
         <View style={styles.cardBody}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardName}>{item.name}</Text>
-            <View style={[styles.statusBadge, isAvailable ? styles.statusAvailable : styles.statusFull]}>
-              <Text style={[styles.statusText, isAvailable ? styles.statusTextAvailable : styles.statusTextFull]}>
+            <View style={[
+              styles.statusBadge,
+              isAvailable ? styles.statusAvailable : isMaintenance ? styles.statusMaintenance : styles.statusFull,
+            ]}>
+              <Text style={[
+                styles.statusText,
+                isAvailable ? styles.statusTextAvailable : isMaintenance ? styles.statusTextMaintenance : styles.statusTextFull,
+              ]}>
                 {item.status}
               </Text>
             </View>
@@ -169,7 +128,7 @@ export default function PanelsScreen({ navigation }) {
 
   const renderListView = () => (
     <FlatList
-      data={MOCK_PANELS}
+      data={panels}
       renderItem={renderPanel}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}
@@ -199,7 +158,7 @@ export default function PanelsScreen({ navigation }) {
           </View>
           <View style={styles.webListSection}>
             <FlatList
-              data={MOCK_PANELS}
+              data={panels}
               renderItem={renderPanel}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.webListContent}
@@ -333,6 +292,9 @@ const styles = StyleSheet.create({
   statusFull: {
     backgroundColor: '#FFF3E0',
   },
+  statusMaintenance: {
+    backgroundColor: '#FFEBEE',
+  },
   statusText: {
     fontSize: 12,
     fontWeight: '600',
@@ -342,6 +304,9 @@ const styles = StyleSheet.create({
   },
   statusTextFull: {
     color: '#E65100',
+  },
+  statusTextMaintenance: {
+    color: '#C62828',
   },
   infoRow: {
     flexDirection: 'row',
