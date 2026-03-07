@@ -111,6 +111,14 @@ export function AuthProvider({ children }) {
     return publicUrl;
   }, [user]);
 
+  // Kapak fotoğrafı yükle
+  const uploadCover = useCallback(async (fileUri) => {
+    if (!user) return;
+    const publicUrl = await userService.uploadCover(user.id, fileUri);
+    setProfile((prev) => ({ ...prev, cover_url: publicUrl }));
+    return publicUrl;
+  }, [user]);
+
   // Username kaydet
   const setUsername = useCallback(async (username) => {
     if (!user) return;
@@ -155,6 +163,7 @@ export function AuthProvider({ children }) {
     updatePassword,
     updateProfile,
     uploadAvatar,
+    uploadCover,
     setUsername,
     refreshProfile,
     clearEmailVerified,

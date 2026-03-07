@@ -20,13 +20,15 @@ import BackHeader from '../../components/BackHeader';
 import { useAuth } from '../../context/AuthContext';
 
 const EditProfileScreen = ({ navigation }) => {
-  const { profile, updateProfile, uploadAvatar } = useAuth();
+  const { profile, updateProfile, uploadAvatar, uploadCover } = useAuth();
 
   const [name, setName] = useState(profile?.full_name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [email, setEmail] = useState(profile?.email || '');
   const [avatarUri, setAvatarUri] = useState(profile?.avatar_url || null);
+  const [coverUri, setCoverUri] = useState(profile?.cover_url || null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const pickImage = async () => {
@@ -75,6 +77,51 @@ const EditProfileScreen = ({ navigation }) => {
     }
   };
 
+  const pickCoverImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('İzin Gerekli', 'Fotoğraf seçmek için galeri izni gerekiyor.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets?.[0]) {
+      const uri = result.assets[0].uri;
+      let previewUri = uri;
+      if (Platform.OS === 'web' && uri.startsWith('blob:')) {
+        try {
+          const res = await fetch(uri);
+          const blob = await res.blob();
+          previewUri = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          previewUri = uri;
+        }
+      }
+      setCoverUri(previewUri);
+      setUploadingCover(true);
+      try {
+        await uploadCover(previewUri);
+      } catch (err) {
+        console.error('Cover upload error:', err);
+        Alert.alert('Hata', err?.message || 'Kapak fotoğrafı yüklenirken bir hata oluştu.');
+        setCoverUri(profile?.cover_url || null);
+      } finally {
+        setUploadingCover(false);
+      }
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -102,9 +149,26 @@ const EditProfileScreen = ({ navigation }) => {
           contentContainerStyle={styles.scrollContent}
         >
           {/* Cover Photo Section */}
-          <View style={styles.coverPhotoContainer}>
-            <View style={styles.coverPhoto} />
-          </View>
+          <TouchableOpacity
+            style={styles.coverPhotoContainer}
+            onPress={pickCoverImage}
+            activeOpacity={0.8}
+          >
+            {coverUri ? (
+              <Image source={{ uri: coverUri }} style={styles.coverPhoto} resizeMode="cover" />
+            ) : (
+              <View style={styles.coverPhoto} />
+            )}
+            {uploadingCover && (
+              <View style={styles.coverUploadingOverlay}>
+                <ActivityIndicator color={colors.white} size="large" />
+              </View>
+            )}
+            <View style={styles.coverEditIcon}>
+              <Ionicons name="camera" size={18} color={colors.white} />
+              <Text style={styles.coverEditText}>Kapak Fotoğrafı</Text>
+            </View>
+          </TouchableOpacity>
 
           {/* Profile Avatar Section */}
           <View style={styles.avatarContainer}>
@@ -166,7 +230,7 @@ const EditProfileScreen = ({ navigation }) => {
             <PrimaryButton
               title={saving ? 'Kaydediliyor...' : 'Kaydet'}
               onPress={handleSave}
-              disabled={saving || uploading}
+              disabled={saving || uploading || uploadingCover}
             />
           </View>
         </ScrollView>
@@ -196,6 +260,29 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     backgroundColor: '#2A2A2A',
+  },
+  coverUploadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  coverEditIcon: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  coverEditText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '600',
   },
   avatarContainer: {
     alignItems: 'center',

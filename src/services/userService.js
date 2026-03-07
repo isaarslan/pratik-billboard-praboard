@@ -107,3 +107,31 @@ export async function uploadAvatar(userId, fileUri) {
   await updateProfile(userId, { avatar_url: publicUrl });
   return publicUrl;
 }
+
+/**
+ * Kapak fotoğrafı yükle
+ */
+export async function uploadCover(userId, fileUri) {
+  const fileName = `${userId}/cover_${Date.now()}.jpg`;
+
+  let fileData;
+  if (fileUri.startsWith('blob:') || fileUri.startsWith('data:')) {
+    const dataUrl = fileUri.startsWith('data:') ? fileUri : await blobUriToBase64(fileUri);
+    fileData = base64ToUint8Array(dataUrl);
+  } else {
+    const response = await fetch(fileUri);
+    fileData = await response.arrayBuffer();
+  }
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, fileData, { contentType: 'image/jpeg', upsert: true });
+  if (uploadError) throw uploadError;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(fileName);
+
+  await updateProfile(userId, { cover_url: publicUrl });
+  return publicUrl;
+}

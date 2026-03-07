@@ -194,7 +194,15 @@ const ProfileScreen = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Cover Photo Section */}
         <View style={[styles.coverPhotoContainer, isWebWide && styles.coverPhotoWeb]}>
-          <View style={[styles.coverPhoto, isWebWide && styles.coverPhotoInnerWeb]} />
+          {profile?.cover_url ? (
+            <Image
+              source={{ uri: profile.cover_url }}
+              style={[styles.coverPhoto, isWebWide && styles.coverPhotoInnerWeb]}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.coverPhoto, isWebWide && styles.coverPhotoInnerWeb]} />
+          )}
           <View style={[styles.coverOverlayIcons, isWebWide && styles.coverOverlayWeb]}>
             {!isWebWide && navigation.canGoBack && (
               <TouchableOpacity
