@@ -27,6 +27,7 @@ import BackHeader from '../../components/BackHeader';
 import DateTimePickerModal from '../../components/DateTimePickerModal';
 import { useAds } from '../../context/AdContext';
 import { useOrders } from '../../context/OrderContext';
+import { uploadAdMedia } from '../../services/orderService';
 
 const AdUploadScreen = ({ navigation }) => {
   const { addAd } = useAds();
@@ -557,27 +558,31 @@ const AdUploadScreen = ({ navigation }) => {
         <PrimaryButton
           title="Onayla ve Yayınla"
           onPress={async () => {
-            addAd({
-              title: adTitle,
-              duration: adDuration,
-              dates,
-              image: selectedMedia,
-              mediaType: mediaType || 'image',
-              campaignDetails,
-            });
-            if (selectedPanel) {
-              try {
+            try {
+              // Medyayı Supabase Storage'a yükle (blob/data URI → public URL)
+              const uploadedUrl = await uploadAdMedia(selectedMedia, mediaType || 'image');
+              const mediaUrl = uploadedUrl || selectedMedia;
+
+              addAd({
+                title: adTitle,
+                duration: adDuration,
+                dates,
+                image: mediaUrl,
+                mediaType: mediaType || 'image',
+                campaignDetails,
+              });
+              if (selectedPanel) {
                 await addOrder({
                   adTitle,
-                  adImage: selectedMedia,
+                  adImage: mediaUrl,
                   mediaType: mediaType || 'image',
                   panel: selectedPanel,
                   dates,
                   adDuration,
                 });
-              } catch (err) {
-                console.warn('Siparis kaydetme hatasi:', err.message);
               }
+            } catch (err) {
+              console.warn('Siparis kaydetme hatasi:', err.message);
             }
             setShowSuccessModal(true);
           }}
