@@ -42,24 +42,35 @@ export function NotificationProvider({ children }) {
 
     loadNotifications();
 
-    const channel = supabase
-      .channel('notifications_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          loadNotifications();
-        }
-      )
-      .subscribe();
+    let channel;
+    try {
+      channel = supabase
+        .channel('notifications_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            loadNotifications();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('Bildirim kanali baglanamadi, tablo mevcut olmayabilir.');
+          }
+        });
+    } catch (err) {
+      console.warn('Bildirim kanali olusturulamadi:', err.message);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try { supabase.removeChannel(channel); } catch { /* ignore */ }
+      }
     };
   }, [user?.id, loadNotifications]);
 
