@@ -62,7 +62,7 @@ function VideoPreviewWeb({ uri, poster, style, shouldPlay = false, muted: mutedP
   const containerStyle = {
     width: flatStyle.width || '100%',
     height: flatStyle.height || undefined,
-    aspectRatio: flatStyle.height ? undefined : (flatStyle.aspectRatio || '4/3'),
+    aspectRatio: flatStyle.height ? undefined : (flatStyle.aspectRatio || 4/3),
     borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 0),
     backgroundColor: '#000',
     position: 'relative',
@@ -90,26 +90,31 @@ function VideoPreviewWeb({ uri, poster, style, shouldPlay = false, muted: mutedP
   }
 
   // Video oynatici
-  return React.createElement('div', {
-    style: containerStyle,
-  }, React.createElement('video', {
-    ref: videoRef,
-    src: uri,
-    controls: !shouldPlay,
-    playsInline: true,
-    loop: true,
-    muted: isMuted,
-    autoPlay: shouldPlay,
-    preload: shouldPlay ? 'auto' : 'metadata',
-    style: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 0),
-      backgroundColor: '#000',
-      display: 'block',
-    },
-  }));
+  return (
+    <View style={containerStyle}>
+      {React.createElement('video', {
+        ref: videoRef,
+        src: uri,
+        controls: !shouldPlay,
+        playsInline: true,
+        loop: true,
+        muted: isMuted,
+        autoPlay: shouldPlay,
+        preload: shouldPlay ? 'auto' : 'metadata',
+        style: {
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          borderRadius: shouldPlay ? 0 : (flatStyle.borderRadius || 0),
+          backgroundColor: '#000',
+          display: 'block',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        },
+      })}
+    </View>
+  );
 }
 
 const webStyles = StyleSheet.create({
