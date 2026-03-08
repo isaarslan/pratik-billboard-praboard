@@ -168,6 +168,38 @@ const HomeScreen = ({ navigation }) => {
   const [sharePickerItem, setSharePickerItem] = useState(null);
   const [searchText, setSearchText] = useState('');
 
+  const feedData = useMemo(() => {
+    const approvedAds = orders
+      .filter((o) => o.status === 'hazirlaniyor' || o.status === 'live')
+      .map(orderToAd);
+    const userContent = [...approvedAds, ...allAds];
+    let data = userContent.length > 0 ? userContent : DEMO_ADS;
+
+    // Arama filtresi (inline + FilterScreen)
+    const query = (searchText || filters.searchText || '').toLowerCase().trim();
+    if (query) {
+      data = data.filter((ad) =>
+        (ad.description || '').toLowerCase().includes(query) ||
+        (ad.user || '').toLowerCase().includes(query) ||
+        (ad.username || '').toLowerCase().includes(query) ||
+        (ad.location || '').toLowerCase().includes(query) ||
+        (ad.sector || '').toLowerCase().includes(query)
+      );
+    }
+
+    // Konu filtresi
+    if (filters.topics?.length > 0) {
+      data = data.filter((ad) =>
+        filters.topics.some((t) =>
+          (ad.sector || '').toLowerCase().includes(t.toLowerCase()) ||
+          (ad.description || '').toLowerCase().includes(t.toLowerCase())
+        )
+      );
+    }
+
+    return data;
+  }, [orders, allAds, filters, searchText]);
+
   // Kullanıcının beğenilerini ve gerçek beğeni sayılarını yükle
   useEffect(() => {
     if (!profile?.id) return;
@@ -243,38 +275,6 @@ const HomeScreen = ({ navigation }) => {
     }
     setTimeout(() => setRefreshing(false), 1200);
   }, [profile?.id, feedData]);
-
-  const feedData = useMemo(() => {
-    const approvedAds = orders
-      .filter((o) => o.status === 'hazirlaniyor' || o.status === 'live')
-      .map(orderToAd);
-    const userContent = [...approvedAds, ...allAds];
-    let data = userContent.length > 0 ? userContent : DEMO_ADS;
-
-    // Arama filtresi (inline + FilterScreen)
-    const query = (searchText || filters.searchText || '').toLowerCase().trim();
-    if (query) {
-      data = data.filter((ad) =>
-        (ad.description || '').toLowerCase().includes(query) ||
-        (ad.user || '').toLowerCase().includes(query) ||
-        (ad.username || '').toLowerCase().includes(query) ||
-        (ad.location || '').toLowerCase().includes(query) ||
-        (ad.sector || '').toLowerCase().includes(query)
-      );
-    }
-
-    // Konu filtresi
-    if (filters.topics?.length > 0) {
-      data = data.filter((ad) =>
-        filters.topics.some((t) =>
-          (ad.sector || '').toLowerCase().includes(t.toLowerCase()) ||
-          (ad.description || '').toLowerCase().includes(t.toLowerCase())
-        )
-      );
-    }
-
-    return data;
-  }, [orders, allAds, filters, searchText]);
 
   const renderAdCard = ({ item }) => (
     <View
