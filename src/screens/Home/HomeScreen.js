@@ -155,7 +155,7 @@ const WEB_BREAKPOINT = 768;
 
 const HomeScreen = ({ navigation }) => {
   const { allAds, filters, activeFilterCount } = useAds();
-  const { orders } = useOrders();
+  const { orders, loading: ordersLoading } = useOrders();
   const { profile } = useAuth();
   const { width } = useWindowDimensions();
 
@@ -173,7 +173,9 @@ const HomeScreen = ({ navigation }) => {
       .filter((o) => o.status === 'hazirlaniyor' || o.status === 'live')
       .map(orderToAd);
     const userContent = [...approvedAds, ...allAds];
-    let data = userContent.length > 0 ? userContent : DEMO_ADS;
+    // Gerçek içerik varsa önce onları, sonra demo'ları göster
+    // Yükleme bitmemişse veya hiç içerik yoksa sadece demo göster
+    let data = userContent.length > 0 ? [...userContent, ...DEMO_ADS] : DEMO_ADS;
 
     // Arama filtresi (inline + FilterScreen)
     const query = (searchText || filters.searchText || '').toLowerCase().trim();
@@ -313,7 +315,32 @@ const HomeScreen = ({ navigation }) => {
       >
         {item.mediaType === 'video' ? (
           <>
-            <VideoPreview uri={item.image} style={styles.adImage} />
+            {Platform.OS === 'web' ? (
+              <View style={[styles.adImage, styles.videoThumbnail]}>
+                {React.createElement('video', {
+                  src: item.image,
+                  preload: 'metadata',
+                  muted: true,
+                  playsInline: true,
+                  style: {
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    pointerEvents: 'none',
+                  },
+                })}
+                <View style={styles.videoPlayOverlay}>
+                  <View style={styles.videoPlayButton}>
+                    <Ionicons name="play" size={28} color="#fff" />
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <VideoPreview uri={item.image} style={styles.adImage} />
+            )}
             <View style={styles.videoBadge}>
               <Ionicons name="videocam" size={12} color={colors.white} />
               <Text style={styles.videoBadgeText}>Video</Text>
@@ -926,6 +953,26 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 4 / 3,
     backgroundColor: colors.gray[200],
+  },
+  videoThumbnail: {
+    backgroundColor: '#000',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  videoPlayOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  videoPlayButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: 3,
   },
   videoBadge: {
     position: 'absolute',
