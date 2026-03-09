@@ -20,6 +20,7 @@ import {
   updatePanel,
   deletePanel,
   updatePanelStatus,
+  seedDefaultPanels,
   PANEL_STATUS_MAP,
   PANEL_STATUS_COLORS,
 } from '../../services/panelService';
@@ -170,8 +171,24 @@ export default function PanelManagementTab() {
           <View style={styles.emptyContainer}>
             <Ionicons name="map-outline" size={48} color={colors.gray[300]} />
             <Text style={styles.emptyText}>Henüz panel eklenmemiş</Text>
-            <TouchableOpacity style={styles.emptyButton} onPress={openAddForm}>
-              <Text style={styles.emptyButtonText}>İlk Paneli Ekle</Text>
+            <TouchableOpacity
+              style={styles.seedButton}
+              onPress={async () => {
+                const result = await seedDefaultPanels();
+                if (result.seeded) {
+                  await loadPanels();
+                } else {
+                  const msg = result.error || 'Varsayılan paneller yüklenemedi';
+                  if (Platform.OS === 'web') { alert(msg); } else { Alert.alert('Hata', msg); }
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="download-outline" size={18} color="#fff" />
+              <Text style={styles.emptyButtonText}>Varsayılan Panelleri Yükle</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.emptyButton, { marginTop: 10 }]} onPress={openAddForm}>
+              <Text style={styles.emptyButtonText}>Manuel Panel Ekle</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -428,9 +445,19 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 12,
   },
+  seedButton: {
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
   emptyButton: {
     marginTop: 16,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.gray[500],
     borderRadius: 10,
     paddingHorizontal: 20,
     paddingVertical: 10,
