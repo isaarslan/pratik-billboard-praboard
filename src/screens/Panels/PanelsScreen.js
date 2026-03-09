@@ -27,6 +27,7 @@ const STATUS_MAP = {
 function formatPanel(p) {
   return {
     ...p,
+    rawPrice: p.price,
     status: STATUS_MAP[p.status] || p.status || 'Müsait',
     price: typeof p.price === 'number' ? `${p.price.toLocaleString('tr-TR')} TL/gün` : p.price,
     image: p.image || `https://picsum.photos/seed/panel${p.id}/400/250`,

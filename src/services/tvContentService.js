@@ -210,14 +210,36 @@ export async function pushContentToTV(order) {
   const contentId = `tv-${Date.now()}`;
   const orderMediaType = order.mediaType || 'image';
   const mediaUrl = await uploadMediaToStorage(order.adImage, contentId, orderMediaType);
-  const panelId = String(order.panel.id);
+
+  // Panel ID eslestirme: panels tablosu UUID kullanir, tv_panels ise string ID.
+  // Order'daki panel name'i kullanarak tv_panels'deki dogru panel_id'yi bul.
+  let panelId = String(order.panel.id);
+  const panelName = order.panel.name;
+
+  if (panelName) {
+    try {
+      const { data: matchingPanel } = await supabase
+        .from('tv_panels')
+        .select('id')
+        .eq('name', panelName)
+        .limit(1)
+        .maybeSingle();
+
+      if (matchingPanel) {
+        panelId = String(matchingPanel.id);
+      }
+    } catch (err) {
+      console.warn('tv_panels eslestirme hatasi:', err.message);
+    }
+  }
+
   const content = {
     orderId: order.id,
     adTitle: order.adTitle,
     mediaUrl: mediaUrl || order.adImage,
     mediaType: orderMediaType,
     panelId: panelId,
-    panelName: order.panel.name,
+    panelName: panelName || order.panel.name,
     duration: parseInt(order.adDuration) || 15,
     scheduledDates: order.dates || [],
     status: 'playing',
@@ -343,9 +365,37 @@ export async function removeContent(contentId) {
 /** Pano kaydet veya guncelle (TV ilk acildiginda) */
 export async function registerPanel(panelId, panelData) {
   try {
+    // Eger panelId bir UUID ise (panels tablosundan), tv_panels'da isim eslestirmesi yap
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(panelId);
+    let resolvedId = panelId;
+    let panelName = panelData.name || `Panel ${panelId}`;
+
+    if (isUUID) {
+      // panels tablosundan bilgiyi cek
+      const { data: panelsRow } = await supabase
+        .from('panels')
+        .select('name')
+        .eq('id', panelId)
+        .maybeSingle();
+
+      if (panelsRow?.name) {
+        panelName = panelsRow.name;
+        // tv_panels'da isimle esles
+        const { data: tvPanel } = await supabase
+          .from('tv_panels')
+          .select('id')
+          .eq('name', panelsRow.name)
+          .maybeSingle();
+
+        if (tvPanel) {
+          resolvedId = String(tvPanel.id);
+        }
+      }
+    }
+
     const data = {
-      id: panelId,
-      name: panelData.name || `Panel ${panelId}`,
+      id: resolvedId,
+      name: panelName,
       location: panelData.location || '',
       status: 'online',
       last_heartbeat: Date.now(),

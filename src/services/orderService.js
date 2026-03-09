@@ -128,11 +128,11 @@ export async function createOrder(orderData) {
     panel_name: orderData.panel?.name || null,
     panel_location: orderData.panel?.location || null,
     panel_size: orderData.panel?.size || null,
-    panel_price: orderData.panel?.price || null,
+    panel_price: orderData.panel?.rawPrice || orderData.panel?.price || null,
     panel_image: orderData.panel?.image || null,
     dates: orderData.dates || [],
     ad_duration: `${orderData.adDuration || 15} saniye`,
-    total_price: `${(orderData.dates?.length || 1) * (parseInt(orderData.panel?.price) || 1166)} TL`,
+    total_price: `${(orderData.dates?.length || 1) * (parseInt(orderData.panel?.rawPrice || orderData.panel?.price) || 1166)} TL`,
     campaign_details: orderData.campaignDetails || null,
     status: 'onay_bekliyor',
   };
