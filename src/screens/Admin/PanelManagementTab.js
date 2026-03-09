@@ -155,10 +155,28 @@ export default function PanelManagementTab() {
       {/* Üst Bar */}
       <View style={styles.topBar}>
         <Text style={styles.topBarTitle}>{panels.length} Panel</Text>
-        <TouchableOpacity style={styles.addButton} onPress={openAddForm} activeOpacity={0.7}>
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text style={styles.addButtonText}>Yeni Panel</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: colors.gray[600] }]}
+            onPress={async () => {
+              const result = await seedDefaultPanels(true);
+              if (result.seeded) {
+                await loadPanels();
+              } else {
+                const msg = result.error || 'Yüklenemedi';
+                if (Platform.OS === 'web') { alert(msg); } else { Alert.alert('Hata', msg); }
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="download-outline" size={16} color="#fff" />
+            <Text style={styles.addButtonText}>Seed</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={openAddForm} activeOpacity={0.7}>
+            <Ionicons name="add" size={18} color="#fff" />
+            <Text style={styles.addButtonText}>Yeni Panel</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Panel Listesi */}
@@ -174,7 +192,7 @@ export default function PanelManagementTab() {
             <TouchableOpacity
               style={styles.seedButton}
               onPress={async () => {
-                const result = await seedDefaultPanels();
+                const result = await seedDefaultPanels(true);
                 if (result.seeded) {
                   await loadPanels();
                 } else {

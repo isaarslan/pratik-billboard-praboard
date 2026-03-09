@@ -225,16 +225,18 @@ export async function getPanelStats() {
   }
 }
 
-// Varsayılan panelleri Supabase'e yükle (ilk kurulum için)
-export async function seedDefaultPanels() {
+// Varsayılan panelleri Supabase'e yükle (force=true ise mevcut paneller olsa bile ekle)
+export async function seedDefaultPanels(force = false) {
   try {
-    const { data: existing } = await supabase
-      .from('panels')
-      .select('id')
-      .limit(1);
+    if (!force) {
+      const { data: existing } = await supabase
+        .from('panels')
+        .select('id')
+        .limit(1);
 
-    if (existing && existing.length > 0) {
-      return { seeded: false, message: 'Paneller zaten mevcut' };
+      if (existing && existing.length > 0) {
+        return { seeded: false, message: 'Paneller zaten mevcut' };
+      }
     }
 
     const { error } = await supabase.from('panels').insert(DEFAULT_PANELS);
