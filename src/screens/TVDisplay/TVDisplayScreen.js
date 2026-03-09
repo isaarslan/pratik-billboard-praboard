@@ -21,7 +21,10 @@ import {
   updatePanelCurrentContent,
   registerPanel,
   fetchContentsDirectly,
+  fetchPanelsDirectly,
   isSnapshotActive,
+  initializeDefaultPanels,
+  cleanupOrphanedPanels,
 } from '../../services/tvContentService';
 import { recordImpression } from '../../services/analyticsService';
 
@@ -55,7 +58,7 @@ export default function TVDisplayScreen({ panelId }) {
     const activeContents = getActiveContentsByPanel(panelId);
     setContents(activeContents);
     const panels = getTvPanels();
-    const panel = panels.find((p) => p.id === panelId);
+    const panel = panels.find((p) => String(p.id) === String(panelId));
     if (panel) setPanelInfo(panel);
   }, [panelId]);
 
@@ -66,18 +69,22 @@ export default function TVDisplayScreen({ panelId }) {
     });
 
     const initialFetch = async () => {
+      // Oncelikle panellerin yuklendiginden emin ol (isim eslestirme icin kritik)
+      await initializeDefaultPanels();
+      await fetchPanelsDirectly();
       await fetchContentsDirectly();
       refreshData();
-      setTimeout(async () => {
-        await fetchContentsDirectly();
-        refreshData();
-      }, 2000);
+
+      // Bozuk verileri temizle (UUID panel_id'ler vb.)
+      await cleanupOrphanedPanels();
+      await fetchContentsDirectly();
+      refreshData();
     };
     initialFetch();
 
     const pollTimer = setInterval(() => {
       fetchContentsDirectly().then(() => refreshData());
-    }, 30000);
+    }, 10000);
 
     return () => {
       unsubscribe();

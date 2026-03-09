@@ -20,6 +20,16 @@ let _panelsSubscription = null;
 let _snapshotActive = false;
 let _retryTimer = null;
 
+// Panel isim → string ID haritasi (hardcoded fallback)
+const PANEL_NAME_TO_ID = {
+  'Kızılay Meydanı': '1',
+  'Tunalı Hilmi Caddesi': '2',
+  'Ulus Meydanı': '3',
+  'Bahçelievler AVM Girişi': '4',
+  'Batıkent Metro Çıkışı': '5',
+  'Gölbaşı Sahil Yolu': '6',
+};
+
 const notifyListeners = () => _listeners.forEach((fn) => fn());
 
 /** Supabase Realtime aktif mi */
@@ -79,7 +89,10 @@ export function startListening() {
 
 /** Realtime degisiklik handler - tv_contents */
 function handleContentChange(payload) {
-  const { eventType, new: newRow, old: oldRow } = payload;
+  // Supabase JS v2: eventType dogrudan payload uzerinde
+  const eventType = payload.eventType || payload.type;
+  const newRow = payload.new;
+  const oldRow = payload.old;
 
   if (eventType === 'INSERT') {
     const mapped = mapContentRow(newRow);
@@ -88,9 +101,18 @@ function handleContentChange(payload) {
     }
   } else if (eventType === 'UPDATE') {
     const mapped = mapContentRow(newRow);
-    _tvContents = _tvContents.map((c) => (c.id === mapped.id ? mapped : c));
+    const exists = _tvContents.find((c) => c.id === mapped.id);
+    if (exists) {
+      _tvContents = _tvContents.map((c) => (c.id === mapped.id ? mapped : c));
+    } else {
+      // Bazen UPDATE ilk fetch'ten once gelebilir
+      _tvContents = [mapped, ..._tvContents];
+    }
   } else if (eventType === 'DELETE') {
-    _tvContents = _tvContents.filter((c) => c.id !== oldRow.id);
+    const deleteId = oldRow?.id || newRow?.id;
+    if (deleteId) {
+      _tvContents = _tvContents.filter((c) => c.id !== deleteId);
+    }
   }
 
   notifyListeners();
@@ -98,7 +120,9 @@ function handleContentChange(payload) {
 
 /** Realtime degisiklik handler - tv_panels */
 function handlePanelChange(payload) {
-  const { eventType, new: newRow, old: oldRow } = payload;
+  const eventType = payload.eventType || payload.type;
+  const newRow = payload.new;
+  const oldRow = payload.old;
 
   if (eventType === 'INSERT') {
     const mapped = mapPanelRow(newRow);
@@ -109,7 +133,10 @@ function handlePanelChange(payload) {
     const mapped = mapPanelRow(newRow);
     _tvPanels = _tvPanels.map((p) => (p.id === mapped.id ? mapped : p));
   } else if (eventType === 'DELETE') {
-    _tvPanels = _tvPanels.filter((p) => p.id !== oldRow.id);
+    const deleteId = oldRow?.id || newRow?.id;
+    if (deleteId) {
+      _tvPanels = _tvPanels.filter((p) => p.id !== deleteId);
+    }
   }
 
   notifyListeners();
@@ -163,6 +190,83 @@ export function stopListening() {
 startListening();
 
 // ============================================================
+// PANEL ID COZUMLEME YARDIMCILARI
+// ============================================================
+
+/**
+ * Panel ismi ile string ID ('1','2',...) arasindaki eslestirmeyi bul.
+ * 3 katmanli: Supabase → lokal cache → hardcoded harita
+ */
+async function resolveToTvPanelId(orderPanel) {
+  const panelName = orderPanel?.name;
+  if (!panelName) return null;
+
+  const normalizedName = panelName.trim().toLowerCase();
+
+  // 1) Supabase'den sorgula
+  try {
+    const { data: tvPanel } = await supabase
+      .from('tv_panels')
+      .select('id, name')
+      .eq('name', panelName)
+      .limit(1)
+      .maybeSingle();
+
+    if (tvPanel) return String(tvPanel.id);
+
+    // Tam esleme bulunamazsa, tum panelleri cek
+    const { data: allPanels } = await supabase
+      .from('tv_panels')
+      .select('id, name');
+
+    if (allPanels && allPanels.length > 0) {
+      const match = allPanels.find(
+        (p) => p.name && p.name.trim().toLowerCase() === normalizedName
+      );
+      if (match) return String(match.id);
+    }
+  } catch (err) {
+    console.warn('resolveToTvPanelId DB hatasi:', err.message);
+  }
+
+  // 2) Lokal cache'den bul
+  const cachedPanel = _tvPanels.find(
+    (p) => p.name && p.name.trim().toLowerCase() === normalizedName
+  );
+  if (cachedPanel) return String(cachedPanel.id);
+
+  // 3) Hardcoded haritadan bul (son care - DB/cache bos olsa bile calisir)
+  const hardcodedId = PANEL_NAME_TO_ID[panelName];
+  if (hardcodedId) return hardcodedId;
+
+  // Hardcoded haritada case-insensitive ara
+  const hardcodedMatch = Object.entries(PANEL_NAME_TO_ID).find(
+    ([name]) => name.trim().toLowerCase() === normalizedName
+  );
+  if (hardcodedMatch) return hardcodedMatch[1];
+
+  return null;
+}
+
+/**
+ * Bir panelId (string '1','2' vb.) icin panel ismini bul.
+ * TV display ekraninda kullanilir.
+ */
+function getPanelNameById(panelId) {
+  const pid = String(panelId);
+
+  // Lokal cache'den
+  const panel = _tvPanels.find((p) => String(p.id) === pid);
+  if (panel?.name) return panel.name;
+
+  // Hardcoded haritadan (ters cevir)
+  const entry = Object.entries(PANEL_NAME_TO_ID).find(([, id]) => id === pid);
+  if (entry) return entry[0];
+
+  return null;
+}
+
+// ============================================================
 // TV ICERIK ISLEMLERI
 // ============================================================
 
@@ -205,51 +309,6 @@ async function uploadMediaToStorage(mediaUri, contentId, mediaType) {
   }
 }
 
-/**
- * Panel UUID'sini (panels tablosu) tv_panels string ID'sine cevir.
- * panels tablosu UUID kullanir, tv_panels ise string ID ('1','2',...).
- * Eslestirme panel ismi uzerinden yapilir.
- */
-async function resolveToTvPanelId(orderPanel) {
-  const panelName = orderPanel.name;
-  if (!panelName) return null;
-
-  try {
-    // Oncelikle tam isim eslemesi dene
-    const { data: tvPanel } = await supabase
-      .from('tv_panels')
-      .select('id, name')
-      .eq('name', panelName)
-      .limit(1)
-      .maybeSingle();
-
-    if (tvPanel) return String(tvPanel.id);
-
-    // Tam esleme bulunamazsa, tum panelleri cek ve case-insensitive/trim ile dene
-    const { data: allPanels } = await supabase
-      .from('tv_panels')
-      .select('id, name');
-
-    if (allPanels && allPanels.length > 0) {
-      const normalizedName = panelName.trim().toLowerCase();
-      const match = allPanels.find(
-        (p) => p.name && p.name.trim().toLowerCase() === normalizedName
-      );
-      if (match) return String(match.id);
-    }
-  } catch (err) {
-    console.warn('resolveToTvPanelId hatasi:', err.message);
-  }
-
-  // Son care: lokal cache'den bul
-  const cachedPanel = _tvPanels.find(
-    (p) => p.name && p.name.trim().toLowerCase() === panelName.trim().toLowerCase()
-  );
-  if (cachedPanel) return String(cachedPanel.id);
-
-  return null;
-}
-
 /** Onaylanan siparisi TV icin icerik olarak Supabase'e yaz ve direkt oynat */
 export async function pushContentToTV(order) {
   const contentId = `tv-${Date.now()}`;
@@ -259,10 +318,10 @@ export async function pushContentToTV(order) {
   // Panel UUID'sini tv_panels string ID'sine cevir (ornek: UUID → '1')
   const tvPanelId = await resolveToTvPanelId(order.panel);
   if (!tvPanelId) {
-    console.warn('pushContentToTV: tv_panels\'da panel bulunamadi:', order.panel.name);
+    console.warn('pushContentToTV: tv_panels\'da panel bulunamadi:', order.panel?.name);
   }
   const panelId = tvPanelId || String(order.panel.id);
-  const panelName = order.panel.name;
+  const panelName = order.panel?.name || '';
 
   const content = {
     orderId: order.id,
@@ -279,7 +338,6 @@ export async function pushContentToTV(order) {
   };
 
   // Lokal cache'i hemen guncelle (UI aninda gorsun)
-  // Hem panelId hem panelName ile eslestir - boylece UUID/string ID uyumsuzlugu sorunu olmaz
   _tvContents = _tvContents
     .map((c) => {
       const samePanel = String(c.panelId) === panelId || (panelName && c.panelName === panelName);
@@ -290,16 +348,15 @@ export async function pushContentToTV(order) {
   notifyListeners();
 
   try {
-    // Ayni panodaki eski playing/approved icerikleri completed yap
-    // Hem panel_id hem panel_name ile eslestir (UUID/string ID uyumsuzlugunu onle)
-    // Once panel_id ile dene
+    // ADIM 1: Ayni panodaki TUM eski playing/approved icerikleri completed yap
+    // panel_id ile eslestir
     await supabase
       .from('tv_contents')
       .update({ status: 'completed' })
       .eq('panel_id', panelId)
       .in('status', ['playing', 'approved']);
 
-    // Panel ismi ile de eslestir (farkli panel_id formatinda kaydedilmis eski icerikleri de yakala)
+    // panel_name ile de eslestir (farkli panel_id formatinda kaydedilmis eski icerikleri yakala)
     if (panelName) {
       await supabase
         .from('tv_contents')
@@ -308,8 +365,8 @@ export async function pushContentToTV(order) {
         .in('status', ['playing', 'approved']);
     }
 
-    // Yeni icerigi ekle
-    await supabase.from('tv_contents').upsert({
+    // ADIM 2: Yeni icerigi ekle (eski iceriklerin completed oldugu kesin)
+    const { error: insertError } = await supabase.from('tv_contents').upsert({
       id: contentId,
       order_id: content.orderId,
       ad_title: content.adTitle,
@@ -319,12 +376,16 @@ export async function pushContentToTV(order) {
       panel_name: content.panelName,
       duration: content.duration,
       scheduled_dates: content.scheduledDates,
-      status: content.status,
+      status: 'playing',
       created_at: content.createdAt,
       approved_at: content.approvedAt,
     });
 
-    // Sadece eslesen tv_panels kaydini guncelle - ASLA yeni panel olusturma
+    if (insertError) {
+      console.warn('pushContentToTV insert hatasi:', insertError);
+    }
+
+    // ADIM 3: tv_panels kaydini guncelle
     if (tvPanelId) {
       await supabase
         .from('tv_panels')
@@ -336,7 +397,7 @@ export async function pushContentToTV(order) {
         .eq('id', tvPanelId);
     }
 
-    // DB'den tekrar oku - boylece lokal cache DB ile senkron olur
+    // ADIM 4: DB'den tekrar oku - cache'i DB ile senkronize et
     await fetchContentsDirectly();
 
     return { id: contentId, ...content };
@@ -490,6 +551,9 @@ export async function initializeDefaultPanels() {
       }));
 
       await supabase.from('tv_panels').upsert(panelRows);
+      // Cache'i de guncelle
+      _tvPanels = panelRows.map(mapPanelRow);
+      notifyListeners();
       console.log('Varsayilan panolar olusturuldu');
     }
   } catch (error) {
@@ -503,11 +567,12 @@ setTimeout(() => initializeDefaultPanels(), 3000);
 
 /**
  * Veritabanindaki bozuk verileri temizle:
- * - tv_panels'daki UUID girisleri sil (sadece '1'-'99' gibi string ID'ler kalmali)
+ * - tv_panels'daki UUID girisleri sil
  * - tv_contents'daki UUID panel_id'li icerikleri dogru panel_id'ye eslestir
+ * - Ayni panel icin birden fazla 'playing' icerik varsa sadece en yenisini birak
  */
 export async function cleanupOrphanedPanels() {
-  const results = { deletedPanels: 0, fixedContents: 0, errors: [] };
+  const results = { deletedPanels: 0, fixedContents: 0, completedDuplicates: 0, errors: [] };
   try {
     // 1) tv_panels'daki tum kayitlari cek
     const { data: allPanels, error: pErr } = await supabase.from('tv_panels').select('*');
@@ -542,6 +607,50 @@ export async function cleanupOrphanedPanels() {
       else results.errors.push(delErr.message);
     }
 
+    // 3) tv_contents'daki UUID panel_id'leri duzelt (panel_name uzerinden)
+    const { data: allContents } = await supabase.from('tv_contents').select('*');
+    for (const content of (allContents || [])) {
+      if (uuidRegex.test(content.panel_id) && content.panel_name) {
+        const correctId = nameToId[content.panel_name] || PANEL_NAME_TO_ID[content.panel_name];
+        if (correctId && correctId !== content.panel_id) {
+          await supabase
+            .from('tv_contents')
+            .update({ panel_id: correctId })
+            .eq('id', content.id);
+          results.fixedContents++;
+        }
+      }
+    }
+
+    // 4) Ayni panel icin birden fazla 'playing' icerik varsa sadece en yenisini birak
+    const { data: playingContents } = await supabase
+      .from('tv_contents')
+      .select('*')
+      .in('status', ['playing', 'approved'])
+      .order('created_at', { ascending: false });
+
+    if (playingContents && playingContents.length > 0) {
+      // Panel bazinda grupla (hem panel_id hem panel_name ile)
+      const seenPanels = new Set();
+      for (const content of playingContents) {
+        const panelKey = content.panel_name || content.panel_id;
+        if (seenPanels.has(panelKey)) {
+          // Bu panelin daha yeni bir icerigi zaten var, bunu completed yap
+          await supabase
+            .from('tv_contents')
+            .update({ status: 'completed' })
+            .eq('id', content.id);
+          results.completedDuplicates++;
+        } else {
+          seenPanels.add(panelKey);
+        }
+      }
+    }
+
+    // Cache'i yenile
+    await fetchContentsDirectly();
+    await fetchPanelsDirectly();
+
     console.log('cleanupOrphanedPanels sonuc:', results);
     return results;
   } catch (error) {
@@ -574,7 +683,7 @@ export async function fetchContentsDirectly() {
 }
 
 /** Supabase'den panolari direkt oku */
-async function fetchPanelsDirectly() {
+export async function fetchPanelsDirectly() {
   try {
     const { data, error } = await supabase.from('tv_panels').select('*');
     if (error) throw error;
@@ -595,8 +704,7 @@ export function getTvContents() {
 /** Belirli panoya ait icerikleri getir */
 export function getContentsByPanel(panelId) {
   const pid = String(panelId);
-  const panel = _tvPanels.find((p) => String(p.id) === pid);
-  const panelName = panel ? panel.name : null;
+  const panelName = getPanelNameById(pid);
 
   return _tvContents.filter((c) => {
     if (String(c.panelId) === pid) return true;
@@ -608,10 +716,7 @@ export function getContentsByPanel(panelId) {
 /** Belirli panoya ait aktif (oynatilacak) icerikleri getir */
 export function getActiveContentsByPanel(panelId) {
   const pid = String(panelId);
-
-  // Oncelikle panelId ile eslesen panelin adini bul (UUID/string ID uyumsuzlugunu onlemek icin)
-  const panel = _tvPanels.find((p) => String(p.id) === pid);
-  const panelName = panel ? panel.name : null;
+  const panelName = getPanelNameById(pid);
 
   return _tvContents.filter((c) => {
     if (c.status !== 'approved' && c.status !== 'playing') return false;
