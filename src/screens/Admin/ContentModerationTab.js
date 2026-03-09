@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useOrders } from '../../context/OrderContext';
+import { useTVContent } from '../../context/TVContentContext';
 
 const REJECT_TEMPLATES = [
   'Görsel kalitesi yetersiz',
@@ -23,6 +24,7 @@ const REJECT_TEMPLATES = [
 
 export default function ContentModerationTab() {
   const { orders, updateOrderStatus, rejectOrder, STATUS_LABELS, STATUS_COLORS } = useOrders();
+  const { pushToTV } = useTVContent();
   const [selectedIds, setSelectedIds] = useState([]);
   const [showRejectReason, setShowRejectReason] = useState(null); // orderId for reject
 
@@ -46,7 +48,12 @@ export default function ContentModerationTab() {
   };
 
   const handleApprove = async (orderId) => {
+    const order = orders.find((o) => o.id === orderId);
     await updateOrderStatus(orderId, 'hazirlaniyor');
+    // Onaylanan siparisi TV'ye icerik olarak gonder
+    if (order) {
+      await pushToTV(order);
+    }
     setSelectedIds((prev) => prev.filter((id) => id !== orderId));
   };
 
@@ -62,7 +69,12 @@ export default function ContentModerationTab() {
     const msg = `${selectedIds.length} içeriği onaylamak istediğinize emin misiniz?`;
     const doApprove = async () => {
       for (const id of selectedIds) {
+        const order = orders.find((o) => o.id === id);
         await updateOrderStatus(id, 'hazirlaniyor');
+        // Onaylanan siparisi TV'ye icerik olarak gonder
+        if (order) {
+          await pushToTV(order);
+        }
       }
       setSelectedIds([]);
     };
