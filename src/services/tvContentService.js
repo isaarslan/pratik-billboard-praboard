@@ -215,17 +215,37 @@ async function resolveToTvPanelId(orderPanel) {
   if (!panelName) return null;
 
   try {
+    // Oncelikle tam isim eslemesi dene
     const { data: tvPanel } = await supabase
       .from('tv_panels')
-      .select('id')
+      .select('id, name')
       .eq('name', panelName)
       .limit(1)
       .maybeSingle();
 
     if (tvPanel) return String(tvPanel.id);
+
+    // Tam esleme bulunamazsa, tum panelleri cek ve case-insensitive/trim ile dene
+    const { data: allPanels } = await supabase
+      .from('tv_panels')
+      .select('id, name');
+
+    if (allPanels && allPanels.length > 0) {
+      const normalizedName = panelName.trim().toLowerCase();
+      const match = allPanels.find(
+        (p) => p.name && p.name.trim().toLowerCase() === normalizedName
+      );
+      if (match) return String(match.id);
+    }
   } catch (err) {
     console.warn('resolveToTvPanelId hatasi:', err.message);
   }
+
+  // Son care: lokal cache'den bul
+  const cachedPanel = _tvPanels.find(
+    (p) => p.name && p.name.trim().toLowerCase() === panelName.trim().toLowerCase()
+  );
+  if (cachedPanel) return String(cachedPanel.id);
 
   return null;
 }
@@ -259,19 +279,34 @@ export async function pushContentToTV(order) {
   };
 
   // Lokal cache'i hemen guncelle (UI aninda gorsun)
+  // Hem panelId hem panelName ile eslestir - boylece UUID/string ID uyumsuzlugu sorunu olmaz
   _tvContents = _tvContents
-    .map((c) => (String(c.panelId) === panelId && (c.status === 'playing' || c.status === 'approved'))
-      ? { ...c, status: 'completed' } : c);
+    .map((c) => {
+      const samePanel = String(c.panelId) === panelId || (panelName && c.panelName === panelName);
+      return (samePanel && (c.status === 'playing' || c.status === 'approved'))
+        ? { ...c, status: 'completed' } : c;
+    });
   _tvContents = [{ id: contentId, ...content }, ..._tvContents];
   notifyListeners();
 
   try {
     // Ayni panodaki eski playing/approved icerikleri completed yap
+    // Hem panel_id hem panel_name ile eslestir (UUID/string ID uyumsuzlugunu onle)
+    // Once panel_id ile dene
     await supabase
       .from('tv_contents')
       .update({ status: 'completed' })
       .eq('panel_id', panelId)
       .in('status', ['playing', 'approved']);
+
+    // Panel ismi ile de eslestir (farkli panel_id formatinda kaydedilmis eski icerikleri de yakala)
+    if (panelName) {
+      await supabase
+        .from('tv_contents')
+        .update({ status: 'completed' })
+        .eq('panel_name', panelName)
+        .in('status', ['playing', 'approved']);
+    }
 
     // Yeni icerigi ekle
     await supabase.from('tv_contents').upsert({
@@ -300,6 +335,9 @@ export async function pushContentToTV(order) {
         })
         .eq('id', tvPanelId);
     }
+
+    // DB'den tekrar oku - boylece lokal cache DB ile senkron olur
+    await fetchContentsDirectly();
 
     return { id: contentId, ...content };
   } catch (error) {
@@ -557,15 +595,31 @@ export function getTvContents() {
 /** Belirli panoya ait icerikleri getir */
 export function getContentsByPanel(panelId) {
   const pid = String(panelId);
-  return _tvContents.filter((c) => String(c.panelId) === pid);
+  const panel = _tvPanels.find((p) => String(p.id) === pid);
+  const panelName = panel ? panel.name : null;
+
+  return _tvContents.filter((c) => {
+    if (String(c.panelId) === pid) return true;
+    if (panelName && c.panelName === panelName) return true;
+    return false;
+  });
 }
 
 /** Belirli panoya ait aktif (oynatilacak) icerikleri getir */
 export function getActiveContentsByPanel(panelId) {
   const pid = String(panelId);
-  return _tvContents.filter(
-    (c) => String(c.panelId) === pid && (c.status === 'approved' || c.status === 'playing')
-  );
+
+  // Oncelikle panelId ile eslesen panelin adini bul (UUID/string ID uyumsuzlugunu onlemek icin)
+  const panel = _tvPanels.find((p) => String(p.id) === pid);
+  const panelName = panel ? panel.name : null;
+
+  return _tvContents.filter((c) => {
+    if (c.status !== 'approved' && c.status !== 'playing') return false;
+    // Panel ID ile veya panel ismi ile eslestir
+    if (String(c.panelId) === pid) return true;
+    if (panelName && c.panelName === panelName) return true;
+    return false;
+  });
 }
 
 /** Tum pano durumlarini getir (cache'den) */
