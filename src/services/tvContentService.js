@@ -215,6 +215,7 @@ export async function pushContentToTV(order) {
   // Order'daki panel name'i kullanarak tv_panels'deki dogru panel_id'yi bul.
   let panelId = String(order.panel.id);
   const panelName = order.panel.name;
+  let panelResolved = false;
 
   if (panelName) {
     try {
@@ -227,6 +228,7 @@ export async function pushContentToTV(order) {
 
       if (matchingPanel) {
         panelId = String(matchingPanel.id);
+        panelResolved = true;
       }
     } catch (err) {
       console.warn('tv_panels eslestirme hatasi:', err.message);
@@ -278,13 +280,17 @@ export async function pushContentToTV(order) {
       approved_at: content.approvedAt,
     });
 
-    // Panelin mevcut icerigini ve durumunu guncelle
-    await supabase.from('tv_panels').upsert({
-      id: panelId,
-      current_content_id: contentId,
-      status: 'online',
-      last_heartbeat: Date.now(),
-    }, { onConflict: 'id', ignoreDuplicates: false });
+    // Panelin mevcut icerigini ve durumunu guncelle (sadece mevcut paneli guncelle, yeni panel olusturma)
+    if (panelResolved) {
+      await supabase
+        .from('tv_panels')
+        .update({
+          current_content_id: contentId,
+          status: 'online',
+          last_heartbeat: Date.now(),
+        })
+        .eq('id', panelId);
+    }
 
     return { id: contentId, ...content };
   } catch (error) {
@@ -389,20 +395,26 @@ export async function registerPanel(panelId, panelData) {
 
         if (tvPanel) {
           resolvedId = String(tvPanel.id);
+        } else {
+          // tv_panels'da eslesen panel yok, yeni panel olusturma
+          console.warn(`registerPanel: tv_panels'da "${panelsRow.name}" bulunamadi, guncelleme yapilmiyor.`);
+          return;
         }
+      } else {
+        // panels tablosunda UUID bulunamadi, yeni panel olusturma
+        console.warn(`registerPanel: panels tablosunda ${panelId} bulunamadi, guncelleme yapilmiyor.`);
+        return;
       }
     }
 
-    const data = {
-      id: resolvedId,
-      name: panelName,
-      location: panelData.location || '',
-      status: 'online',
-      last_heartbeat: Date.now(),
-      resolution: panelData.resolution || '1920x1080',
-    };
-
-    await supabase.from('tv_panels').upsert(data, { onConflict: 'id', ignoreDuplicates: false });
+    // Sadece mevcut paneli guncelle (yeni panel olusturma)
+    await supabase
+      .from('tv_panels')
+      .update({
+        status: 'online',
+        last_heartbeat: Date.now(),
+      })
+      .eq('id', resolvedId);
   } catch (error) {
     console.warn('registerPanel hatasi:', error);
   }
