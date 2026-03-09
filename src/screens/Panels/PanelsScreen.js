@@ -24,9 +24,10 @@ const STATUS_MAP = {
   maintenance: 'Bakımda',
 };
 
-function formatPanel(p) {
+function formatPanel(p, index) {
   return {
     ...p,
+    displayId: index + 1,
     rawPrice: p.price,
     status: STATUS_MAP[p.status] || p.status || 'Müsait',
     price: typeof p.price === 'number' ? `${p.price.toLocaleString('tr-TR')} TL/gün` : p.price,

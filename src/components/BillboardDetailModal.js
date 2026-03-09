@@ -28,7 +28,7 @@ export default function BillboardDetailModal({ visible, panel, onClose, onRent }
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.panelId}>#{panel.id || '3423534'}</Text>
+              <Text style={styles.panelId}>#{panel.displayId || panel.id}</Text>
               <TouchableOpacity onPress={onClose}>
                 <Ionicons name="close" size={24} color={colors.gray[600]} />
               </TouchableOpacity>
