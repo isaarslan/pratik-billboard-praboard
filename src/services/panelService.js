@@ -91,7 +91,7 @@ export async function getPanels() {
     const { data, error } = await supabase
       .from('panels')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: true });
 
     if (error) throw error;
 
@@ -245,5 +245,39 @@ export async function seedDefaultPanels(force = false) {
   } catch (err) {
     console.warn('seedDefaultPanels error:', err.message);
     return { seeded: false, error: err.message };
+  }
+}
+
+// Aynı isimli duplicate panelleri temizle (en eski kaydı tutar)
+export async function cleanDuplicatePanels() {
+  try {
+    const { data, error } = await supabase
+      .from('panels')
+      .select('id, name, created_at')
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    if (!data || data.length === 0) return { cleaned: 0 };
+
+    const seen = {};
+    const duplicateIds = [];
+    data.forEach((p) => {
+      if (seen[p.name]) {
+        duplicateIds.push(p.id);
+      } else {
+        seen[p.name] = true;
+      }
+    });
+
+    if (duplicateIds.length === 0) return { cleaned: 0 };
+
+    for (const id of duplicateIds) {
+      await supabase.from('panels').delete().eq('id', id);
+    }
+
+    return { cleaned: duplicateIds.length };
+  } catch (err) {
+    console.warn('cleanDuplicatePanels error:', err.message);
+    return { cleaned: 0, error: err.message };
   }
 }

@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import BillboardDetailModal from '../../components/BillboardDetailModal';
 import WebMap from '../../components/WebMap';
-import { getPanels } from '../../services/panelService';
+import { getPanels, cleanDuplicatePanels } from '../../services/panelService';
 
 const WEB_BREAKPOINT = 768;
 
@@ -44,13 +44,16 @@ export default function PanelsScreen({ navigation }) {
   const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
 
   useEffect(() => {
-    getPanels().then((data) => {
-      if (data.length === 0) {
-        setLoadError(true);
-      } else {
-        setLoadError(false);
-        setPanels(data.map(formatPanel));
-      }
+    // Önce duplicate panelleri temizle, sonra listele
+    cleanDuplicatePanels().then(() => {
+      getPanels().then((data) => {
+        if (data.length === 0) {
+          setLoadError(true);
+        } else {
+          setLoadError(false);
+          setPanels(data.map(formatPanel));
+        }
+      });
     });
   }, []);
 
