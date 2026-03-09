@@ -205,35 +205,44 @@ async function uploadMediaToStorage(mediaUri, contentId, mediaType) {
   }
 }
 
+/**
+ * Panel UUID'sini (panels tablosu) tv_panels string ID'sine cevir.
+ * panels tablosu UUID kullanir, tv_panels ise string ID ('1','2',...).
+ * Eslestirme panel ismi uzerinden yapilir.
+ */
+async function resolveToTvPanelId(orderPanel) {
+  const panelName = orderPanel.name;
+  if (!panelName) return null;
+
+  try {
+    const { data: tvPanel } = await supabase
+      .from('tv_panels')
+      .select('id')
+      .eq('name', panelName)
+      .limit(1)
+      .maybeSingle();
+
+    if (tvPanel) return String(tvPanel.id);
+  } catch (err) {
+    console.warn('resolveToTvPanelId hatasi:', err.message);
+  }
+
+  return null;
+}
+
 /** Onaylanan siparisi TV icin icerik olarak Supabase'e yaz ve direkt oynat */
 export async function pushContentToTV(order) {
   const contentId = `tv-${Date.now()}`;
   const orderMediaType = order.mediaType || 'image';
   const mediaUrl = await uploadMediaToStorage(order.adImage, contentId, orderMediaType);
 
-  // Panel ID eslestirme: panels tablosu UUID kullanir, tv_panels ise string ID.
-  // Order'daki panel name'i kullanarak tv_panels'deki dogru panel_id'yi bul.
-  let panelId = String(order.panel.id);
-  const panelName = order.panel.name;
-  let panelResolved = false;
-
-  if (panelName) {
-    try {
-      const { data: matchingPanel } = await supabase
-        .from('tv_panels')
-        .select('id')
-        .eq('name', panelName)
-        .limit(1)
-        .maybeSingle();
-
-      if (matchingPanel) {
-        panelId = String(matchingPanel.id);
-        panelResolved = true;
-      }
-    } catch (err) {
-      console.warn('tv_panels eslestirme hatasi:', err.message);
-    }
+  // Panel UUID'sini tv_panels string ID'sine cevir (ornek: UUID → '1')
+  const tvPanelId = await resolveToTvPanelId(order.panel);
+  if (!tvPanelId) {
+    console.warn('pushContentToTV: tv_panels\'da panel bulunamadi:', order.panel.name);
   }
+  const panelId = tvPanelId || String(order.panel.id);
+  const panelName = order.panel.name;
 
   const content = {
     orderId: order.id,
@@ -241,7 +250,7 @@ export async function pushContentToTV(order) {
     mediaUrl: mediaUrl || order.adImage,
     mediaType: orderMediaType,
     panelId: panelId,
-    panelName: panelName || order.panel.name,
+    panelName: panelName,
     duration: parseInt(order.adDuration) || 15,
     scheduledDates: order.dates || [],
     status: 'playing',
@@ -280,8 +289,8 @@ export async function pushContentToTV(order) {
       approved_at: content.approvedAt,
     });
 
-    // Panelin mevcut icerigini ve durumunu guncelle (sadece mevcut paneli guncelle, yeni panel olusturma)
-    if (panelResolved) {
+    // Sadece eslesen tv_panels kaydini guncelle - ASLA yeni panel olusturma
+    if (tvPanelId) {
       await supabase
         .from('tv_panels')
         .update({
@@ -289,7 +298,7 @@ export async function pushContentToTV(order) {
           status: 'online',
           last_heartbeat: Date.now(),
         })
-        .eq('id', panelId);
+        .eq('id', tvPanelId);
     }
 
     return { id: contentId, ...content };
@@ -368,53 +377,17 @@ export async function removeContent(contentId) {
 // TV PANO ISLEMLERI
 // ============================================================
 
-/** Pano kaydet veya guncelle (TV ilk acildiginda) */
+/** Pano kaydet veya guncelle (TV ilk acildiginda, ?tv=1 gibi string ID ile gelir) */
 export async function registerPanel(panelId, panelData) {
   try {
-    // Eger panelId bir UUID ise (panels tablosundan), tv_panels'da isim eslestirmesi yap
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(panelId);
-    let resolvedId = panelId;
-    let panelName = panelData.name || `Panel ${panelId}`;
-
-    if (isUUID) {
-      // panels tablosundan bilgiyi cek
-      const { data: panelsRow } = await supabase
-        .from('panels')
-        .select('name')
-        .eq('id', panelId)
-        .maybeSingle();
-
-      if (panelsRow?.name) {
-        panelName = panelsRow.name;
-        // tv_panels'da isimle esles
-        const { data: tvPanel } = await supabase
-          .from('tv_panels')
-          .select('id')
-          .eq('name', panelsRow.name)
-          .maybeSingle();
-
-        if (tvPanel) {
-          resolvedId = String(tvPanel.id);
-        } else {
-          // tv_panels'da eslesen panel yok, yeni panel olusturma
-          console.warn(`registerPanel: tv_panels'da "${panelsRow.name}" bulunamadi, guncelleme yapilmiyor.`);
-          return;
-        }
-      } else {
-        // panels tablosunda UUID bulunamadi, yeni panel olusturma
-        console.warn(`registerPanel: panels tablosunda ${panelId} bulunamadi, guncelleme yapilmiyor.`);
-        return;
-      }
-    }
-
-    // Sadece mevcut paneli guncelle (yeni panel olusturma)
+    // Sadece mevcut paneli guncelle, asla yeni panel olusturma
     await supabase
       .from('tv_panels')
       .update({
         status: 'online',
         last_heartbeat: Date.now(),
       })
-      .eq('id', resolvedId);
+      .eq('id', panelId);
   } catch (error) {
     console.warn('registerPanel hatasi:', error);
   }
@@ -489,6 +462,56 @@ export async function initializeDefaultPanels() {
 
 // Panolari 3 saniye gecikmeyle olustur (baslangic yukunu azalt)
 setTimeout(() => initializeDefaultPanels(), 3000);
+
+/**
+ * Veritabanindaki bozuk verileri temizle:
+ * - tv_panels'daki UUID girisleri sil (sadece '1'-'99' gibi string ID'ler kalmali)
+ * - tv_contents'daki UUID panel_id'li icerikleri dogru panel_id'ye eslestir
+ */
+export async function cleanupOrphanedPanels() {
+  const results = { deletedPanels: 0, fixedContents: 0, errors: [] };
+  try {
+    // 1) tv_panels'daki tum kayitlari cek
+    const { data: allPanels, error: pErr } = await supabase.from('tv_panels').select('*');
+    if (pErr) throw pErr;
+
+    // UUID formatindaki (bozuk) panelleri bul
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const orphanedPanels = (allPanels || []).filter((p) => uuidRegex.test(p.id));
+
+    // Gecerli panelleri isim → id haritasina cevir
+    const validPanels = (allPanels || []).filter((p) => !uuidRegex.test(p.id));
+    const nameToId = {};
+    validPanels.forEach((p) => { nameToId[p.name] = String(p.id); });
+
+    // 2) Bozuk panellerin iceriklerini dogru panel_id'ye tasi
+    for (const orphan of orphanedPanels) {
+      const correctId = nameToId[orphan.name];
+      if (correctId) {
+        const { error: updateErr } = await supabase
+          .from('tv_contents')
+          .update({ panel_id: correctId })
+          .eq('panel_id', orphan.id);
+        if (!updateErr) results.fixedContents++;
+      }
+
+      // Bozuk paneli sil
+      const { error: delErr } = await supabase
+        .from('tv_panels')
+        .delete()
+        .eq('id', orphan.id);
+      if (!delErr) results.deletedPanels++;
+      else results.errors.push(delErr.message);
+    }
+
+    console.log('cleanupOrphanedPanels sonuc:', results);
+    return results;
+  } catch (error) {
+    console.warn('cleanupOrphanedPanels hatasi:', error);
+    results.errors.push(error.message);
+    return results;
+  }
+}
 
 // ============================================================
 // VERI OKUMA

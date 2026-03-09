@@ -24,6 +24,7 @@ import {
   PANEL_STATUS_MAP,
   PANEL_STATUS_COLORS,
 } from '../../services/panelService';
+import { cleanupOrphanedPanels } from '../../services/tvContentService';
 
 const EMPTY_FORM = {
   name: '',
@@ -171,6 +172,18 @@ export default function PanelManagementTab() {
           >
             <Ionicons name="download-outline" size={16} color="#fff" />
             <Text style={styles.addButtonText}>Seed</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: '#C62828' }]}
+            onPress={async () => {
+              const result = await cleanupOrphanedPanels();
+              const msg = `Silinen bozuk panel: ${result.deletedPanels}, Düzeltilen içerik: ${result.fixedContents}`;
+              if (Platform.OS === 'web') { alert(msg); } else { Alert.alert('Temizlik Tamamlandı', msg); }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="trash-outline" size={16} color="#fff" />
+            <Text style={styles.addButtonText}>TV Temizle</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addButton} onPress={openAddForm} activeOpacity={0.7}>
             <Ionicons name="add" size={18} color="#fff" />
