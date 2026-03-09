@@ -85,7 +85,7 @@ const PANEL_STATUS_COLORS = {
 
 export { PANEL_STATUS_MAP, PANEL_STATUS_COLORS };
 
-// Tüm panelleri getir
+// Tüm panelleri getir (tablo boşsa varsayılan panelleri seed'le)
 export async function getPanels() {
   try {
     const { data, error } = await supabase
@@ -94,10 +94,24 @@ export async function getPanels() {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+
+    // Tablo boşsa varsayılan panelleri yükle
+    if (!data || data.length === 0) {
+      const seedResult = await seedDefaultPanels();
+      if (seedResult.seeded) {
+        // Yeni eklenen panelleri tekrar çek
+        const { data: seededData } = await supabase
+          .from('panels')
+          .select('*')
+          .order('created_at', { ascending: false });
+        return seededData || [];
+      }
+      return [];
+    }
+
+    return data;
   } catch (err) {
     console.warn('getPanels error:', err.message);
-    // Hata durumunda bos dizi don - sahte panel ID'leri veritabanina yazilmasin
     return [];
   }
 }
