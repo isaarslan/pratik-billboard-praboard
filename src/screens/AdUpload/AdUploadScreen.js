@@ -581,10 +581,11 @@ const AdUploadScreen = ({ navigation }) => {
                   adDuration,
                 });
               }
+              setShowSuccessModal(true);
             } catch (err) {
               console.warn('Siparis kaydetme hatasi:', err.message);
+              Alert.alert('Hata', 'Reklam yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.');
             }
-            setShowSuccessModal(true);
           }}
         />
       </View>

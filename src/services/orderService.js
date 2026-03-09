@@ -1,57 +1,79 @@
 import { supabase } from '../config/supabase';
 
 /**
+ * blob: URI'sini base64 data URL'e cevir (web ortami icin)
+ */
+function blobUriToBase64(uri) {
+  return new Promise((resolve, reject) => {
+    fetch(uri)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      })
+      .catch(reject);
+  });
+}
+
+/**
+ * base64 data URL'den Uint8Array olustur
+ */
+function base64ToUint8Array(dataUrl) {
+  const base64 = dataUrl.split(',')[1];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/**
  * Medyayi (gorsel/video) Supabase Storage'a yukle, public URL dondur.
  * blob: ve data: URI'leri web'de gecerli, ama sayfa yenilenince kaybolur.
  * Bu yuzden Storage'a yukluyoruz.
  */
 export async function uploadAdMedia(fileUri, mediaType = 'image') {
-  try {
-    if (!fileUri) return null;
-    // Zaten public URL ise tekrar yukleme
-    if (fileUri.startsWith('http://') || fileUri.startsWith('https://')) {
-      return fileUri;
-    }
-
-    const isVideo = mediaType === 'video';
-    const ext = isVideo ? 'mp4' : 'jpg';
-    const contentType = isVideo ? 'video/mp4' : 'image/jpeg';
-    const filePath = `ads/ad-${Date.now()}.${ext}`;
-
-    let fileData;
-    if (fileUri.startsWith('data:')) {
-      // base64 data URI → Uint8Array
-      const base64 = fileUri.split(',')[1];
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      fileData = bytes;
-    } else {
-      // blob: URI veya file URI → fetch → blob
-      const response = await fetch(fileUri);
-      fileData = await response.blob();
-    }
-
-    const { error } = await supabase.storage
-      .from('tv-content')
-      .upload(filePath, fileData, { contentType, upsert: true });
-
-    if (error) {
-      console.warn('Ad media yukleme hatasi:', error.message);
-      return fileUri; // fallback: orijinal URI
-    }
-
-    const { data } = supabase.storage
-      .from('tv-content')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
-  } catch (err) {
-    console.warn('Ad media yukleme hatasi:', err);
+  if (!fileUri) return null;
+  // Zaten public URL ise tekrar yukleme
+  if (fileUri.startsWith('http://') || fileUri.startsWith('https://')) {
     return fileUri;
   }
+
+  const isVideo = mediaType === 'video';
+  const ext = isVideo ? 'mp4' : 'jpg';
+  const contentType = isVideo ? 'video/mp4' : 'image/jpeg';
+  const filePath = `ads/ad-${Date.now()}.${ext}`;
+
+  let fileData;
+  if (fileUri.startsWith('data:')) {
+    // base64 data URI → Uint8Array
+    fileData = base64ToUint8Array(fileUri);
+  } else if (fileUri.startsWith('blob:')) {
+    // blob: URI → once base64'e cevir, sonra Uint8Array
+    const dataUrl = await blobUriToBase64(fileUri);
+    fileData = base64ToUint8Array(dataUrl);
+  } else {
+    // Native file URI → fetch ile arrayBuffer
+    const response = await fetch(fileUri);
+    fileData = await response.arrayBuffer();
+  }
+
+  const { error } = await supabase.storage
+    .from('tv-content')
+    .upload(filePath, fileData, { contentType, upsert: true });
+
+  if (error) {
+    throw new Error(`Medya yuklenemedi: ${error.message}`);
+  }
+
+  const { data } = supabase.storage
+    .from('tv-content')
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
 }
 
 /**
