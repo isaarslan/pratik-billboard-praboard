@@ -478,35 +478,9 @@ export function getContentsByPanel(panelId) {
 /** Belirli panoya ait aktif (oynatilacak) icerikleri getir */
 export function getActiveContentsByPanel(panelId) {
   const pid = String(panelId);
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-
-  return _tvContents.filter((c) => {
-    if (String(c.panelId) !== pid) return false;
-    if (c.status !== 'approved' && c.status !== 'playing') return false;
-
-    // Zamanlanmis tarihleri kontrol et - tarih varsa bugun o tarihlerde mi?
-    if (c.scheduledDates && c.scheduledDates.length > 0) {
-      const isScheduledToday = c.scheduledDates.some((d) => {
-        // Tarih formati string (ISO veya locale) olabilir, normalize et
-        const dateStr = typeof d === 'string' ? d.split('T')[0] : '';
-        return dateStr === today;
-      });
-      if (!isScheduledToday) {
-        // Tum zamanlanmis tarihler gecmisse icerigi otomatik tamamla
-        const allPast = c.scheduledDates.every((d) => {
-          const dateStr = typeof d === 'string' ? d.split('T')[0] : '';
-          return dateStr < today;
-        });
-        if (allPast) {
-          // Arka planda durumu guncelle (side effect)
-          completeContent(c.id);
-        }
-        return false;
-      }
-    }
-
-    return true;
-  });
+  return _tvContents.filter(
+    (c) => String(c.panelId) === pid && (c.status === 'approved' || c.status === 'playing')
+  );
 }
 
 /** Tum pano durumlarini getir (cache'den) */
