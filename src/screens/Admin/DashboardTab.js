@@ -254,7 +254,7 @@ export default function DashboardTab() {
           {panelPerf.sort((a, b) => b.views - a.views).map((p) => (
             <View key={p.panelId} style={styles.topAdRow}>
               <Ionicons name="tv-outline" size={16} color={colors.textSecondary} />
-              <Text style={[styles.topAdId, { marginLeft: 8 }]} numberOfLines={1}>{p.panelId}</Text>
+              <Text style={[styles.topAdId, { marginLeft: 8 }]} numberOfLines={1}>{p.panelName}</Text>
               <View style={styles.topAdViews}>
                 <Text style={styles.topAdViewsText}>{p.views} gösterim</Text>
               </View>

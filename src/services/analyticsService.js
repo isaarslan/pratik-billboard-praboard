@@ -194,8 +194,22 @@ export async function getPanelPerformance() {
       panels[row.panel_id].totalDuration += row.duration_ms || 0;
     });
 
+    // Panel isimlerini tv_panels tablosundan cek
+    const panelIds = Object.keys(panels);
+    let panelNames = {};
+    if (panelIds.length > 0) {
+      const { data: tvPanels } = await supabase
+        .from('tv_panels')
+        .select('id, name')
+        .in('id', panelIds);
+      if (tvPanels) {
+        tvPanels.forEach((p) => { panelNames[p.id] = p.name; });
+      }
+    }
+
     return Object.entries(panels).map(([panelId, stats]) => ({
       panelId,
+      panelName: panelNames[panelId] || `Pano ${panelId}`,
       views: stats.views,
       avgDuration: stats.views > 0 ? Math.round(stats.totalDuration / stats.views) : 0,
     }));
