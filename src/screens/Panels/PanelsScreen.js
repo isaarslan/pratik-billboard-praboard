@@ -37,11 +37,19 @@ export default function PanelsScreen({ navigation }) {
   const [viewMode, setViewMode] = useState('map');
   const [selectedPanel, setSelectedPanel] = useState(null);
   const [panels, setPanels] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const { width } = useWindowDimensions();
   const isWebWide = Platform.OS === 'web' && width >= WEB_BREAKPOINT;
 
   useEffect(() => {
-    getPanels().then((data) => setPanels(data.map(formatPanel)));
+    getPanels().then((data) => {
+      if (data.length === 0) {
+        setLoadError(true);
+      } else {
+        setLoadError(false);
+        setPanels(data.map(formatPanel));
+      }
+    });
   }, []);
 
   const handlePanelPress = (panel) => {
@@ -194,7 +202,28 @@ export default function PanelsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {viewMode === 'map' ? renderMapView() : renderListView()}
+      {loadError ? (
+        <View style={styles.errorContainer}>
+          <Ionicons name="cloud-offline-outline" size={48} color={colors.gray[400]} />
+          <Text style={styles.errorTitle}>Paneller yüklenemedi</Text>
+          <Text style={styles.errorText}>Lütfen internet bağlantınızı kontrol edip tekrar deneyin.</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => {
+              setLoadError(false);
+              getPanels().then((data) => {
+                if (data.length === 0) {
+                  setLoadError(true);
+                } else {
+                  setPanels(data.map(formatPanel));
+                }
+              });
+            }}
+          >
+            <Text style={styles.retryButtonText}>Tekrar Dene</Text>
+          </TouchableOpacity>
+        </View>
+      ) : viewMode === 'map' ? renderMapView() : renderListView()}
 
       <BillboardDetailModal
         visible={!!selectedPanel}
@@ -367,5 +396,35 @@ const styles = StyleSheet.create({
   webListContent: {
     padding: 16,
     paddingBottom: 24,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.gray[700],
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    color: colors.gray[500],
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

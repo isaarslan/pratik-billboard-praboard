@@ -97,8 +97,8 @@ export async function getPanels() {
     return data || [];
   } catch (err) {
     console.warn('getPanels error:', err.message);
-    // Supabase tablosu yoksa ya da hata varsa default panelleri döndür
-    return DEFAULT_PANELS.map((p, i) => ({ ...p, id: `default-${i}` }));
+    // Hata durumunda bos dizi don - sahte panel ID'leri veritabanina yazilmasin
+    return [];
   }
 }
 
